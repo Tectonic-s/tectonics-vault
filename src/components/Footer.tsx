@@ -10,7 +10,7 @@ export default function Footer() {
             <button className="cursor-pointer hover:text-red-600">LinkedIn</button>
             </div>
             
-            <p>© 2024 Tharun's Vault. All rights reserved.</p>
+            <p>© 2026 Tectonic's Vault. Built by Tectonic.</p>
         </footer>
     );
 }
