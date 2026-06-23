@@ -1,38 +1,54 @@
-import ProjectCard from "./ProjectCard";
+import ProjectCard, { Project } from "./ProjectCard";
 
-const projects = [ 
+const projects : Project[] = [ 
     {
         id:1,
         title: "RepayIQ",
+        tech: ["Flutter" , "Firebase"],
         description: "A financial management app for tracking and managing repayments.",
-        date: "2026"
+        status: "Completed",
+        date: "2026",
+        github: "https://github.com/Tectonic-s/RepayIQ",
+        demo: "demo-link"
     },
     {   
         id:2,
         title: "Samruthi One",
-        description: "Webpage for samruthi one, chennai based fintech company",
-        date: "2026"
+        tech: ["Next.js" , "Tailwind CSS", "Resend", "Neon"],
+        description: "Fintech Company's offical website.",
+        status: "In Progress",
+        date: "2026",
+        github: "https://github.com/Tectonic-s/samruthi-one",
+        demo: "demo-link"
     },
     {
         id:3,
         title: "Tectonic's Vault",
-        description: "Personal portfolio website showcasing projects and skills.",
-        date: "2026"
+        tech: ["Next.js" , "Tailwind CSS"],
+        description: "Personal portfolio Project",
+        status: "In Progress",
+        date: "2026",
+        github: "https://github.com/Tectonic-s/tectonics-vault",
+        demo: "demo-link"
     },
     {   
         id:4,
-        title: "Smart Progress Tracker",
-        description: "A tool for tracking and visualizing progress.",
-        date: "Yet to be Started"
+        title: "Smart Progress Assitance and Tracking",
+        tech: ["Next.js" , "Tailwind CSS", "Python"],
+        description: "-Nil-",
+        status: "Yet to Start",
+        date: "2027",
+        github: "git-link",
+        demo: "demo-link"
     }
 ]
 
 export default function About() {
     return (
-        <section className="h-screen flex items-center flex-col gap-20 p-6 ">
+        <section className="min-h-screen flex items-center flex-col gap-20 p-6 ">
             <h2 className="flex text-5xl md:text-8xl font-bold">Projects</h2>
 
-            <div className="grid grid-cols-2 gap-10">   
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">   
                 
                 {
                     projects.map((project) => ( 
@@ -40,8 +56,14 @@ export default function About() {
 
                         key={project.id}
                         title={project.title} 
+                        tech={project.tech}
                         description={project.description} 
-                        date={project.date} />
+                        status={project.status}
+                        date={project.date}
+                        github={project.github}
+                        demo={project.demo} 
+
+                        />
 
                     ))
                 }
