@@ -1,36 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Vault.
 
-## Getting Started
+The opening experience for the **Vault** portfolio — a single, uninterrupted
+cinematic sequence that transforms the hero title *“Welcome to the Vault.”* into
+the persistent **Vault.** navigation logo as the visitor begins to scroll.
 
-First, run the development server:
+## Stack
+
+- **Next.js (App Router) + TypeScript**
+- **Tailwind CSS v4**
+- **GSAP + ScrollTrigger** — intro choreography and the scroll-driven transition
+- **Lenis** — smooth scrolling, wired to `gsap.ticker`
+- **Excon** & **Ranade** (Fontshare) — bundled locally in `public/fonts`
+
+## The sequence
+
+1. **Black screen, no chrome, scroll locked.** After ~300 ms the hero heading is
+   typed character-by-character (real typewriter, ~35–45 ms/char) with a blinking
+   caret; the caret blinks twice, then is removed.
+2. The subtitle types with identical behaviour, then the underline **draws left → right**
+   and settles into a **connected** down-arrow that bounces gently as the scroll cue.
+   The stem’s top stays welded to the underline and its bottom stretches with the
+   chevron, so the arrow never detaches.
+3. **Only then is scrolling enabled.**
+4. On scroll, the hero scrolls away as the About panel rolls up. The word **“Vault.”**
+   detaches and travels into the top-left as the permanent nav logo (a single element —
+   never two copies), *“Welcome to the”* fades up and away.
+5. As the section settles: **Let’s Talk** fades in, the nav items stagger up, the
+   profile scales `0.95 → 1`, then the name and copy stagger in.
+
+The “Vault.” flight is a measured **FLIP** (`getBoundingClientRect` → `x/y/scale`) so a
+single element scrubs pixel-perfectly from the hero into the nav slot. An invisible
+`Vault.` placeholder in the nav reserves the landing target and keeps the layout honest.
+
+`prefers-reduced-motion` is respected: the typewriter, arrow bounce and auto-motion are
+skipped; the scroll transition remains user-driven.
+
+## Run
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Swapping the placeholder portrait
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+`components/ProfileSilhouette.tsx` renders an inline SVG placeholder. Replace it with a
+real photo via `next/image` — the rounded, cream-bordered frame lives in `Experience.tsx`.
