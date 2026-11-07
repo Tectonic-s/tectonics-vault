@@ -32,12 +32,12 @@ const HERO_VAULT = "Vault.";
 const SUBTITLE = "Scroll Down to explore";
 
 const MENU = [
-  { key: "about", label: "About" },
-  { key: "journey", label: "Journey" },
-  { key: "skills", label: "Skills" },
-  { key: "works", label: "Works" },
-  { key: "beyond", label: "Beyond Work" },
-  { key: "talk", label: "Let’s Talk." },
+  { key: "about", label: "About", numeral: "01" },
+  { key: "journey", label: "Journey", numeral: "02" },
+  { key: "skills", label: "Skills", numeral: "03" },
+  { key: "works", label: "Works", numeral: "04" },
+  { key: "beyond", label: "Beyond Work", numeral: "05" },
+  { key: "talk", label: "Let’s Talk.", numeral: "06" },
 ];
 
 /* The four chapters of the Journey timeline. Fields are split for an
@@ -157,7 +157,7 @@ export default function Experience() {
   // Hero
   const heroPre = useRef<HTMLSpanElement>(null);
   const heroVaultInline = useRef<HTMLSpanElement>(null);
-  const scrollIndicator = useRef<HTMLDivElement>(null);
+  const scrollIndicator = useRef<HTMLButtonElement>(null);
   const ulPath = useRef<SVGPathElement>(null);
   const arrowStem = useRef<SVGLineElement>(null);
   const arrowHead = useRef<SVGPathElement>(null);
@@ -167,7 +167,7 @@ export default function Experience() {
 
   // Nav
   const navGhost = useRef<HTMLButtonElement>(null);
-  const vaultFloat = useRef<HTMLSpanElement>(null);
+  const vaultFloat = useRef<HTMLButtonElement>(null);
   const letsTalk = useRef<HTMLButtonElement>(null);
 
   // Main panel (About, Journey, Craft, Works share it)
@@ -183,10 +183,15 @@ export default function Experience() {
 
   const [isContactOpen, setIsContactOpen] = useState(false);
   const [isBeyondOpen, setIsBeyondOpen] = useState(false);
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+  const [activeChapterIndex, setActiveChapterIndex] = useState(0);
   const [copiedEmail, setCopiedEmail] = useState(false);
   const [hasInteracted, setHasInteracted] = useState(false);
   const [decryptKey, setDecryptKey] = useState(0);
   const [activeSection, setActiveSection] = useState<string>("hero");
+
+  const mobileNavTriggerRef = useRef<HTMLButtonElement>(null);
+  const lastActiveElementRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     const onFirstInteraction = () => {
@@ -210,28 +215,30 @@ export default function Experience() {
   };
 
   useEffect(() => {
-    if (isContactOpen || isBeyondOpen) {
+    if (isContactOpen || isBeyondOpen || isMobileNavOpen) {
       document.body.style.overflow = "hidden";
       lenisRef.current?.stop();
     } else {
       document.body.style.overflow = "auto";
       lenisRef.current?.start();
     }
-  }, [isContactOpen, isBeyondOpen]);
+  }, [isContactOpen, isBeyondOpen, isMobileNavOpen]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        if (isContactOpen || isBeyondOpen) {
+        if (isContactOpen || isBeyondOpen || isMobileNavOpen) {
           soundFX.playModalClose();
         }
         setIsContactOpen(false);
         setIsBeyondOpen(false);
+        setIsMobileNavOpen(false);
+        lastActiveElementRef.current?.focus();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isContactOpen, isBeyondOpen]);
+  }, [isContactOpen, isBeyondOpen, isMobileNavOpen]);
 
   const measureRef = useRef<() => void>(() => {});
   const finishIntroRef = useRef<() => void>(() => {});
@@ -247,34 +254,39 @@ export default function Experience() {
     soundFX.playMenuClick();
     if (key === "beyond") {
       soundFX.playModalOpen();
+      lastActiveElementRef.current = document.activeElement as HTMLElement;
       setIsBeyondOpen(true);
       return;
     }
     if (key === "talk") {
       soundFX.playModalOpen();
+      lastActiveElementRef.current = document.activeElement as HTMLElement;
       setIsContactOpen(true);
       return;
     }
     if (!lenisRef.current) return;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const dur = reduced ? 0 : 1.0;
     switch (key) {
       case "about":
-        lenisRef.current.scrollTo(window.innerHeight * 1.15, { duration: 1.0 });
+        lenisRef.current.scrollTo(window.innerHeight * 1.15, { duration: dur });
         break;
       case "journey":
-        lenisRef.current.scrollTo(window.innerHeight * 1.9, { duration: 1.0 });
+        lenisRef.current.scrollTo(window.innerHeight * 1.9, { duration: dur });
         break;
       case "skills":
       case "craft":
-        lenisRef.current.scrollTo(window.innerHeight * 4.6, { duration: 1.0 });
+        lenisRef.current.scrollTo(window.innerHeight * 4.6, { duration: dur });
         break;
       case "works":
-        lenisRef.current.scrollTo(window.innerHeight * 6.2, { duration: 1.0 });
+        lenisRef.current.scrollTo(window.innerHeight * 6.2, { duration: dur });
         break;
     }
   };
 
   const handleChapterClick = (index: number) => {
     soundFX.playTabSwitch();
+    setActiveChapterIndex(index);
     if (!lenisRef.current) return;
     const offsets = [
       window.innerHeight * 1.9,
@@ -282,7 +294,22 @@ export default function Experience() {
       window.innerHeight * 3.0,
       window.innerHeight * 3.55,
     ];
-    lenisRef.current.scrollTo(offsets[index], { duration: 0.8 });
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    lenisRef.current.scrollTo(offsets[index], { duration: reduced ? 0 : 0.8 });
+  };
+
+  const handleTabKeyDown = (e: React.KeyboardEvent, index: number) => {
+    if (e.key === "ArrowRight") {
+      e.preventDefault();
+      const next = Math.min(JOURNEY.length - 1, index + 1);
+      handleChapterClick(next);
+      document.getElementById(`journey-tab-${next}`)?.focus();
+    } else if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      const prev = Math.max(0, index - 1);
+      handleChapterClick(prev);
+      document.getElementById(`journey-tab-${prev}`)?.focus();
+    }
   };
 
   useEffect(() => {
@@ -575,13 +602,18 @@ export default function Experience() {
 
       // ======== PHASE 2b — Journey Chapters Scrubbing ========
       const setActiveTab = (index: number) => {
+        setActiveChapterIndex(index);
         jTabs.forEach((tab, i) => {
           if (i === index) {
             tab.classList.add("bg-black", "text-white", "shadow-sm");
             tab.classList.remove("bg-black/[0.04]", "text-black/60");
+            tab.setAttribute("aria-selected", "true");
+            tab.setAttribute("tabindex", "0");
           } else {
             tab.classList.remove("bg-black", "text-white", "shadow-sm");
             tab.classList.add("bg-black/[0.04]", "text-black/60");
+            tab.setAttribute("aria-selected", "false");
+            tab.setAttribute("tabindex", "-1");
           }
         });
         if (jCount) jCount.textContent = `0${index + 1}`;
@@ -695,6 +727,17 @@ export default function Experience() {
           gsap.set(ulPath.current, { strokeDasharray: len, strokeDashoffset: 0 });
         }
         gsap.set([ulPath.current, arrowStem.current, arrowHead.current], { opacity: 1 });
+        gsap.set(craftCards, { opacity: 1 });
+        craftCards.forEach((card) => {
+          const trace = card.querySelector("[data-craft-trace]");
+          const head = card.querySelector("[data-craft-head]");
+          const checks = card.querySelectorAll("[data-craft-check]");
+          const names = card.querySelectorAll("[data-craft-name]");
+          if (trace) gsap.set(trace, { strokeDashoffset: 0 });
+          if (head) gsap.set(head, { opacity: 1, y: 0 });
+          if (checks) gsap.set(checks, { opacity: 1, scale: 1 });
+          if (names) gsap.set(names, { opacity: 1, x: 0, filter: "none" });
+        });
         measure();
         unlockScroll();
         ScrollTrigger.refresh();
@@ -782,7 +825,7 @@ export default function Experience() {
   }, []);
 
   return (
-    <div ref={root} className="relative h-[700vh] w-full">
+    <main id="main-content" ref={root} className="relative h-[700vh] w-full">
       {/* ---------------------------------- VIEWPORT SCROLL PROGRESS HAIRLINE */}
       <div
         aria-hidden
@@ -796,12 +839,14 @@ export default function Experience() {
         <div className="relative">
           <button
             ref={navGhost}
+            type="button"
             onClick={() => {
               soundFX.playMenuClick();
-              lenisRef.current?.scrollTo(0, { duration: 1.2 });
+              const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+              lenisRef.current?.scrollTo(0, { duration: reduced ? 0 : 1.2 });
             }}
-            aria-label="Return to top"
-            className="font-excon font-bold leading-none opacity-0 select-none cursor-pointer"
+            aria-label="Vault, return to top"
+            className="font-excon font-bold leading-none opacity-0 select-none cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 rounded"
             style={{ fontSize: NAV_VAULT_SIZE }}
           >
             Vault.
@@ -810,43 +855,56 @@ export default function Experience() {
 
         <div className="flex items-center gap-2 sm:gap-3">
           <button
+            ref={mobileNavTriggerRef}
+            type="button"
             onClick={() => {
               soundFX.playModalOpen();
-              setIsBeyondOpen(true);
+              lastActiveElementRef.current = mobileNavTriggerRef.current;
+              setIsMobileNavOpen(true);
             }}
             onMouseEnter={() => soundFX.playHoverTick()}
-            className="lg:hidden text-xs font-semibold text-neutral-600 hover:text-black border border-black/10 rounded-full px-3 py-1.5 bg-white/80 backdrop-blur-sm active:scale-95 transition-all cursor-pointer"
+            aria-label="Open section navigation"
+            aria-expanded={isMobileNavOpen}
+            aria-controls="mobile-nav-drawer"
+            className="lg:hidden text-xs font-semibold text-neutral-700 hover:text-black border border-black/12 rounded-full px-3 py-1.5 bg-white/85 backdrop-blur-sm active:scale-95 transition-all shadow-xs cursor-pointer flex items-center gap-1.5 focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
           >
-            Beyond
+            <span className="w-1.5 h-1.5 rounded-full bg-black/60" />
+            <span>Sections</span>
           </button>
           <button
             ref={letsTalk}
+            type="button"
             onClick={() => {
               soundFX.playModalOpen();
+              lastActiveElementRef.current = letsTalk.current;
               setIsContactOpen(true);
             }}
             onMouseEnter={() => soundFX.playHoverTick()}
-            className="group will-reveal flex items-center gap-1.5 sm:gap-2 font-excon font-bold leading-none text-ink rounded-full border-2 border-ink px-3.5 py-1.5 sm:px-5 sm:py-2.5 text-xs sm:text-sm transition-all duration-200 hover:bg-ink hover:text-bg hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(0,0,0,0.12)] active:scale-95 active:translate-y-0 cursor-pointer"
+            aria-label="Open contact dialog"
+            className="group will-reveal flex items-center gap-1.5 sm:gap-2 font-excon font-bold leading-none text-ink rounded-full border-2 border-ink px-3.5 py-1.5 sm:px-5 sm:py-2.5 text-xs sm:text-sm transition-all duration-200 hover:bg-ink hover:text-bg hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(0,0,0,0.12)] active:scale-95 active:translate-y-0 cursor-pointer focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
           >
             <span>Let&rsquo;s Talk.</span>
-            <span className="inline-block transition-transform duration-200 ease-out group-hover:translate-x-0.5 group-hover:-translate-y-0.5 font-mono text-[0.85em]">
+            <span aria-hidden="true" className="inline-block transition-transform duration-200 ease-out group-hover:translate-x-0.5 group-hover:-translate-y-0.5 font-mono text-[0.85em]">
               ↗
             </span>
           </button>
         </div>
 
-        <span
+        <button
           ref={vaultFloat}
+          type="button"
+          tabIndex={-1}
+          aria-hidden="true"
           onClick={() => {
             soundFX.playMenuClick();
-            lenisRef.current?.scrollTo(0, { duration: 1.2 });
+            const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+            lenisRef.current?.scrollTo(0, { duration: reduced ? 0 : 1.2 });
           }}
-          aria-hidden
-          className="text-glow pointer-events-auto fixed left-0 top-0 font-excon font-bold leading-none text-ink cursor-pointer active:scale-95 transition-transform duration-150"
+          className="text-glow pointer-events-auto fixed left-0 top-0 font-excon font-bold leading-none text-ink cursor-pointer active:scale-95 transition-transform duration-150 border-0 bg-transparent p-0"
           style={{ fontSize: HEADING_SIZE, willChange: "transform" }}
         >
           Vault.
-        </span>
+        </button>
       </header>
 
       {/* ---------------------------------------------------------- STAGE */}
@@ -862,6 +920,8 @@ export default function Experience() {
 
         {/* -------------------------------------------------------- HERO */}
         <section
+          id="hero"
+          aria-label="Introduction"
           onClick={handleHeroClick}
           className="absolute inset-0 z-10 flex flex-col items-center justify-center px-4 sm:px-6 text-center select-none"
         >
@@ -898,14 +958,17 @@ export default function Experience() {
             </span>
           </h1>
 
-          <div
+          <button
+            type="button"
             ref={scrollIndicator}
             onClick={() => {
               soundFX.playMenuClick();
-              lenisRef.current?.scrollTo(window.innerHeight * 1.15, { duration: 1.0 });
+              const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+              lenisRef.current?.scrollTo(window.innerHeight * 1.15, { duration: reduced ? 0 : 1.0 });
             }}
             onMouseEnter={() => soundFX.playHoverTick()}
-            className="group mt-[3vh] sm:mt-[4.5vh] flex w-full flex-col items-center cursor-pointer transition-transform duration-300 hover:scale-[1.03] active:scale-95"
+            aria-label="Scroll down to explore"
+            className="group mt-[3vh] sm:mt-[4.5vh] flex w-full flex-col items-center cursor-pointer transition-transform duration-300 hover:scale-[1.03] active:scale-95 focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-4 rounded-xl p-2 border-0 bg-transparent"
             style={{ maxWidth: "min(90vw, 560px)" }}
           >
             <svg
@@ -917,6 +980,7 @@ export default function Experience() {
               strokeLinecap="round"
               strokeLinejoin="round"
               style={{ color: INK }}
+              aria-hidden="true"
             >
               <path ref={ulPath} d="M4 12 H 604 Q 622 12 622 30" />
               <line ref={arrowStem} x1="622" y1="29" x2="622" y2="60" />
@@ -940,7 +1004,7 @@ export default function Experience() {
                 }}
               />
             </p>
-          </div>
+          </button>
         </section>
 
         {/* ---------------------------------------- MAIN PANEL (About / Journey) */}
@@ -954,50 +1018,82 @@ export default function Experience() {
           </div>
           <div className="relative mx-auto flex h-full max-w-[1480px] items-center px-4 sm:px-6 lg:px-[5vw] lg:gap-[4%]">
             {/* Left: accordion chapter menu (desktop only) */}
-            <ul
-              ref={menu}
-              className="hidden lg:flex w-[26%] shrink-0 flex-col justify-center gap-[0.55rem] font-excon font-bold leading-[1.05]"
-            >
-              {MENU.map((item) => (
-                <li
-                  key={item.key}
-                  data-key={item.key}
-                  onClick={() => handleMenuClick(item.key)}
-                  onMouseEnter={() => soundFX.playHoverTick()}
-                  className="group will-reveal cursor-pointer select-none whitespace-nowrap active:scale-[0.98] transition-transform duration-150"
-                  style={{
-                    fontSize: item.key === "about" ? MENU_ACTIVE : MENU_SMALL,
-                    color: item.key === "about" ? INK : INK_DIM,
-                  }}
-                >
-                  <span className="inline-flex items-center gap-3 transition-transform duration-300 ease-out group-hover:translate-x-2.5 group-active:translate-x-1">
-                    <span className="transition-colors duration-200 group-hover:text-black">
-                      {item.label}
-                    </span>
-                    {(item.key === "skills" || item.key === "craft") && (
-                      <span
-                        data-craft-count
-                        aria-hidden
-                        className="inline-flex shrink-0 items-center justify-center rounded-full font-inter font-bold text-white bg-black shadow-sm transition-transform duration-300 ease-out group-hover:scale-125 group-hover:rotate-6"
-                        style={{
-                          width: "1.35rem",
-                          height: "1.35rem",
-                          fontSize: "0.72rem",
-                          lineHeight: 1,
-                        }}
+            <nav aria-label="Section navigation" className="hidden lg:flex w-[28%] shrink-0">
+              <ul
+                ref={menu}
+                className="w-full flex flex-col justify-center gap-[0.55rem] font-excon font-bold leading-[1.05]"
+              >
+                {MENU.map((item) => {
+                  const isActive = activeSection === item.key;
+                  return (
+                    <li
+                      key={item.key}
+                      data-key={item.key}
+                      className="group will-reveal select-none whitespace-nowrap"
+                      style={{
+                        fontSize: item.key === "about" ? MENU_ACTIVE : MENU_SMALL,
+                        color: item.key === "about" ? INK : INK_DIM,
+                      }}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => handleMenuClick(item.key)}
+                        onMouseEnter={() => soundFX.playHoverTick()}
+                        aria-current={isActive ? "true" : undefined}
+                        className="w-full text-left flex items-center justify-between py-1 rounded-lg cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 active:scale-[0.98] transition-transform duration-150 border-0 bg-transparent p-0 text-inherit font-inherit"
                       >
-                        16
-                      </span>
-                    )}
-                  </span>
-                </li>
-              ))}
-            </ul>
+                        <span className="inline-flex items-center gap-3 transition-transform duration-300 ease-out group-hover:translate-x-2.5 group-active:translate-x-1">
+                          <span
+                            className={`font-mono text-xs sm:text-sm tracking-wider transition-opacity duration-200 ${
+                              isActive ? "opacity-100 font-bold" : "opacity-45"
+                            }`}
+                          >
+                            {item.numeral}
+                          </span>
+                          <span className="transition-colors duration-200 group-hover:text-black">
+                            {item.label}
+                          </span>
+                          {(item.key === "skills" || item.key === "craft") && (
+                            <span
+                              data-craft-count
+                              aria-hidden="true"
+                              className="inline-flex shrink-0 items-center justify-center rounded-full font-inter font-bold text-white bg-black shadow-sm transition-transform duration-300 ease-out group-hover:scale-125 group-hover:rotate-6"
+                              style={{
+                                width: "1.35rem",
+                                height: "1.35rem",
+                                fontSize: "0.72rem",
+                                lineHeight: 1,
+                              }}
+                            >
+                              16
+                            </span>
+                          )}
+                        </span>
+                        {isActive && (
+                          <span
+                            aria-hidden="true"
+                            className="font-mono text-xs tracking-wider font-semibold opacity-60 ml-2"
+                          >
+                            {item.numeral} / 06
+                          </span>
+                        )}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </nav>
 
             {/* Right: swappable content */}
             <div className="relative h-full flex-1 w-full pb-14 lg:pb-0">
               {/* About */}
-              <div ref={aboutRight} className="absolute inset-0 flex items-center justify-center lg:justify-end">
+              <section
+                id="about"
+                aria-label="About Tharun S"
+                ref={aboutRight}
+                className="absolute inset-0 flex items-center justify-center lg:justify-end"
+              >
+                <h2 className="sr-only">About Tharun S</h2>
                 <div className="flex w-full max-w-[480px] flex-col items-center text-center lg:items-end lg:text-right">
                   <div ref={profile} className="will-reveal relative w-[clamp(160px,18vw,300px)]">
                     <div data-portrait-glow aria-hidden className="hidden" />
@@ -1027,27 +1123,46 @@ export default function Experience() {
                     </p>
                   </div>
                 </div>
-              </div>
+              </section>
 
               {/* Journey — Editorial Chapter Showcase */}
-              <div ref={journeyRight} className="absolute inset-0 flex items-center justify-center">
+              <section
+                id="journey"
+                aria-label="Journey timeline"
+                ref={journeyRight}
+                className="absolute inset-0 flex items-center justify-center"
+              >
+                <h2 className="sr-only">Journey Chapters</h2>
                 <div className="w-full max-w-[820px] 2xl:max-w-[880px] flex flex-col gap-3 sm:gap-5">
                   {/* Chapter Navigation Tabs / Bar */}
                   <div className="flex items-center justify-between border-b border-black/8 pb-2.5 sm:pb-4">
-                    <div className="flex items-center gap-1 sm:gap-2">
+                    <div
+                      role="tablist"
+                      aria-label="Journey chapter selector"
+                      className="flex items-center gap-1 sm:gap-2"
+                    >
                       {JOURNEY.map((step, i) => (
                         <button
                           key={step.title}
+                          type="button"
+                          role="tab"
+                          id={`journey-tab-${i}`}
+                          aria-controls={`journey-card-${i}`}
+                          aria-selected={i === activeChapterIndex}
+                          tabIndex={i === activeChapterIndex ? 0 : -1}
+                          aria-label={`Chapter 0${i + 1}: ${step.title}`}
                           data-jtab={i}
                           onClick={() => handleChapterClick(i)}
+                          onKeyDown={(e) => handleTabKeyDown(e, i)}
                           onMouseEnter={() => soundFX.playHoverTick()}
-                          className={`group flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 hover:-translate-y-0.5 active:scale-95 cursor-pointer ${
+                          className={`group flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 hover:-translate-y-0.5 active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 ${
                             i === 0
                               ? "bg-black text-white shadow-sm"
                               : "bg-black/[0.04] text-black/60 hover:text-black hover:bg-black/[0.08]"
                           }`}
                         >
                           <span
+                            aria-hidden="true"
                             className="w-1.5 h-1.5 rounded-full transition-transform duration-300 ease-out group-hover:scale-150"
                             style={{ backgroundColor: `rgb(${step.accent.join(" ")})` }}
                           />
@@ -1056,20 +1171,47 @@ export default function Experience() {
                         </button>
                       ))}
                     </div>
-                    <div className="flex items-center gap-1 text-xs font-mono font-medium text-neutral-400">
-                      <span data-jcount className="font-bold text-neutral-800">01</span>
-                      <span>/</span>
-                      <span>04</span>
+
+                    <div className="flex items-center gap-1.5 sm:gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleChapterClick(Math.max(0, activeChapterIndex - 1))}
+                        disabled={activeChapterIndex === 0}
+                        aria-label="Previous chapter"
+                        className="h-7 w-7 rounded-full border border-black/10 flex items-center justify-center text-xs font-mono text-neutral-600 hover:text-black hover:border-black/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-black"
+                      >
+                        ←
+                      </button>
+                      <div className="flex items-center gap-1 text-xs font-mono font-medium text-neutral-400" aria-live="polite">
+                        <span data-jcount className="font-bold text-neutral-800">
+                          0{activeChapterIndex + 1}
+                        </span>
+                        <span>/</span>
+                        <span>04</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleChapterClick(Math.min(JOURNEY.length - 1, activeChapterIndex + 1))}
+                        disabled={activeChapterIndex === JOURNEY.length - 1}
+                        aria-label="Next chapter"
+                        className="h-7 w-7 rounded-full border border-black/10 flex items-center justify-center text-xs font-mono text-neutral-600 hover:text-black hover:border-black/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-black"
+                      >
+                        →
+                      </button>
                     </div>
                   </div>
 
                   {/* Stacked Chapter Cards */}
-                  <div className="relative h-[410px] sm:h-[390px] md:h-[360px] w-full">
+                  <div className="relative h-[430px] sm:h-[400px] md:h-[370px] w-full">
                     {JOURNEY.map((step, i) => (
                       <div
                         key={step.title}
+                        id={`journey-card-${i}`}
+                        role="tabpanel"
+                        aria-labelledby={`journey-tab-${i}`}
+                        tabIndex={0}
                         data-jcard={i}
-                        className="absolute inset-0 rounded-[20px] sm:rounded-[24px] bg-white p-4 sm:p-7 md:p-8 border shadow-[0_12px_36px_rgba(0,0,0,0.04)] flex flex-col justify-between overflow-hidden"
+                        className="absolute inset-0 rounded-[20px] sm:rounded-[24px] bg-white p-4 sm:p-7 md:p-8 border shadow-[0_12px_36px_rgba(0,0,0,0.04)] flex flex-col justify-between overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
                         style={{
                           borderColor: `rgb(${step.accent.join(" ")} / 0.45)`,
                           opacity: i === 0 ? 1 : 0,
@@ -1079,8 +1221,8 @@ export default function Experience() {
                       >
                         <div>
                           {/* Top row: Chapter metadata badge + Metric display */}
-                          <div className="flex items-start justify-between gap-2 sm:gap-4">
-                            <div>
+                          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-4">
+                            <div className="min-w-0 flex-1">
                               <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                                 <span
                                   className="inline-flex items-center gap-1 sm:gap-1.5 text-[0.65rem] sm:text-xs font-semibold uppercase tracking-wider px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md"
@@ -1090,6 +1232,7 @@ export default function Experience() {
                                   }}
                                 >
                                   <span
+                                    aria-hidden="true"
                                     className="w-1.5 h-1.5 rounded-full"
                                     style={{ backgroundColor: `rgb(${step.accent.join(" ")})` }}
                                   />
@@ -1102,7 +1245,7 @@ export default function Experience() {
                                 )}
                               </div>
 
-                              <h3 className="mt-2 sm:mt-3.5 font-excon text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-ink">
+                              <h3 className="mt-2 sm:mt-3.5 font-excon text-lg sm:text-2xl md:text-3xl font-bold tracking-tight text-ink break-words">
                                 {step.primary}
                               </h3>
                               {step.secondary && (
@@ -1113,11 +1256,11 @@ export default function Experience() {
                             </div>
 
                             {step.metric && (
-                              <div className="flex flex-col items-end shrink-0 rounded-xl sm:rounded-2xl bg-neutral-50 border border-black/6 px-2.5 py-1.5 sm:px-4 sm:py-2.5 transition-all duration-300 hover:scale-105 hover:bg-white hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] cursor-default">
-                                <div className="flex items-baseline font-excon font-bold text-xl sm:text-2xl md:text-3xl text-ink leading-none">
+                              <div className="flex flex-col items-start sm:items-end shrink-0 self-start rounded-xl sm:rounded-2xl bg-neutral-50 border border-black/6 px-2.5 py-1.5 sm:px-4 sm:py-2.5 transition-all duration-300 hover:scale-105 hover:bg-white hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] cursor-default">
+                                <div className="flex items-baseline font-excon font-bold text-lg sm:text-2xl md:text-3xl text-ink leading-none">
                                   <span>{step.metric}</span>
                                   {step.metricUnit && (
-                                    <span className="text-sm sm:text-lg font-light ml-0.5 text-neutral-600">
+                                    <span className="text-xs sm:text-lg font-light ml-0.5 text-neutral-600">
                                       {step.metricUnit}
                                     </span>
                                   )}
@@ -1151,6 +1294,7 @@ export default function Experience() {
                               className="group/pill inline-flex items-center gap-1 sm:gap-1.5 rounded-full border border-black/8 bg-neutral-50/70 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[0.68rem] sm:text-xs font-medium text-neutral-700 transition-all duration-200 hover:-translate-y-0.5 hover:border-black/20 hover:bg-white hover:shadow-sm cursor-default"
                             >
                               <span
+                                aria-hidden="true"
                                 className="font-bold text-[0.65rem] sm:text-[0.7rem] transition-transform duration-200 group-hover/pill:scale-125"
                                 style={{ color: `rgb(${step.accent.join(" ")})` }}
                               >
@@ -1164,10 +1308,16 @@ export default function Experience() {
                     ))}
                   </div>
                 </div>
-              </div>
+              </section>
 
               {/* Skills — the cabinet of accumulated achievements */}
-              <div ref={craftRight} className="absolute inset-0 flex items-center justify-center">
+              <section
+                id="skills"
+                aria-label="Skills & Capabilities"
+                ref={craftRight}
+                className="absolute inset-0 flex items-center justify-center"
+              >
+                <h2 className="sr-only">Skills &amp; Capabilities</h2>
                 <div className="grid w-full max-w-[940px] 2xl:max-w-[1020px] grid-cols-2 gap-2.5 sm:gap-6 lg:gap-8">
                   {CRAFT_CATEGORIES.map((cat, ci) => {
                     const tally = cat.skills.reduce<Record<number, number>>((m, s) => {
@@ -1225,12 +1375,12 @@ export default function Experience() {
                           />
                         </svg>
 
-                        <h4
+                        <h3
                           data-craft-head
                           className="font-inter font-semibold uppercase text-black/50 text-[0.68rem] sm:text-xs tracking-wider"
                         >
                           {cat.name}
-                        </h4>
+                        </h3>
                         <ul className="mt-2 sm:mt-5 space-y-1 sm:space-y-3.5">
                           {cat.skills.map((s) => {
                             const origin = originOf(s);
@@ -1272,10 +1422,16 @@ export default function Experience() {
                     );
                   })}
                 </div>
-              </div>
+              </section>
 
               {/* Works — Expandable Project Showcase */}
-              <div ref={worksRight} className="absolute inset-0 flex items-center justify-center">
+              <section
+                id="works"
+                aria-label="Selected Works"
+                ref={worksRight}
+                className="absolute inset-0 flex items-center justify-center"
+              >
+                <h2 className="sr-only">Selected Works</h2>
                 <div className="w-full max-w-[880px] 2xl:max-w-[960px] flex flex-col gap-2 sm:gap-4">
                   <div className="flex items-center justify-between border-b border-black/8 pb-2 sm:pb-3">
                     <div className="flex items-center gap-1.5 sm:gap-2">
@@ -1300,7 +1456,7 @@ export default function Experience() {
                     }}
                   />
                 </div>
-              </div>
+              </section>
             </div>
           </div>
         </div>
@@ -1308,7 +1464,7 @@ export default function Experience() {
 
       {/* --------------------------------- MOBILE FLOATING SECTION NAV PILL */}
       <nav
-        aria-label="Section navigation"
+        aria-label="Quick section navigation"
         className={`lg:hidden fixed bottom-4 inset-x-0 mx-auto w-fit z-40 transition-all duration-300 ${
           activeSection === "hero"
             ? "opacity-0 pointer-events-none translate-y-4"
@@ -1326,8 +1482,10 @@ export default function Experience() {
             return (
               <button
                 key={item.key}
+                type="button"
                 onClick={() => handleMenuClick(item.key)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 active:scale-95 cursor-pointer ${
+                aria-current={isActive ? "true" : undefined}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-black ${
                   isActive
                     ? "bg-black text-white shadow-sm"
                     : "text-black/60 hover:text-black hover:bg-black/[0.04]"
@@ -1336,6 +1494,7 @@ export default function Experience() {
                 <span>{item.label}</span>
                 {item.key === "skills" && (
                   <span
+                    aria-hidden="true"
                     className={`inline-flex shrink-0 items-center justify-center rounded-full font-mono text-[0.62rem] px-1 h-3.5 ${
                       isActive ? "bg-white text-black font-bold" : "bg-black/10 text-black"
                     }`}
@@ -1349,14 +1508,124 @@ export default function Experience() {
         </div>
       </nav>
 
+      {/* ------------------------------------------- MOBILE NAV DRAWER */}
+      {isMobileNavOpen && (
+        <div
+          id="mobile-nav-drawer"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Section navigation"
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+        >
+          <div
+            className="fixed inset-0 bg-white/80 backdrop-blur-md transition-opacity"
+            onClick={() => {
+              soundFX.playModalClose();
+              setIsMobileNavOpen(false);
+              lastActiveElementRef.current?.focus();
+            }}
+          />
+          <div className="relative w-full sm:max-w-[420px] rounded-t-[28px] sm:rounded-[28px] border border-black/10 bg-white p-6 shadow-2xl transition-all z-10 max-h-[85vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-4 border-b border-black/8">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-black animate-pulse" />
+                <h3 className="font-excon font-bold text-lg text-ink">
+                  Sections
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  soundFX.playModalClose();
+                  setIsMobileNavOpen(false);
+                  lastActiveElementRef.current?.focus();
+                }}
+                className="group flex h-8 w-8 items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-100 hover:text-black transition-all hover:scale-105 active:scale-90 cursor-pointer focus-visible:ring-2 focus-visible:ring-black"
+                aria-label="Close navigation"
+              >
+                <span className="transition-transform duration-200 group-hover:rotate-90">✕</span>
+              </button>
+            </div>
+
+            <nav aria-label="Mobile sections list" className="mt-4 flex flex-col gap-1.5">
+              {MENU.map((item) => {
+                const isActive = activeSection === item.key;
+                return (
+                  <button
+                    key={item.key}
+                    type="button"
+                    onClick={() => {
+                      soundFX.playMenuClick();
+                      setIsMobileNavOpen(false);
+                      handleMenuClick(item.key);
+                    }}
+                    onMouseEnter={() => soundFX.playHoverTick()}
+                    aria-current={isActive ? "true" : undefined}
+                    className={`group flex items-center justify-between w-full px-4 py-3 rounded-2xl text-left transition-all duration-200 active:scale-[0.98] cursor-pointer focus-visible:ring-2 focus-visible:ring-black ${
+                      isActive
+                        ? "bg-black text-white shadow-sm"
+                        : "bg-neutral-50/80 text-neutral-800 hover:bg-black/5"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span
+                        className={`font-mono text-xs tracking-wider ${
+                          isActive ? "text-white/70" : "text-neutral-400"
+                        }`}
+                      >
+                        {item.numeral}
+                      </span>
+                      <span className="font-excon font-bold text-base">
+                        {item.label}
+                      </span>
+                      {(item.key === "skills" || item.key === "craft") && (
+                        <span
+                          className={`inline-flex shrink-0 items-center justify-center rounded-full font-mono text-[0.65rem] px-1.5 h-4 font-bold ${
+                            isActive ? "bg-white text-black" : "bg-black text-white"
+                          }`}
+                        >
+                          16
+                        </span>
+                      )}
+                      {item.key === "works" && (
+                        <span
+                          className={`inline-flex shrink-0 items-center justify-center rounded-full font-mono text-[0.65rem] px-1.5 h-4 font-bold ${
+                            isActive ? "bg-white text-black" : "bg-black/10 text-neutral-700"
+                          }`}
+                        >
+                          04
+                        </span>
+                      )}
+                    </div>
+                    {isActive ? (
+                      <span className="w-1.5 h-1.5 rounded-full bg-white" />
+                    ) : (
+                      <span className="font-mono text-xs opacity-0 -translate-x-1 transition-all duration-200 group-hover:opacity-100 group-hover:translate-x-0">
+                        ↗
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </nav>
+          </div>
+        </div>
+      )}
+
       {/* ---------------------------------------------------- CONTACT MODAL */}
       {isContactOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="contact-modal-title"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        >
           <div
             className="fixed inset-0 bg-white/80 backdrop-blur-md transition-opacity"
             onClick={() => {
               soundFX.playModalClose();
               setIsContactOpen(false);
+              lastActiveElementRef.current?.focus();
             }}
           />
           <div className="relative w-full max-w-[480px] rounded-[28px] border border-black/10 bg-white p-7 md:p-9 shadow-2xl transition-all">
@@ -1366,7 +1635,7 @@ export default function Experience() {
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
                   Available for opportunities
                 </span>
-                <h3 className="mt-3.5 font-excon text-3xl font-bold tracking-tight text-ink">
+                <h3 id="contact-modal-title" className="mt-3.5 font-excon text-3xl font-bold tracking-tight text-ink">
                   Let’s Talk.
                 </h3>
                 <p className="mt-1.5 font-inter text-sm text-neutral-500 leading-relaxed">
@@ -1374,12 +1643,14 @@ export default function Experience() {
                 </p>
               </div>
               <button
+                type="button"
                 onClick={() => {
                   soundFX.playModalClose();
                   setIsContactOpen(false);
+                  lastActiveElementRef.current?.focus();
                 }}
-                className="group flex h-8 w-8 items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-100 hover:text-black transition-all hover:scale-105 active:scale-90 cursor-pointer"
-                aria-label="Close"
+                className="group flex h-8 w-8 items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-100 hover:text-black transition-all hover:scale-105 active:scale-90 cursor-pointer focus-visible:ring-2 focus-visible:ring-black"
+                aria-label="Close contact dialog"
               >
                 <span className="transition-transform duration-200 group-hover:rotate-90">✕</span>
               </button>
@@ -1399,8 +1670,9 @@ export default function Experience() {
                   </a>
                 </div>
                 <button
+                  type="button"
                   onClick={handleCopyEmail}
-                  className={`rounded-full px-4 py-2 text-xs font-semibold transition-all duration-200 active:scale-95 cursor-pointer ${
+                  className={`rounded-full px-4 py-2 text-xs font-semibold transition-all duration-200 active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-black ${
                     copiedEmail
                       ? "bg-emerald-600 text-white scale-105 shadow-md shadow-emerald-600/25"
                       : "bg-black text-white hover:bg-neutral-800 hover:shadow-sm"
@@ -1416,10 +1688,10 @@ export default function Experience() {
                   target="_blank"
                   rel="noopener noreferrer"
                   onMouseEnter={() => soundFX.playHoverTick()}
-                  className="group flex flex-1 items-center justify-center gap-1.5 rounded-2xl border border-black/8 bg-white py-3 text-xs font-semibold text-neutral-800 transition-all duration-200 hover:-translate-y-0.5 hover:border-black/25 hover:bg-neutral-50 hover:shadow-sm active:scale-95"
+                  className="group flex flex-1 items-center justify-center gap-1.5 rounded-2xl border border-black/8 bg-white py-3 text-xs font-semibold text-neutral-800 transition-all duration-200 hover:-translate-y-0.5 hover:border-black/25 hover:bg-neutral-50 hover:shadow-sm active:scale-95 focus-visible:ring-2 focus-visible:ring-black"
                 >
                   <span>GitHub</span>
-                  <span className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 font-mono">
+                  <span aria-hidden="true" className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 font-mono">
                     ↗
                   </span>
                 </a>
@@ -1428,10 +1700,10 @@ export default function Experience() {
                   target="_blank"
                   rel="noopener noreferrer"
                   onMouseEnter={() => soundFX.playHoverTick()}
-                  className="group flex flex-1 items-center justify-center gap-1.5 rounded-2xl border border-black/8 bg-white py-3 text-xs font-semibold text-neutral-800 transition-all duration-200 hover:-translate-y-0.5 hover:border-black/25 hover:bg-neutral-50 hover:shadow-sm active:scale-95"
+                  className="group flex flex-1 items-center justify-center gap-1.5 rounded-2xl border border-black/8 bg-white py-3 text-xs font-semibold text-neutral-800 transition-all duration-200 hover:-translate-y-0.5 hover:border-black/25 hover:bg-neutral-50 hover:shadow-sm active:scale-95 focus-visible:ring-2 focus-visible:ring-black"
                 >
                   <span>LinkedIn</span>
-                  <span className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 font-mono">
+                  <span aria-hidden="true" className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 font-mono">
                     ↗
                   </span>
                 </a>
@@ -1443,12 +1715,18 @@ export default function Experience() {
 
       {/* ------------------------------------------------ BEYOND WORK MODAL */}
       {isBeyondOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="beyond-modal-title"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        >
           <div
             className="fixed inset-0 bg-white/80 backdrop-blur-md transition-opacity"
             onClick={() => {
               soundFX.playModalClose();
               setIsBeyondOpen(false);
+              lastActiveElementRef.current?.focus();
             }}
           />
           <div className="relative w-full max-w-[520px] rounded-[28px] border border-black/10 bg-white p-7 md:p-9 shadow-2xl transition-all">
@@ -1457,7 +1735,7 @@ export default function Experience() {
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-neutral-100 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-neutral-700">
                   Life & Philosophy
                 </span>
-                <h3 className="mt-3.5 font-excon text-3xl font-bold tracking-tight text-ink">
+                <h3 id="beyond-modal-title" className="mt-3.5 font-excon text-3xl font-bold tracking-tight text-ink">
                   Beyond Work
                 </h3>
                 <p className="mt-1.5 font-inter text-sm text-neutral-500 leading-relaxed">
@@ -1465,12 +1743,14 @@ export default function Experience() {
                 </p>
               </div>
               <button
+                type="button"
                 onClick={() => {
                   soundFX.playModalClose();
                   setIsBeyondOpen(false);
+                  lastActiveElementRef.current?.focus();
                 }}
-                className="group flex h-8 w-8 items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-100 hover:text-black transition-all hover:scale-105 active:scale-90 cursor-pointer"
-                aria-label="Close"
+                className="group flex h-8 w-8 items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-100 hover:text-black transition-all hover:scale-105 active:scale-90 cursor-pointer focus-visible:ring-2 focus-visible:ring-black"
+                aria-label="Close beyond work dialog"
               >
                 <span className="transition-transform duration-200 group-hover:rotate-90">✕</span>
               </button>
@@ -1501,6 +1781,17 @@ export default function Experience() {
           </div>
         </div>
       )}
-    </div>
+
+      {/* --------------------------------------------------- FOOTER LANDMARK */}
+      <footer aria-label="Contact and portfolio credits" className="sr-only">
+        <h2>Contact &amp; Links</h2>
+        <p>Tharun S — Available for product design and engineering opportunities.</p>
+        <ul>
+          <li><a href="mailto:tharun@example.com">tharun@example.com</a></li>
+          <li><a href="https://github.com">GitHub</a></li>
+          <li><a href="https://linkedin.com">LinkedIn</a></li>
+        </ul>
+      </footer>
+    </main>
   );
 }

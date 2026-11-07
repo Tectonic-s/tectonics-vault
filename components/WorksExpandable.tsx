@@ -156,12 +156,18 @@ export function WorksExpandable({
   const [active, setActive] = useState<WorkProject | null>(null);
   const mounted = useIsMounted();
   const ref = useRef<HTMLDivElement>(null);
+  const lastTriggerRef = useRef<HTMLElement | null>(null);
+
+  const closeModal = () => {
+    soundFX.playModalClose();
+    setActive(null);
+    lastTriggerRef.current?.focus();
+  };
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
-        soundFX.playModalClose();
-        setActive(null);
+        closeModal();
       }
     }
 
@@ -182,8 +188,7 @@ export function WorksExpandable({
 
   useOutsideClick(ref, () => {
     if (active) {
-      soundFX.playModalClose();
-      setActive(null);
+      closeModal();
     }
   });
 
@@ -202,15 +207,15 @@ export function WorksExpandable({
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.2, ease: "easeOut" }}
                   className="fixed inset-0 bg-white/80 backdrop-blur-md"
-                  onClick={() => {
-                    soundFX.playModalClose();
-                    setActive(null);
-                  }}
+                  onClick={closeModal}
                 />
 
                 {/* Modal Container */}
                 <motion.div
                   ref={ref}
+                  role="dialog"
+                  aria-modal="true"
+                  aria-labelledby="works-modal-title"
                   initial={{ opacity: 0, scale: 0.96, y: 14 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.97, y: 8 }}
@@ -222,11 +227,8 @@ export function WorksExpandable({
                 >
                   {/* Close Button with ESC hint */}
                   <button
-                    className="group absolute top-3 sm:top-4 right-3 sm:right-4 z-20 flex items-center gap-1.5 h-8 px-2.5 rounded-full bg-black/75 text-white backdrop-blur-md hover:bg-black transition-all hover:scale-105 active:scale-95 cursor-pointer"
-                    onClick={() => {
-                      soundFX.playModalClose();
-                      setActive(null);
-                    }}
+                    className="group absolute top-3 sm:top-4 right-3 sm:right-4 z-20 flex items-center gap-1.5 h-8 px-2.5 rounded-full bg-black/75 text-white backdrop-blur-md hover:bg-black transition-all hover:scale-105 active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-white"
+                    onClick={closeModal}
                     onMouseEnter={() => soundFX.playHoverTick()}
                     aria-label="Close dialog"
                   >
@@ -256,7 +258,7 @@ export function WorksExpandable({
                         <span className="font-inter text-[0.68rem] sm:text-xs font-semibold uppercase tracking-wider text-neutral-400">
                           {active.category}
                         </span>
-                        <h3 className="mt-1 font-excon text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-ink">
+                        <h3 id="works-modal-title" className="mt-1 font-excon text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-ink">
                           {active.title}
                         </h3>
                         <p className="mt-1 font-inter text-xs sm:text-sm text-neutral-500 leading-snug">
@@ -308,24 +310,28 @@ export function WorksExpandable({
       {/* Grid of Work Cards */}
       <div className="grid w-full grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 max-h-[66vh] sm:max-h-none overflow-y-auto sm:overflow-visible pr-0.5 sm:pr-0">
         {projects.map((card) => (
-          <motion.div
+          <motion.button
+            type="button"
             key={card.title}
-            onClick={() => {
+            aria-haspopup="dialog"
+            aria-label={`Inspect ${card.title} - ${card.category}`}
+            onClick={(e) => {
               soundFX.playModalOpen();
+              lastTriggerRef.current = e.currentTarget;
               setActive(card);
             }}
             onMouseEnter={() => soundFX.playHoverTick()}
             whileHover={{ y: -5, scale: 1.008 }}
             whileTap={{ scale: 0.985 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className="group relative flex flex-col justify-between rounded-[18px] sm:rounded-[22px] border border-black/8 bg-white p-3.5 sm:p-5 md:p-6 shadow-[0_6px_20px_rgba(0,0,0,0.025)] hover:border-black/20 hover:shadow-[0_16px_40px_rgba(0,0,0,0.08)] cursor-pointer"
+            className="group relative flex flex-col justify-between text-left w-full rounded-[18px] sm:rounded-[22px] border border-black/8 bg-white p-3.5 sm:p-5 md:p-6 shadow-[0_6px_20px_rgba(0,0,0,0.025)] hover:border-black/20 hover:shadow-[0_16px_40px_rgba(0,0,0,0.08)] focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 cursor-pointer"
           >
             <div>
               <div className="flex items-start justify-between gap-2 sm:gap-3">
                 <span className="font-inter text-[0.65rem] sm:text-[0.7rem] font-semibold uppercase tracking-wider text-neutral-400">
                   {card.category}
                 </span>
-                <span className="font-mono text-xs text-neutral-400 group-hover:text-black transition-all duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 inline-block">
+                <span aria-hidden="true" className="font-mono text-xs text-neutral-400 group-hover:text-black transition-all duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 inline-block">
                   ↗
                 </span>
               </div>
@@ -335,7 +341,9 @@ export function WorksExpandable({
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={card.src}
-                    alt={card.title}
+                    alt=""
+                    aria-hidden="true"
+                    loading="lazy"
                     className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
                   />
                 </div>
@@ -363,11 +371,14 @@ export function WorksExpandable({
                 ))}
               </div>
 
-              <span className="shrink-0 rounded-full border border-black/10 bg-neutral-100 group-hover:bg-black group-hover:text-white px-2.5 sm:px-3 py-0.5 sm:py-1 font-inter text-[0.68rem] sm:text-xs font-semibold text-neutral-800 transition-all duration-200 group-hover:scale-105 active:scale-95">
+              <span
+                aria-hidden="true"
+                className="shrink-0 rounded-full border border-black/10 bg-neutral-100 group-hover:bg-black group-hover:text-white px-2.5 sm:px-3 py-0.5 sm:py-1 font-inter text-[0.68rem] sm:text-xs font-semibold text-neutral-800 transition-all duration-200 group-hover:scale-105 active:scale-95"
+              >
                 Inspect
               </span>
             </div>
-          </motion.div>
+          </motion.button>
         ))}
       </div>
     </>
