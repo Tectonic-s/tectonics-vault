@@ -1785,7 +1785,7 @@ export default function Experience() {
       {/* --------------------------------------------------- FOOTER LANDMARK */}
       <footer aria-label="Contact and portfolio credits" className="sr-only">
         <h2>Contact &amp; Links</h2>
-        <p>Tharun S — Available for product design and engineering opportunities.</p>
+        <p>Tharun S — Available for product design and engineering opportunities. Version 1.1.0.</p>
         <ul>
           <li><a href="mailto:tharun@example.com">tharun@example.com</a></li>
           <li><a href="https://github.com">GitHub</a></li>
