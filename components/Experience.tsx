@@ -1091,11 +1091,11 @@ export default function Experience() {
                 id="about"
                 aria-label="About Tharun S"
                 ref={aboutRight}
-                className="absolute inset-0 flex items-center justify-center lg:justify-end"
+                className="absolute inset-0 flex items-center justify-center"
               >
                 <h2 className="sr-only">About Tharun S</h2>
-                <div className="flex w-full max-w-[480px] flex-col items-center text-center lg:items-end lg:text-right">
-                  <div ref={profile} className="will-reveal relative w-[clamp(160px,18vw,300px)]">
+                <div className="flex w-full max-w-[440px] flex-col items-center text-center">
+                  <div ref={profile} className="will-reveal relative w-[clamp(160px,18vw,280px)]">
                     <div data-portrait-glow aria-hidden className="hidden" />
                     <div data-parallax="portrait">
                       <div
@@ -1106,16 +1106,16 @@ export default function Experience() {
                       </div>
                     </div>
                   </div>
-                  <div data-parallax="text" className="w-full mt-4 sm:mt-7">
+                  <div data-parallax="text" className="w-full mt-5 sm:mt-7 flex flex-col items-center text-center">
                     <h3
                       ref={aboutName}
-                      className="will-reveal font-excon font-bold leading-none text-ink text-2xl sm:text-3xl lg:text-4xl"
+                      className="will-reveal font-excon font-bold leading-none text-ink text-2xl sm:text-3xl lg:text-4xl text-center"
                     >
                       Tharun S
                     </h3>
                     <p
                       ref={aboutPara}
-                      className="will-reveal mt-2.5 sm:mt-4 font-inter leading-relaxed text-ink text-xs sm:text-sm md:text-base max-w-[44ch]"
+                      className="will-reveal mt-3 sm:mt-4 font-inter leading-relaxed text-ink/85 text-xs sm:text-sm md:text-base max-w-[42ch] text-center"
                     >
                       I enjoy building products where thoughtful design meets reliable
                       engineering. Every project is an opportunity to create something
@@ -1785,7 +1785,7 @@ export default function Experience() {
       {/* --------------------------------------------------- FOOTER LANDMARK */}
       <footer aria-label="Contact and portfolio credits" className="sr-only">
         <h2>Contact &amp; Links</h2>
-        <p>Tharun S — Available for product design and engineering opportunities. Version 1.1.0.</p>
+        <p>Tharun S — Available for product design and engineering opportunities. Version 1.1.1.</p>
         <ul>
           <li><a href="mailto:tharun@example.com">tharun@example.com</a></li>
           <li><a href="https://github.com">GitHub</a></li>
