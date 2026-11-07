@@ -7,7 +7,7 @@ type IconName = "backpack" | "gradcap" | "briefcase" | "monitor";
 
 const stroke = {
   fill: "none",
-  stroke: "#0d0d0d",
+  stroke: "#ffffff",
   strokeWidth: 2,
   strokeLinecap: "round" as const,
   strokeLinejoin: "round" as const,
@@ -30,7 +30,7 @@ export default function JourneyIcon({ name }: { name: IconName }) {
           <path d="M3 8.5 L12 5 L21 8.5 L12 12 Z" />
           <path d="M6.5 10 V14.5 C6.5 15.9 9 17 12 17 C15 17 17.5 15.9 17.5 14.5 V10" />
           <path d="M21 8.5 V13.6" />
-          <circle cx="21" cy="14.3" r="0.9" fill="#0d0d0d" stroke="none" />
+          <circle cx="21" cy="14.3" r="0.9" fill="#ffffff" stroke="none" />
         </g>
       );
     case "briefcase":

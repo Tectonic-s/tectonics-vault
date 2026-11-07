@@ -7,7 +7,7 @@
 export default function ProfileSilhouette({ className = "" }: { className?: string }) {
   return (
     <div
-      className={`relative aspect-square w-full overflow-hidden rounded-[22%] bg-white ${className}`}
+      className={`relative aspect-square w-full overflow-hidden bg-white ${className}`}
     >
       <svg
         viewBox="0 0 300 300"
@@ -16,7 +16,7 @@ export default function ProfileSilhouette({ className = "" }: { className?: stri
       >
         {/* Head-and-shoulders side profile, facing right */}
         <path
-          fill="#0f0f0f"
+          fill="#000000"
           d="M96 300
              C96 258 96 236 108 220
              C118 206 138 200 150 190
@@ -31,6 +31,19 @@ export default function ProfileSilhouette({ className = "" }: { className?: stri
              Z"
         />
       </svg>
+
+      {/* Specular sweep — gallery light travelling across the glass of a
+          framed print. Driven by GSAP so it can be paced and paused. */}
+      <div
+        data-sheen
+        aria-hidden
+        className="pointer-events-none absolute inset-y-0 -left-1/3 w-1/4 opacity-0"
+        style={{
+          background:
+            "linear-gradient(105deg, transparent 0%, rgba(255,255,255,0.7) 50%, transparent 100%)",
+          filter: "blur(10px)",
+        }}
+      />
     </div>
   );
 }

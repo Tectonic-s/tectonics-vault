@@ -1,7 +1,12 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import { Inter } from "next/font/google";
+import { Inter, Noto_Sans, Playfair_Display } from "next/font/google";
 import "./globals.css";
+import { cn } from "@/lib/utils";
+
+const playfairDisplayHeading = Playfair_Display({subsets:['latin'],variable:'--font-heading'});
+
+const notoSans = Noto_Sans({subsets:['latin'],variable:'--font-sans'});
 
 /**
  * Inter — clean, modern text sans used for the editorial body copy and
@@ -45,7 +50,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${excon.variable} ${ranade.variable} ${inter.variable} antialiased`}>
+    <html lang="en" className={cn("antialiased", excon.variable, ranade.variable, inter.variable, "font-sans", notoSans.variable, playfairDisplayHeading.variable)}>
       <body>{children}</body>
     </html>
   );

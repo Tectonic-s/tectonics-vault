@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
-import { typeInto, wait } from "@/lib/typewriter";
 import ProfileSilhouette from "./ProfileSilhouette";
-import JourneyIcon from "./JourneyIcons";
+import { EncryptedText } from "@/components/ui/encrypted-text";
+import { WorksExpandable } from "./WorksExpandable";
+import { soundFX } from "@/lib/audio";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -19,14 +20,21 @@ const NAV_VAULT_SIZE = "clamp(1.5rem, 2.6vw, 2.15rem)";
 const MENU_ACTIVE = "4.4rem";
 const MENU_SMALL = "1.5rem";
 
-const HERO_PRE = "Welcome to the ";
+/* Typography colours are resolved literals, never `rgb(var(--x) / a)`:
+   GSAP's colour regex matches that form only up to the first paren, fails to
+   find any digits, and silently falls back to transparent black. Ink is
+   static, so baking the value here is safe as well as necessary. */
+const INK = "rgb(0 0 0)";
+const INK_DIM = "rgb(123 123 123)";
+
+const HERO_PRE = "Welcome to my ";
 const HERO_VAULT = "Vault.";
 const SUBTITLE = "Scroll Down to explore";
 
 const MENU = [
   { key: "about", label: "About" },
   { key: "journey", label: "Journey" },
-  { key: "craft", label: "Craft" },
+  { key: "skills", label: "Skills" },
   { key: "works", label: "Works" },
   { key: "beyond", label: "Beyond Work" },
   { key: "talk", label: "Let’s Talk." },
@@ -41,11 +49,14 @@ const JOURNEY = [
   {
     icon: "backpack" as const,
     title: "Pre-Graduate",
+    period: "2018 — 2020",
+    accent: [201, 150, 92], // warm bronze — foundation, archive light
+    lift: 0.07,
     metric: "89",
     metricUnit: "%",
-    metricLabel: "",
+    metricLabel: "Score",
     primary: "A.M.Jain School",
-    secondary: "Higher Secondary",
+    secondary: "Higher Secondary · Science & Mathematics",
     skills: ["Curiosity", "Discipline", "Continuous Learning"],
     body:
       "Every story has a beginning. Mine started in a classroom, where curiosity slowly grew into a passion for learning, creating, and solving problems. Those early years became the foundation for everything that followed.",
@@ -53,6 +64,9 @@ const JOURNEY = [
   {
     icon: "gradcap" as const,
     title: "Under-Graduate",
+    period: "2020 — 2023",
+    accent: [82, 186, 148], // emerald (named #064E3B) — growth, discovery
+    lift: 0.065,
     metric: "8.1",
     metricUnit: "",
     metricLabel: "CGPA",
@@ -65,11 +79,14 @@ const JOURNEY = [
   {
     icon: "briefcase" as const,
     title: "Corporate Life",
-    metric: "",
-    metricUnit: "",
-    metricLabel: "",
+    period: "Jan 25 — Jul 25",
+    accent: [212, 175, 95], // deep gold — leadership, executive light
+    lift: 0.085,
+    metric: "6+",
+    metricUnit: "mos",
+    metricLabel: "Experience",
     primary: "Bajaj Finserv",
-    secondary: "Deputy Manager · Jan 25 – Jul 25",
+    secondary: "Deputy Manager",
     skills: ["Communication", "Leadership", "Negotiation", "Client Management", "Business Strategy"],
     body:
       "Leading sales taught me that every conversation begins with understanding people. Managing relationships, solving customer problems, and taking ownership of results helped me build confidence, adaptability, and a stronger business mindset.",
@@ -77,47 +94,83 @@ const JOURNEY = [
   {
     icon: "gradcap" as const,
     title: "Post Graduate",
-    metric: "7.8",
+    period: "2024 — Present",
+    accent: [70, 155, 175], // slate cyan — engineering lab
+    lift: 0.06,
+    metric: "7.0",
     metricUnit: "",
     metricLabel: "CGPA",
     primary: "PSG College of Technology",
-    secondary: "MCA",
+    secondary: "MCA · Master of Computer Applications",
     skills: ["Software Engineering", "System Design", "Full Stack Development", "Modern Development Practices"],
     body:
       "Returning to academia marked the beginning of a new chapter. With a stronger foundation and real-world experience behind me, I am now deepening my understanding of software engineering, system design, and modern application development.",
   },
 ];
 
-/* Craft renders ONLY what the Journey earned: each cabinet category maps
-   1:1 to the chapter whose achievements it stores, so the visitor can trace
-   every skill back to the moment they watched it being unlocked. */
+/* Rooms outside the Journey archive. Colour is lighting, so restraint comes
+   from the low alpha it is used at (4–14%), never from a dark hue: a deep
+   emerald at 55% simply disappears on near-black. */
+const ROOMS = {
+  welcome: { accent: [0, 0, 0], lift: 0 },
+  about: { accent: [0, 0, 0], lift: 0 },
+  craft: { accent: [0, 0, 0], lift: 0 },
+} as const;
+
+/* Craft renders ONLY what the Journey earned, regrouped by theme so a card
+   can hold skills from different chapters. Origin is derived from JOURNEY
+   rather than restated, which makes "nothing here was not earned" a
+   structural guarantee instead of a promise. */
 const CRAFT_CATEGORIES = [
-  { name: "Core Traits", chapter: 0 },
-  { name: "Analytical Skills", chapter: 1 },
-  { name: "Professional Practice", chapter: 2 },
-  { name: "Engineering", chapter: 3 },
+  { name: "Core Traits", skills: ["Curiosity", "Discipline", "Continuous Learning", "Leadership"] },
+  { name: "Analytical", skills: ["Analytical Thinking", "Problem Solving", "Research", "Data Analysis"] },
+  {
+    name: "Working With People",
+    skills: ["Communication", "Negotiation", "Client Management", "Business Strategy"],
+  },
+  {
+    name: "Engineering",
+    skills: [
+      "Software Engineering",
+      "System Design",
+      "Full Stack Development",
+      "Modern Development Practices",
+    ],
+  },
 ];
+
+/** Which chapter earned a skill. -1 means it was never earned. */
+const originOf = (skill: string) => JOURNEY.findIndex((c) => c.skills.includes(skill as never));
+
+if (process.env.NODE_ENV !== "production") {
+  const shown = CRAFT_CATEGORIES.flatMap((c) => c.skills);
+  const orphan = shown.filter((s) => originOf(s) === -1);
+  const missing = JOURNEY.flatMap((c) => c.skills).filter((s) => !shown.includes(s));
+  if (orphan.length) console.error("[Vault] Craft shows unearned skills:", orphan);
+  if (missing.length) console.error("[Vault] Earned skills missing from Craft:", missing);
+}
 
 export default function Experience() {
   const root = useRef<HTMLDivElement>(null);
+  const lenisRef = useRef<Lenis | null>(null);
 
   // Hero
   const heroPre = useRef<HTMLSpanElement>(null);
   const heroVaultInline = useRef<HTMLSpanElement>(null);
-  const heroCaret = useRef<HTMLSpanElement>(null);
   const scrollIndicator = useRef<HTMLDivElement>(null);
-  const subtitleText = useRef<HTMLSpanElement>(null);
-  const subtitleCaret = useRef<HTMLSpanElement>(null);
   const ulPath = useRef<SVGPathElement>(null);
   const arrowStem = useRef<SVGLineElement>(null);
   const arrowHead = useRef<SVGPathElement>(null);
 
+  // Scroll Progress
+  const scrollProgressBar = useRef<HTMLDivElement>(null);
+
   // Nav
-  const navGhost = useRef<HTMLSpanElement>(null);
+  const navGhost = useRef<HTMLButtonElement>(null);
   const vaultFloat = useRef<HTMLSpanElement>(null);
   const letsTalk = useRef<HTMLButtonElement>(null);
 
-  // Main panel (About + Journey share it)
+  // Main panel (About, Journey, Craft, Works share it)
   const mainPanel = useRef<HTMLDivElement>(null);
   const menu = useRef<HTMLUListElement>(null);
   const aboutRight = useRef<HTMLDivElement>(null);
@@ -126,19 +179,132 @@ export default function Experience() {
   const aboutPara = useRef<HTMLParagraphElement>(null);
   const journeyRight = useRef<HTMLDivElement>(null);
   const craftRight = useRef<HTMLDivElement>(null);
+  const worksRight = useRef<HTMLDivElement>(null);
+
+  const [isContactOpen, setIsContactOpen] = useState(false);
+  const [isBeyondOpen, setIsBeyondOpen] = useState(false);
+  const [copiedEmail, setCopiedEmail] = useState(false);
+  const [hasInteracted, setHasInteracted] = useState(false);
+  const [decryptKey, setDecryptKey] = useState(0);
+  const [activeSection, setActiveSection] = useState<string>("hero");
+
+  useEffect(() => {
+    const onFirstInteraction = () => {
+      soundFX.unlockAudio();
+      setHasInteracted(true);
+    };
+    window.addEventListener("pointerdown", onFirstInteraction, { once: true });
+    window.addEventListener("keydown", onFirstInteraction, { once: true });
+    return () => {
+      window.removeEventListener("pointerdown", onFirstInteraction);
+      window.removeEventListener("keydown", onFirstInteraction);
+    };
+  }, []);
+
+  const handleHeroClick = () => {
+    soundFX.unlockAudio();
+    if (!hasInteracted) {
+      setHasInteracted(true);
+      setDecryptKey((k) => k + 1);
+    }
+  };
+
+  useEffect(() => {
+    if (isContactOpen || isBeyondOpen) {
+      document.body.style.overflow = "hidden";
+      lenisRef.current?.stop();
+    } else {
+      document.body.style.overflow = "auto";
+      lenisRef.current?.start();
+    }
+  }, [isContactOpen, isBeyondOpen]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (isContactOpen || isBeyondOpen) {
+          soundFX.playModalClose();
+        }
+        setIsContactOpen(false);
+        setIsBeyondOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isContactOpen, isBeyondOpen]);
+
+  const measureRef = useRef<() => void>(() => {});
+  const finishIntroRef = useRef<() => void>(() => {});
+
+  const handleCopyEmail = () => {
+    soundFX.playSuccessChime();
+    navigator.clipboard?.writeText("tharun@example.com");
+    setCopiedEmail(true);
+    setTimeout(() => setCopiedEmail(false), 2000);
+  };
+
+  const handleMenuClick = (key: string) => {
+    soundFX.playMenuClick();
+    if (key === "beyond") {
+      soundFX.playModalOpen();
+      setIsBeyondOpen(true);
+      return;
+    }
+    if (key === "talk") {
+      soundFX.playModalOpen();
+      setIsContactOpen(true);
+      return;
+    }
+    if (!lenisRef.current) return;
+    switch (key) {
+      case "about":
+        lenisRef.current.scrollTo(window.innerHeight * 1.15, { duration: 1.0 });
+        break;
+      case "journey":
+        lenisRef.current.scrollTo(window.innerHeight * 1.9, { duration: 1.0 });
+        break;
+      case "skills":
+      case "craft":
+        lenisRef.current.scrollTo(window.innerHeight * 4.6, { duration: 1.0 });
+        break;
+      case "works":
+        lenisRef.current.scrollTo(window.innerHeight * 6.2, { duration: 1.0 });
+        break;
+    }
+  };
+
+  const handleChapterClick = (index: number) => {
+    soundFX.playTabSwitch();
+    if (!lenisRef.current) return;
+    const offsets = [
+      window.innerHeight * 1.9,
+      window.innerHeight * 2.45,
+      window.innerHeight * 3.0,
+      window.innerHeight * 3.55,
+    ];
+    lenisRef.current.scrollTo(offsets[index], { duration: 0.8 });
+  };
 
   useEffect(() => {
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     let cancelled = false;
     const isCancelled = () => cancelled;
-    // Achievement-card timeline lives outside the gsap context: it is created
-    // lazily inside scroll callbacks, so it must be killed explicitly.
-    let cardTl: gsap.core.Timeline | null = null;
-    // Gesture listeners for the locked Journey archive, removed on unmount.
-    let journeyListeners: (() => void) | null = null;
+
+    // Pointer-parallax listener for the About room.
+    let pointerListener: (() => void) | null = null;
 
     const lenis = new Lenis({ duration: 1.15, smoothWheel: true });
-    lenis.on("scroll", ScrollTrigger.update);
+    lenisRef.current = lenis;
+    lenis.on("scroll", (e: { progress?: number }) => {
+      ScrollTrigger.update();
+      if (scrollProgressBar.current) {
+        const p =
+          typeof e?.progress === "number"
+            ? e.progress
+            : window.scrollY / (document.documentElement.scrollHeight - window.innerHeight);
+        scrollProgressBar.current.style.transform = `scaleX(${Math.min(Math.max(p, 0), 1)})`;
+      }
+    });
     const tick = (time: number) => lenis.raf(time * 1000);
     gsap.ticker.add(tick);
     gsap.ticker.lagSmoothing(0);
@@ -158,163 +324,118 @@ export default function Experience() {
       if (!heroVaultInline.current || !navGhost.current) return;
       const from = heroVaultInline.current.getBoundingClientRect();
       const to = navGhost.current.getBoundingClientRect();
+      if (!from.height || !to.height) return;
       flip.sx = from.left;
       flip.sy = from.top;
       flip.ex = to.left;
       flip.ey = to.top;
       flip.es = to.height / from.height;
     };
+    measureRef.current = measure;
 
     const ctx = gsap.context(() => {
       const q = gsap.utils.selector(root);
-      const at = (arr: Element[], i: number): Element | null => arr[i] ?? null;
-      const kids = (el: Element | null): Element[] => (el ? Array.from(el.children) : []);
 
       const menuItems = menu.current?.querySelectorAll("li") ?? [];
-      const mAbout = menu.current?.querySelector('[data-key="about"]') ?? null;
-      const mJourney = menu.current?.querySelector('[data-key="journey"]') ?? null;
 
-      const iconLayers = q("[data-icon]");
-      const textBlocks = q("[data-jtext]");
-      const trackDots = q("[data-dot]");
-      const upcoming = q("[data-upcoming]");
-      const mile = q("[data-milestone]")[0] ?? null;
-      const glow = q("[data-glow]")[0] ?? null;
-      const breathe = q("[data-breathe]")[0] ?? null;
-      const chnums = q("[data-chnum]");
-      const particle = q("[data-particle]")[0] ?? null;
+      const jCards = q("[data-jcard]") as HTMLElement[];
+      const jTabs = q("[data-jtab]") as HTMLElement[];
+      const jCount = q("[data-jcount]")[0] ?? null;
       const blobs = q("[data-blob]");
-      const mCraft = menu.current?.querySelector('[data-key="craft"]') ?? null;
-      const achCard = (q("[data-achievement]")[0] as HTMLElement | undefined) ?? null;
-      const achLabel = q("[data-ach-label]")[0] ?? null;
-      const achSets = q("[data-ach-set]") as HTMLElement[];
       const craftCount = (q("[data-craft-count]")[0] as HTMLElement | undefined) ?? null;
-
-      // Running total of skills stored in the Vault, by chapter.
-      const skillsThrough = (i: number) =>
-        JOURNEY.slice(0, i + 1).reduce((n, s) => n + s.skills.length, 0);
       const craftCards = q("[data-craft-card]") as HTMLElement[];
 
-      // ---------------- Achievement Unlocked system ----------------
-      // Invisible collection: which chapters' skills have been earned.
-      // Unlocks persist for the whole visit — never revoked on scroll-back.
-      const unlocked = [false, false, false, false];
-
-      const showCard = (i: number) => {
-        if (!achCard || !mCraft) return;
-        cardTl?.progress(1).kill();
-        achSets.forEach((el, j) => {
-          el.style.display = j === i ? "block" : "none";
+      const setRoom = (accent: readonly number[], lift: number, dur = 0.9) =>
+        gsap.to(root.current, {
+          "--accent-rgb": accent.join(" "),
+          "--accent-lift": lift,
+          duration: reduced ? 0 : dur,
+          ease: "power2.inOut",
+          overwrite: "auto",
         });
-        const items = Array.from(achSets[i]?.querySelectorAll("[data-ach-item]") ?? []);
-        const checks = Array.from(achSets[i]?.querySelectorAll("[data-ach-check]") ?? []);
-        const labels = Array.from(achSets[i]?.querySelectorAll("[data-ach-name]") ?? []);
-        gsap.set(achCard, { clearProps: "x,y,scale" });
-        gsap.set(achCard, { opacity: 0, y: 14, scale: 0.97, transformOrigin: "50% 50%" });
-        gsap.set(achLabel, { opacity: 0, y: 8 });
-        gsap.set(items, { opacity: 0 });
-        gsap.set(checks, { opacity: 0, scale: 0.4 });
-        gsap.set(labels, { opacity: 0, x: -10, filter: "blur(6px)" });
-        cardTl = gsap.timeline();
-
-        if (reduced) {
-          // Reduced motion: a quiet fade in place — no travel, no stagger.
-          cardTl
-            .to(achCard, { opacity: 1, y: 0, scale: 1, duration: 0.3, ease: "power1.out" })
-            .set([items, checks], { opacity: 1, scale: 1 }, "<")
-            .to([achLabel, ...labels], { opacity: 1, x: 0, y: 0, filter: "blur(0px)", duration: 0.3 }, "<")
-            .to(achCard, { opacity: 0, duration: 0.3, ease: "power1.in" }, "+=3");
-          return;
-        }
-
-        cardTl
-          // 1) The card shell arrives like a quiet notification.
-          .to(achCard, { opacity: 1, y: 0, scale: 1, duration: 0.4, ease: "expo.out" })
-          .to(achLabel, { opacity: 1, y: 0, duration: 0.3, ease: "power2.out" }, "-=0.18")
-          .set(items, { opacity: 1 })
-          // 2) Each achievement is earned one at a time, unhurried: the mark
-          //    strikes first, then the name resolves out of a soft blur —
-          //    a list being written rather than a block appearing.
-          .to(
-            checks,
-            { opacity: 1, scale: 1, duration: 0.34, stagger: 0.34, ease: "back.out(2.2)" },
-            "-=0.04"
-          )
-          .to(
-            labels,
-            { opacity: 1, x: 0, filter: "blur(0px)", duration: 0.5, stagger: 0.34, ease: "power2.out" },
-            "<0.08"
-          )
-          // 3) The whole block is held to be read, then travels into the Vault:
-          //    shrinking toward the Craft menu item. The target is measured at
-          //    departure time, so it is always exact.
-          .to(
-            achCard,
-            {
-              x: () => {
-                const c = achCard.getBoundingClientRect();
-                const m = (mCraft as HTMLElement).getBoundingClientRect();
-                return m.left + m.width / 2 - (c.left + c.width / 2);
-              },
-              y: () => {
-                const c = achCard.getBoundingClientRect();
-                const m = (mCraft as HTMLElement).getBoundingClientRect();
-                return m.top + m.height / 2 - (c.top + c.height / 2);
-              },
-              scale: 0.08,
-              duration: 0.85,
-              ease: "power2.inOut",
-            },
-            "+=1.6"
-          )
-          .to(achCard, { opacity: 0, duration: 0.26, ease: "power1.in" }, "-=0.3")
-          // 4) The Craft label softly glows as the block is stored.
-          .fromTo(
-            mCraft,
-            { textShadow: "0 0 16px rgba(244,231,168,0.75)", color: "var(--vault-cream)" },
-            {
-              textShadow: "0 0 0px rgba(244,231,168,0)",
-              color: "var(--vault-gold-dim)",
-              duration: 0.9,
-              ease: "power2.out",
-            },
-            "-=0.12"
-          )
-          // 5) The tally absorbs the new skills and ticks up.
-          .add(() => {
-            if (craftCount) craftCount.textContent = String(skillsThrough(i));
-          }, "<")
-          .fromTo(
-            craftCount,
-            { scale: 0.4, opacity: 0 },
-            { scale: 1, opacity: 1, duration: 0.45, ease: "back.out(2.4)" },
-            "<"
-          );
-      };
 
       // -------- Starting states --------
+      gsap.set(root.current, {
+        "--accent-rgb": ROOMS.welcome.accent.join(" "),
+        "--accent-lift": ROOMS.welcome.lift,
+      });
       gsap.set(mainPanel.current, { yPercent: 100 });
       gsap.set(vaultFloat.current, { opacity: 0, transformOrigin: "left top" });
       gsap.set([ulPath.current, arrowStem.current, arrowHead.current], { opacity: 0 });
 
-      gsap.set(mAbout, { fontSize: MENU_ACTIVE, color: "var(--vault-cream)" });
-      gsap.set(mJourney, { fontSize: MENU_SMALL, color: "var(--vault-gold-dim)" });
+      // Initialize all menu items consistently
+      menuItems.forEach((li) => {
+        const isAbout = li.getAttribute("data-key") === "about";
+        gsap.set(li, {
+          fontSize: isAbout ? MENU_ACTIVE : MENU_SMALL,
+          color: isAbout ? INK : INK_DIM,
+        });
+      });
 
-      gsap.set(journeyRight.current, { opacity: 0, y: 34 });
-      gsap.set(craftRight.current, { opacity: 0, y: 34 });
-      // Craft cards start blank: no card, no border, no contents.
+      // Authoritative Left Accordion Menu Controller
+      let currentActiveKey = "about";
+      const setActiveMenu = (key: string, immediate = false) => {
+        if (currentActiveKey === key && !immediate) return;
+        currentActiveKey = key;
+        menuItems.forEach((li) => {
+          const itemKey = li.getAttribute("data-key");
+          const isActive = itemKey === key;
+          gsap.to(li, {
+            fontSize: isActive ? MENU_ACTIVE : MENU_SMALL,
+            color: isActive ? INK : INK_DIM,
+            duration: immediate ? 0 : 0.38,
+            ease: "power2.out",
+            overwrite: "auto",
+          });
+        });
+      };
+
+      const updateActiveMenuFromScroll = (immediate = false) => {
+        const scrollY = window.scrollY;
+        const h = window.innerHeight;
+        if (scrollY < h * 0.7) {
+          setActiveSection("hero");
+        } else if (scrollY < h * 1.6) {
+          setActiveMenu("about", immediate);
+          setActiveSection("about");
+        } else if (scrollY < h * 4.1) {
+          setActiveMenu("journey", immediate);
+          setActiveSection("journey");
+        } else if (scrollY < h * 5.7) {
+          setActiveMenu("skills", immediate);
+          setActiveSection("skills");
+        } else {
+          setActiveMenu("works", immediate);
+          setActiveSection("works");
+        }
+      };
+
+      ScrollTrigger.create({
+        trigger: root.current,
+        start: "top top",
+        end: "bottom bottom",
+        onUpdate: () => updateActiveMenuFromScroll(false),
+        onRefresh: () => updateActiveMenuFromScroll(true),
+      });
+
+      gsap.set(journeyRight.current, { autoAlpha: 0, y: 34 });
+      gsap.set(craftRight.current, { autoAlpha: 0, y: 34 });
+      gsap.set(worksRight.current, { autoAlpha: 0, y: 34 });
+
+      // Journey cards starting states:
+      jCards.forEach((card, i) => {
+        gsap.set(card, {
+          opacity: i === 0 ? 1 : 0,
+          y: i === 0 ? 0 : 20,
+        });
+      });
+
+      // Craft cards starting states
       gsap.set(q("[data-craft-card]"), { opacity: 0 });
       gsap.set(q("[data-craft-trace]"), { strokeDashoffset: 100, strokeOpacity: 1 });
       gsap.set(q("[data-craft-head]"), { opacity: 0, y: 12 });
       gsap.set(q("[data-craft-check]"), { opacity: 0, scale: 0.4 });
       gsap.set(q("[data-craft-name]"), { opacity: 0, x: -10, filter: "blur(6px)" });
-      gsap.set(mile, { scale: 1, transformOrigin: "50% 50%" });
-      gsap.set(glow, { opacity: 0.65 });
-      // Only the first chapter is active to begin with.
-      iconLayers.forEach((el, i) => gsap.set(el, { opacity: i === 0 ? 1 : 0 }));
-      textBlocks.forEach((el, i) => gsap.set(el, { opacity: i === 0 ? 1 : 0 }));
-      chnums.forEach((el, i) => gsap.set(el, { opacity: i === 0 ? 1 : 0 }));
-      gsap.set(particle, { opacity: 0 });
 
       // Ambient light drift — almost subconscious. Skipped for reduced motion.
       if (!reduced) {
@@ -336,24 +457,56 @@ export default function Experience() {
         });
       }
 
-      // Subtle, continuous "breathing" + gentle float on the active milestone.
-      // Autoplay motion — skipped for reduced-motion users.
+      // ---------------- About: an occupied room, not a still ----------------
+      const portrait = q("[data-portrait]")[0] ?? null;
+      const portraitGlow = q("[data-portrait-glow]")[0] ?? null;
+      const sheen = q("[data-sheen]")[0] ?? null;
+      const pPortrait = q('[data-parallax="portrait"]')[0] ?? null;
+      const pText = q('[data-parallax="text"]')[0] ?? null;
+
       if (!reduced) {
-        gsap.to(breathe, {
-          scale: 1.045,
-          y: -3,
-          duration: 2.4,
+        gsap.to(portrait, {
+          y: -7,
+          duration: 4.2,
+          ease: "sine.inOut",
+          yoyo: true,
+          repeat: -1,
+        });
+        gsap.to(portraitGlow, {
+          opacity: 0.55,
+          scale: 1.06,
+          duration: 5.6,
           ease: "sine.inOut",
           yoyo: true,
           repeat: -1,
           transformOrigin: "50% 50%",
         });
+        gsap
+          .timeline({ repeat: -1, repeatDelay: 6.5 })
+          .fromTo(
+            sheen,
+            { xPercent: 0, opacity: 0 },
+            { xPercent: 620, opacity: 0.32, duration: 1.7, ease: "power2.inOut" }
+          )
+          .to(sheen, { opacity: 0, duration: 0.5, ease: "power2.out" }, "-=0.5");
+
+        const setPX = gsap.quickTo(pPortrait, "x", { duration: 0.9, ease: "power3" });
+        const setPY = gsap.quickTo(pPortrait, "y", { duration: 0.9, ease: "power3" });
+        const setTX = gsap.quickTo(pText, "x", { duration: 1.1, ease: "power3" });
+        const setTY = gsap.quickTo(pText, "y", { duration: 1.1, ease: "power3" });
+        const onPointer = (e: PointerEvent) => {
+          const nx = e.clientX / window.innerWidth - 0.5;
+          const ny = e.clientY / window.innerHeight - 0.5;
+          setPX(nx * 26);
+          setPY(ny * 18);
+          setTX(nx * -10);
+          setTY(ny * -7);
+        };
+        window.addEventListener("pointermove", onPointer, { passive: true });
+        pointerListener = () => window.removeEventListener("pointermove", onPointer);
       }
 
       // ======== PHASE 1 — hero → About (scrubbed) ========
-      // The About reveal is folded into this scrubbed timeline (not a separate
-      // played timeline), so it is purely scroll-driven, always visible by the
-      // end of phase 1, and perfectly reversible.
       const spatial = gsap.timeline({ defaults: { ease: "none" } });
       spatial
         .fromTo(
@@ -365,7 +518,6 @@ export default function Experience() {
         .to(heroPre.current, { yPercent: -60, opacity: 0, duration: 0.42 }, 0)
         .to(scrollIndicator.current, { y: -30, opacity: 0, duration: 0.38 }, 0)
         .to(mainPanel.current, { yPercent: 0, duration: 0.7 }, 0)
-        // About content reveals as the panel settles.
         .fromTo(letsTalk.current, { y: -12, opacity: 0 }, { y: 0, opacity: 1, duration: 0.28, ease: "power3.out" }, 0.7)
         .fromTo(menuItems, { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3, stagger: 0.05, ease: "power3.out" }, 0.72)
         .fromTo(profile.current, { scale: 0.95, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.34, ease: "power3.out" }, 0.75)
@@ -379,7 +531,6 @@ export default function Experience() {
       const swapToFloat = () => {
         gsap.set(heroVaultInline.current, { opacity: 0 });
         gsap.set(vaultFloat.current, { opacity: 1 });
-        heroCaret.current?.setAttribute("data-blink", "false");
       };
       const swapToInline = () => {
         gsap.set(vaultFloat.current, { opacity: 0 });
@@ -394,239 +545,85 @@ export default function Experience() {
         invalidateOnRefresh: true,
         animation: spatial,
         onRefresh: measure,
-        onEnter: swapToFloat,
-        onLeaveBack: swapToInline,
+        onEnter: () => {
+          swapToFloat();
+          setActiveSection("about");
+          setRoom(ROOMS.about.accent, ROOMS.about.lift, 1.2);
+        },
+        onLeaveBack: () => {
+          swapToInline();
+          setActiveSection("hero");
+          setRoom(ROOMS.welcome.accent, ROOMS.welcome.lift, 1.2);
+        },
       });
 
       // ======== PHASE 2a — About → Journey (scrubbed) ========
-      // A leading hold keeps About readable, then the panel swaps to the
-      // archive. Chapter *content* is owned by the machine below, so this
-      // timeline only handles the section switch.
-      const enter = gsap.timeline();
-      enter
-        .to(mAbout, { fontSize: MENU_SMALL, color: "var(--vault-gold-dim)", duration: 0.9, ease: "power2.inOut" }, 1.1)
-        .to(mJourney, { fontSize: MENU_ACTIVE, color: "var(--vault-cream)", duration: 0.9, ease: "power2.inOut" }, 1.1)
-        .to(aboutRight.current, { opacity: 0, y: -34, duration: 0.5, ease: "power2.in" }, 1.1)
-        .to(journeyRight.current, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, 1.52)
-        .to({}, { duration: 0.5 });
+      const enterJourney = gsap.timeline({ defaults: { ease: "power2.inOut" } });
+      enterJourney
+        .to(aboutRight.current, { autoAlpha: 0, y: -28, duration: 0.4 }, 0)
+        .to(journeyRight.current, { autoAlpha: 1, y: 0, duration: 0.5 }, 0.25);
 
       ScrollTrigger.create({
         trigger: root.current,
-        start: () => "top+=" + window.innerHeight + " top",
-        end: () => "top+=" + window.innerHeight * 2 + " top",
+        start: () => "top+=" + window.innerHeight * 1.4 + " top",
+        end: () => "top+=" + window.innerHeight * 1.8 + " top",
         scrub: true,
-        animation: enter,
+        animation: enterJourney,
+        onEnter: () => setRoom(JOURNEY[0].accent, JOURNEY[0].lift, 0.8),
+        onLeaveBack: () => setRoom(ROOMS.about.accent, ROOMS.about.lift, 0.8),
       });
 
-      // ======== PHASE 2b — Journey chapters: one swipe, one chapter ========
-      // While the archive is open scrolling is locked, so a single gesture
-      // advances exactly one chapter and the visitor can never fly past one.
-      // Each transition is followed by a brief pause before the next gesture
-      // is accepted.
-      const DOT_BASE = 0.25;
-      const LAST = JOURNEY.length - 1;
-      const PAUSE = 0.5; // seconds of quiet after a chapter lands
-
-      // Place the UI at a chapter instantly (entry / re-entry / resize).
-      const setChapter = (i: number) => {
-        chnums.forEach((el, j) => gsap.set(el, { opacity: j === i ? 1 : 0 }));
-        iconLayers.forEach((el, j) => gsap.set(el, { opacity: j === i ? 1 : 0 }));
-        textBlocks.forEach((el, j) => {
-          gsap.set(el, { opacity: j === i ? 1 : 0, y: 0 });
-          gsap.set(kids(el), { opacity: 1, y: 0 });
-        });
-        upcoming.forEach((el, j) =>
-          gsap.set(el, { opacity: j < i ? 0 : 0.35, scale: j < i ? 0.5 : 1 })
-        );
-        gsap.set(trackDots, { opacity: DOT_BASE + 0.1 * i, scale: 1 });
-        gsap.set(mile, { scale: 1 });
-        gsap.set(glow, { opacity: 0.65 });
-        gsap.set(particle, { opacity: 0 });
-      };
-
-      // The chapter-to-chapter choreography, played (not scrubbed).
-      const chapterTl = (from: number, to: number) => {
-        const fwd = to > from;
-        return gsap
-          .timeline()
-          // 1) A glowing particle carries progress down the line while the dots
-          //    pulse beneath it — energy travelling, not a fade.
-          .fromTo(
-            particle,
-            { y: fwd ? 96 : 312, opacity: 0 },
-            { y: fwd ? 312 : 96, opacity: 1, duration: 0.55, ease: "power1.inOut" },
-            0
-          )
-          .to(particle, { opacity: 0, duration: 0.14, ease: "power1.out" }, 0.48)
-          .to(
-            trackDots,
-            {
-              keyframes: { opacity: [0.3, 1, 0.3], scale: [1, 1.5, 1] },
-              duration: 0.6,
-              stagger: fwd ? 0.05 : -0.05,
-              ease: "sine.inOut",
-            },
-            0
-          )
-          .to(trackDots, { opacity: DOT_BASE + 0.1 * to, duration: 0.35, ease: "power1.inOut" }, 0.75)
-          // The chapter number dissolves into the next.
-          .to(at(chnums, from), { opacity: 0, duration: 0.3, ease: "power1.inOut" }, 0.4)
-          .to(at(chnums, to), { opacity: 1, duration: 0.4, ease: "power1.inOut" }, 0.62)
-          // 2) Previous milestone shrinks + loses its glow.
-          .to(mile, { scale: 0.9, duration: 0.28, ease: "power2.inOut" }, 0.32)
-          .to(glow, { opacity: 0, duration: 0.28, ease: "power2.in" }, 0.32)
-          // Icon cross-fades at the low point (never an abrupt swap).
-          .to(at(iconLayers, from), { opacity: 0, duration: 0.2, ease: "power1.inOut" }, 0.5)
-          .to(at(iconLayers, to), { opacity: 1, duration: 0.2, ease: "power1.inOut" }, 0.5)
-          // 3) New milestone scales back with a subtle overshoot + glow pulse.
-          .to(mile, { scale: 1, duration: 0.5, ease: "back.out(1.5)" }, 0.58)
-          .to(glow, { opacity: 1, duration: 0.22, ease: "power2.out" }, 0.58)
-          .to(glow, { opacity: 0.65, duration: 0.45, ease: "power2.inOut" }, 0.8)
-          // Consume (or restore) the upcoming-milestone marker.
-          .to(
-            at(upcoming, fwd ? to - 1 : to),
-            { opacity: fwd ? 0 : 0.35, scale: fwd ? 0.5 : 1, duration: 0.4, ease: "power2.inOut" },
-            0.48
-          )
-          // 4) Page-turn: old content lifts + fades, new rises in staggered.
-          .to(at(textBlocks, from), { y: -20, opacity: 0, duration: 0.3, ease: "power2.in" }, 0.6)
-          .set(at(textBlocks, to), { opacity: 1 }, 0.92)
-          .fromTo(
-            kids(at(textBlocks, to)),
-            { y: 20, opacity: 0 },
-            { y: 0, opacity: 1, duration: 0.42, stagger: 0.07, ease: "power3.out" },
-            0.92
-          );
-      };
-
-      let chapter = 0;
-      let busy = false;
-      let jLocked = false;
-      let lastGesture = 0;
-
-      const lockJourney = (entryChapter: number) => {
-        if (jLocked) return;
-        jLocked = true;
-        chapter = entryChapter;
-        setChapter(entryChapter);
-        if (!unlocked[entryChapter]) {
-          unlocked[entryChapter] = true;
-          showCard(entryChapter);
-        }
-        lenis.stop();
-      };
-
-      const releaseJourney = () => {
-        if (!jLocked) return;
-        jLocked = false;
-        lenis.start();
-      };
-
-      const advance = (dir: 1 | -1) => {
-        if (busy) return;
-        const next = chapter + dir;
-        // Past either end of the archive, hand control back to the scroll.
-        if (next < 0 || next > LAST) {
-          releaseJourney();
-          return;
-        }
-        busy = true;
-        const from = chapter;
-        chapter = next;
-        chapterTl(from, next).eventCallback("onComplete", () => {
-          if (dir === 1 && !unlocked[next]) {
-            unlocked[next] = true;
-            showCard(next);
+      // ======== PHASE 2b — Journey Chapters Scrubbing ========
+      const setActiveTab = (index: number) => {
+        jTabs.forEach((tab, i) => {
+          if (i === index) {
+            tab.classList.add("bg-black", "text-white", "shadow-sm");
+            tab.classList.remove("bg-black/[0.04]", "text-black/60");
+          } else {
+            tab.classList.remove("bg-black", "text-white", "shadow-sm");
+            tab.classList.add("bg-black/[0.04]", "text-black/60");
           }
-          // Brief pause: the chapter is allowed to settle and be read before
-          // another gesture is accepted.
-          gsap.delayedCall(PAUSE, () => {
-            busy = false;
-          });
+        });
+        if (jCount) jCount.textContent = `0${index + 1}`;
+        jCards.forEach((c, i) => {
+          c.style.pointerEvents = i === index ? "auto" : "none";
         });
       };
 
-      // One wheel burst / one swipe = one chapter. `busy` swallows trackpad
-      // momentum, and the time gate stops a long flick counting twice.
-      const onWheel = (e: WheelEvent) => {
-        if (!jLocked) return;
-        e.preventDefault();
-        if (busy || Math.abs(e.deltaY) < 6) return;
-        const now = performance.now();
-        if (now - lastGesture < 620) return;
-        lastGesture = now;
-        advance(e.deltaY > 0 ? 1 : -1);
-      };
+      const journeyTl = gsap.timeline({ defaults: { ease: "power1.inOut" } });
+      journeyTl
+        .to(jCards[0], { opacity: 0, y: -16, duration: 0.5 }, 0.35)
+        .to(jCards[1], { opacity: 1, y: 0, duration: 0.5 }, 0.35)
+        .to(jCards[1], { opacity: 0, y: -16, duration: 0.5 }, 1.25)
+        .to(jCards[2], { opacity: 1, y: 0, duration: 0.5 }, 1.25)
+        .to(jCards[2], { opacity: 0, y: -16, duration: 0.5 }, 2.15)
+        .to(jCards[3], { opacity: 1, y: 0, duration: 0.5 }, 2.15)
+        .to({}, { duration: 0.35 });
 
-      let touchStartY = 0;
-      const onTouchStart = (e: TouchEvent) => {
-        touchStartY = e.touches[0]?.clientY ?? 0;
-      };
-      const onTouchMove = (e: TouchEvent) => {
-        if (jLocked) e.preventDefault();
-      };
-      const onTouchEnd = (e: TouchEvent) => {
-        if (!jLocked || busy) return;
-        const dy = touchStartY - (e.changedTouches[0]?.clientY ?? touchStartY);
-        if (Math.abs(dy) < 40) return;
-        advance(dy > 0 ? 1 : -1);
-      };
-      // Keyboard parity — the archive must be navigable without a wheel.
-      const onKey = (e: KeyboardEvent) => {
-        if (!jLocked) return;
-        if (e.key === "ArrowDown" || e.key === "PageDown" || e.key === " ") {
-          e.preventDefault();
-          advance(1);
-        } else if (e.key === "ArrowUp" || e.key === "PageUp") {
-          e.preventDefault();
-          advance(-1);
-        }
-      };
+      ScrollTrigger.create({
+        trigger: root.current,
+        start: () => "top+=" + window.innerHeight * 1.8 + " top",
+        end: () => "top+=" + window.innerHeight * 3.8 + " top",
+        scrub: 0.5,
+        animation: journeyTl,
+        onUpdate: (self) => {
+          const p = self.progress;
+          let idx = 0;
+          if (p >= 0.78) idx = 3;
+          else if (p >= 0.48) idx = 2;
+          else if (p >= 0.18) idx = 1;
+          setActiveTab(idx);
+          setRoom(JOURNEY[idx].accent, JOURNEY[idx].lift, 0.4);
+        },
+      });
 
-      if (!reduced) {
-        window.addEventListener("wheel", onWheel, { passive: false });
-        window.addEventListener("touchstart", onTouchStart, { passive: true });
-        window.addEventListener("touchmove", onTouchMove, { passive: false });
-        window.addEventListener("touchend", onTouchEnd, { passive: true });
-        window.addEventListener("keydown", onKey);
-        journeyListeners = () => {
-          window.removeEventListener("wheel", onWheel);
-          window.removeEventListener("touchstart", onTouchStart);
-          window.removeEventListener("touchmove", onTouchMove);
-          window.removeEventListener("touchend", onTouchEnd);
-          window.removeEventListener("keydown", onKey);
-        };
+      // ======== PHASE 3 — Journey → Craft ========
+      const craftTransition = gsap.timeline({ defaults: { ease: "power2.inOut" } });
+      craftTransition
+        .to(journeyRight.current, { autoAlpha: 0, y: -28, duration: 0.4 }, 0)
+        .to(craftRight.current, { autoAlpha: 1, y: 0, duration: 0.5 }, 0.25)
+        .to({}, { duration: 0.3 });
 
-        // Engage the lock once the archive is fully open; entering from below
-        // resumes at the last chapter so backtracking feels continuous.
-        ScrollTrigger.create({
-          trigger: root.current,
-          start: () => "top+=" + window.innerHeight * 2 + " top",
-          end: () => "top+=" + window.innerHeight * 2.35 + " top",
-          onEnter: () => lockJourney(0),
-          onEnterBack: () => lockJourney(LAST),
-          onLeaveBack: releaseJourney,
-        });
-      } else {
-        setChapter(0);
-      }
-
-      // ======== PHASE 3 — Journey → Craft (scrubbed) ========
-      // Craft is the cabinet: it reveals the accumulated achievements, category
-      // by category, each mapping to the chapter that earned it.
-      // The section switch stays scroll-driven so it feels connected.
-      const craft = gsap.timeline();
-      const CH = 0.6; // leading hold so Journey 4 stays readable
-      craft
-        .to(mJourney, { fontSize: MENU_SMALL, color: "var(--vault-gold-dim)", duration: 0.9, ease: "power2.inOut" }, CH)
-        .to(mCraft, { fontSize: MENU_ACTIVE, color: "var(--vault-cream)", duration: 0.9, ease: "power2.inOut" }, CH)
-        .to(journeyRight.current, { opacity: 0, y: -34, duration: 0.5, ease: "power2.in" }, CH)
-        .to(craftRight.current, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, CH + 0.42)
-        .to({}, { duration: 0.5 });
-
-      // The cabinet opens on its own once the section settles — the visitor
-      // never has to scroll the contents in. One card at a time: its border is
-      // traced in, then its skills are retrieved one by one, then the next.
       const cabinet = gsap.timeline({ paused: true });
       craftCards.forEach((card) => {
         const trace = card.querySelector("[data-craft-trace]");
@@ -635,59 +632,70 @@ export default function Experience() {
         const names = card.querySelectorAll("[data-craft-name]");
         cabinet
           .to(card, { opacity: 1, duration: 0.3, ease: "power2.out" })
-          // The border draws itself around the card.
           .to(trace, { strokeDashoffset: 0, duration: 0.8, ease: "power2.inOut" }, "<")
           .to(head, { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" }, "<0.5")
-          // Each skill is retrieved: the mark strikes, the name resolves.
-          .to(checks, { opacity: 1, scale: 1, duration: 0.3, stagger: 0.22, ease: "back.out(2.2)" }, "<0.15")
+          .to(checks, { opacity: 1, scale: 1, duration: 0.3, stagger: 0.15, ease: "back.out(2.2)" }, "<0.15")
           .to(
             names,
-            { opacity: 1, x: 0, filter: "blur(0px)", duration: 0.45, stagger: 0.22, ease: "power2.out" },
+            { opacity: 1, x: 0, filter: "blur(0px)", duration: 0.35, stagger: 0.15, ease: "power2.out" },
             "<0.06"
           )
-          // The traced edge settles back to a quietly lit border.
           .to(trace, { strokeOpacity: 0.4, duration: 0.6, ease: "power2.out" }, "<0.2");
       });
-      // Everything is back in the Vault — the tally pops on the Craft title.
-      // The total is asserted here so the badge is always right on arrival,
-      // however the visitor reached this section.
-      cabinet
-        .add(() => {
-          if (craftCount) craftCount.textContent = String(skillsThrough(JOURNEY.length - 1));
-          gsap.set(craftCount, { opacity: 1 });
-        }, ">-0.1")
-        .to(craftCount, { scale: 1.35, duration: 0.28, ease: "back.out(3)" })
-        .to(craftCount, { scale: 1, duration: 0.4, ease: "power2.out" })
-        .fromTo(
-          mCraft,
-          { textShadow: "0 0 20px rgba(244,231,168,0.7)" },
-          { textShadow: "0 0 0px rgba(244,231,168,0)", duration: 0.9, ease: "power2.out" },
-          "<-0.2"
-        );
+
+      let cabinetSoundPlayed = false;
+      cabinet.add(() => {
+        if (!cabinetSoundPlayed) {
+          cabinetSoundPlayed = true;
+          soundFX.playCabinetUnlock();
+        }
+        if (craftCount) craftCount.textContent = "16";
+      });
 
       ScrollTrigger.create({
         trigger: root.current,
-        start: () => "top+=" + window.innerHeight * 2.5 + " top",
-        end: () => "top+=" + window.innerHeight * 3.6 + " top",
+        start: () => "top+=" + window.innerHeight * 3.8 + " top",
+        end: () => "top+=" + window.innerHeight * 4.4 + " top",
         scrub: true,
-        animation: craft,
+        animation: craftTransition,
+        onEnter: () => setRoom(ROOMS.craft.accent, ROOMS.craft.lift, 0.8),
+        onLeaveBack: () => {
+          cabinetSoundPlayed = false;
+          setRoom(JOURNEY[3].accent, JOURNEY[3].lift, 0.8);
+        },
+        onEnterBack: () => {
+          setRoom(ROOMS.craft.accent, ROOMS.craft.lift, 0.8);
+          cabinet.progress(1);
+        },
         onUpdate: (self) => {
-          // Play once the cabinet is fully open; rewind if the visitor leaves,
-          // so returning always replays the retrieval in full.
-          if (self.progress > 0.9) cabinet.play();
-          else if (self.progress < 0.4) cabinet.pause(0);
+          if (self.progress > 0.7) cabinet.play();
+          else if (self.progress < 0.2) cabinet.pause(0);
         },
       });
+
+      // ======== PHASE 4 — Craft → Works ========
+      // Craft rests undisturbed from 4.4 * H to 5.4 * H. Works transition begins at 5.4 * H.
+      const worksTransition = gsap.timeline({ defaults: { ease: "power2.inOut" } });
+      worksTransition
+        .to(craftRight.current, { autoAlpha: 0, y: -28, duration: 0.4 }, 0)
+        .to(worksRight.current, { autoAlpha: 1, y: 0, duration: 0.5 }, 0.25);
+
+      ScrollTrigger.create({
+        trigger: root.current,
+        start: () => "top+=" + window.innerHeight * 5.4 + " top",
+        end: () => "top+=" + window.innerHeight * 6.0 + " top",
+        scrub: true,
+        animation: worksTransition,
+      });
+
       // -------- Reduced motion --------
       if (reduced) {
-        if (heroPre.current) heroPre.current.textContent = HERO_PRE;
-        if (heroVaultInline.current) heroVaultInline.current.textContent = HERO_VAULT;
-        if (subtitleText.current) subtitleText.current.textContent = SUBTITLE;
         if (ulPath.current) {
           const len = ulPath.current.getTotalLength();
           gsap.set(ulPath.current, { strokeDasharray: len, strokeDashoffset: 0 });
         }
         gsap.set([ulPath.current, arrowStem.current, arrowHead.current], { opacity: 1 });
+        measure();
         unlockScroll();
         ScrollTrigger.refresh();
         return;
@@ -696,51 +704,68 @@ export default function Experience() {
       // -------- Cinematic intro --------
       lockScroll();
 
+      let introFinished = false;
+      const finishIntro = () => {
+        if (introFinished) return;
+        introFinished = true;
+        if (ulPath.current) {
+          const len = ulPath.current.getTotalLength();
+          gsap.set(ulPath.current, { strokeDasharray: len, strokeDashoffset: 0, opacity: 1 });
+        }
+        gsap.set([arrowStem.current, arrowHead.current], { opacity: 1 });
+        measure();
+        unlockScroll();
+        ScrollTrigger.refresh();
+      };
+      finishIntroRef.current = finishIntro;
+
+      const handleEarlyGesture = () => {
+        finishIntro();
+        window.removeEventListener("wheel", handleEarlyGesture);
+        window.removeEventListener("touchstart", handleEarlyGesture);
+      };
+      window.addEventListener("wheel", handleEarlyGesture, { passive: true });
+      window.addEventListener("touchstart", handleEarlyGesture, { passive: true });
+
       const run = async () => {
-        await wait(300, isCancelled);
-        if (isCancelled()) return;
+        measure();
+        if (isCancelled() || introFinished) return;
 
-        heroCaret.current?.setAttribute("data-blink", "true");
-        if (heroPre.current) await typeInto(heroPre.current, HERO_PRE, { cancelled: isCancelled });
-        if (heroVaultInline.current)
-          await typeInto(heroVaultInline.current, HERO_VAULT, { cancelled: isCancelled });
-        await wait(1600, isCancelled);
-        heroCaret.current?.setAttribute("data-blink", "false");
-
-        await wait(360, isCancelled);
-        if (isCancelled()) return;
-
-        subtitleCaret.current?.setAttribute("data-blink", "true");
-        if (subtitleText.current) await typeInto(subtitleText.current, SUBTITLE, { cancelled: isCancelled });
-        await wait(1600, isCancelled);
-        subtitleCaret.current?.setAttribute("data-blink", "false");
-
-        await wait(220, isCancelled);
-        if (isCancelled()) return;
+        // Slow cinematic decryption sequence:
+        // 0.15s: "Welcome to my " decrypts character by character (~1.3s)
+        // 1.45s: "Vault." decrypts with resonant mechanical ticks (~0.7s)
+        // 2.20s: Subtitle "Scroll Down to explore" starts decrypting (~1.5s)
+        // 3.30s: SVG underline stroke traces in over 0.65s
+        // 3.90s: Bouncing arrow appears and scroll unlocks
+        await new Promise((res) => setTimeout(res, 3300));
+        if (isCancelled() || introFinished) return;
 
         if (ulPath.current) {
           const len = ulPath.current.getTotalLength();
           gsap.set(ulPath.current, { strokeDasharray: len, strokeDashoffset: len, opacity: 1 });
-          await gsap.to(ulPath.current, { strokeDashoffset: 0, duration: 0.75, ease: "power2.inOut" }).then();
+          gsap.to(ulPath.current, { strokeDashoffset: 0, duration: 0.65, ease: "power2.inOut" });
         }
-        if (isCancelled()) return;
-        await gsap
-          .to([arrowStem.current, arrowHead.current], { opacity: 1, duration: 0.3, ease: "power2.out" })
-          .then();
+
+        await new Promise((res) => setTimeout(res, 450));
+        if (isCancelled() || introFinished) return;
+
+        gsap.to([arrowStem.current, arrowHead.current], { opacity: 1, duration: 0.3, ease: "power2.out" });
 
         gsap
-          .timeline({ repeat: -1, repeatDelay: 1.4 })
-          .to(arrowHead.current, { y: 8, duration: 0.5, ease: "sine.inOut" }, 0)
+          .timeline({ repeat: -1, repeatDelay: 1.2 })
+          .to(arrowHead.current, { y: 6, duration: 0.5, ease: "sine.inOut" }, 0)
           .to(arrowStem.current, { attr: { y2: 68 }, duration: 0.5, ease: "sine.inOut" }, 0)
-          .to(arrowHead.current, { y: 0, duration: 0.6, ease: "sine.inOut" }, 0.5)
-          .to(arrowStem.current, { attr: { y2: 60 }, duration: 0.6, ease: "sine.inOut" }, 0.5);
+          .to(arrowHead.current, { y: 0, duration: 0.5, ease: "sine.inOut" }, 0.5)
+          .to(arrowStem.current, { attr: { y2: 60 }, duration: 0.5, ease: "sine.inOut" }, 0.5);
 
-        unlockScroll();
-        ScrollTrigger.refresh();
+        // Unlock scroll once intro decryption resolves
+        await new Promise((res) => setTimeout(res, 400));
+        finishIntro();
       };
 
       (document.fonts?.ready ?? Promise.resolve()).then(() => {
         if (isCancelled()) return;
+        measure();
         ScrollTrigger.refresh();
         run();
       });
@@ -749,8 +774,7 @@ export default function Experience() {
     return () => {
       cancelled = true;
       unlockScroll();
-      cardTl?.kill();
-      journeyListeners?.();
+      pointerListener?.();
       gsap.ticker.remove(tick);
       lenis.destroy();
       ctx.revert();
@@ -758,32 +782,67 @@ export default function Experience() {
   }, []);
 
   return (
-    <div ref={root} className="relative h-[500vh] w-full">
+    <div ref={root} className="relative h-[700vh] w-full">
+      {/* ---------------------------------- VIEWPORT SCROLL PROGRESS HAIRLINE */}
+      <div
+        aria-hidden
+        ref={scrollProgressBar}
+        className="fixed top-0 left-0 right-0 z-[100] h-[2.5px] bg-black/85 origin-left pointer-events-none transition-transform duration-75 ease-out shadow-[0_1px_4px_rgba(0,0,0,0.12)]"
+        style={{ transform: "scaleX(0)" }}
+      />
+
       {/* ------------------------------------------------------------ NAV */}
-      <header className="fixed inset-x-0 top-0 z-50 flex items-center justify-between px-[6vw] py-[3.4vh]">
+      <header className="fixed inset-x-0 top-0 z-50 flex items-center justify-between px-4 sm:px-[6vw] py-2.5 sm:py-[3.4vh]">
         <div className="relative">
-          <span
+          <button
             ref={navGhost}
-            aria-hidden
-            className="font-excon font-bold leading-none opacity-0 select-none"
+            onClick={() => {
+              soundFX.playMenuClick();
+              lenisRef.current?.scrollTo(0, { duration: 1.2 });
+            }}
+            aria-label="Return to top"
+            className="font-excon font-bold leading-none opacity-0 select-none cursor-pointer"
             style={{ fontSize: NAV_VAULT_SIZE }}
           >
             Vault.
-          </span>
+          </button>
         </div>
 
-        <button
-          ref={letsTalk}
-          className="will-reveal font-excon font-bold leading-none text-cream rounded-full border border-cream/80 px-5 py-2 transition-colors hover:bg-cream hover:text-black"
-          style={{ fontSize: "clamp(0.9rem, 1.4vw, 1.05rem)" }}
-        >
-          Let&rsquo;s Talk.
-        </button>
+        <div className="flex items-center gap-2 sm:gap-3">
+          <button
+            onClick={() => {
+              soundFX.playModalOpen();
+              setIsBeyondOpen(true);
+            }}
+            onMouseEnter={() => soundFX.playHoverTick()}
+            className="lg:hidden text-xs font-semibold text-neutral-600 hover:text-black border border-black/10 rounded-full px-3 py-1.5 bg-white/80 backdrop-blur-sm active:scale-95 transition-all cursor-pointer"
+          >
+            Beyond
+          </button>
+          <button
+            ref={letsTalk}
+            onClick={() => {
+              soundFX.playModalOpen();
+              setIsContactOpen(true);
+            }}
+            onMouseEnter={() => soundFX.playHoverTick()}
+            className="group will-reveal flex items-center gap-1.5 sm:gap-2 font-excon font-bold leading-none text-ink rounded-full border-2 border-ink px-3.5 py-1.5 sm:px-5 sm:py-2.5 text-xs sm:text-sm transition-all duration-200 hover:bg-ink hover:text-bg hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(0,0,0,0.12)] active:scale-95 active:translate-y-0 cursor-pointer"
+          >
+            <span>Let&rsquo;s Talk.</span>
+            <span className="inline-block transition-transform duration-200 ease-out group-hover:translate-x-0.5 group-hover:-translate-y-0.5 font-mono text-[0.85em]">
+              ↗
+            </span>
+          </button>
+        </div>
 
         <span
           ref={vaultFloat}
+          onClick={() => {
+            soundFX.playMenuClick();
+            lenisRef.current?.scrollTo(0, { duration: 1.2 });
+          }}
           aria-hidden
-          className="text-glow pointer-events-none fixed left-0 top-0 font-excon font-bold leading-none text-cream"
+          className="text-glow pointer-events-auto fixed left-0 top-0 font-excon font-bold leading-none text-ink cursor-pointer active:scale-95 transition-transform duration-150"
           style={{ fontSize: HEADING_SIZE, willChange: "transform" }}
         >
           Vault.
@@ -802,47 +861,90 @@ export default function Experience() {
         </div>
 
         {/* -------------------------------------------------------- HERO */}
-        <section className="absolute inset-0 z-10 flex flex-col items-center justify-center px-6 text-center">
+        <section
+          onClick={handleHeroClick}
+          className="absolute inset-0 z-10 flex flex-col items-center justify-center px-4 sm:px-6 text-center select-none"
+        >
           <h1
-            className="text-glow font-excon font-bold leading-[1.02] whitespace-nowrap text-cream"
+            className="text-glow font-excon font-bold leading-[1.08] sm:leading-[1.02] text-ink flex flex-col sm:inline-flex sm:flex-row items-center justify-center text-center gap-0 sm:gap-2"
             style={{ fontSize: HEADING_SIZE }}
           >
-            <span ref={heroPre} />
-            <span ref={heroVaultInline} />
-            <span ref={heroCaret} className="vault-caret align-baseline" />
+            <span ref={heroPre} className="inline-block">
+              <EncryptedText
+                key={`pre-${decryptKey}`}
+                text={HERO_PRE}
+                revealDelayMs={95}
+                flipDelayMs={60}
+                startDelayMs={150}
+                soundEffect={true}
+                encryptedClassName="text-neutral-400 font-mono font-medium"
+                revealedClassName="text-ink font-excon font-bold"
+              />
+            </span>
+            <span ref={heroVaultInline} className="inline-block">
+              <EncryptedText
+                key={`vault-${decryptKey}`}
+                text={HERO_VAULT}
+                revealDelayMs={115}
+                flipDelayMs={60}
+                startDelayMs={1450}
+                soundEffect={true}
+                encryptedClassName="text-neutral-400 font-mono font-medium"
+                revealedClassName="text-ink font-excon font-bold"
+                onComplete={() => {
+                  measureRef.current();
+                }}
+              />
+            </span>
           </h1>
 
           <div
             ref={scrollIndicator}
-            className="mt-[4.5vh] flex w-full flex-col items-center"
-            style={{ maxWidth: "min(86vw, 560px)" }}
+            onClick={() => {
+              soundFX.playMenuClick();
+              lenisRef.current?.scrollTo(window.innerHeight * 1.15, { duration: 1.0 });
+            }}
+            onMouseEnter={() => soundFX.playHoverTick()}
+            className="group mt-[3vh] sm:mt-[4.5vh] flex w-full flex-col items-center cursor-pointer transition-transform duration-300 hover:scale-[1.03] active:scale-95"
+            style={{ maxWidth: "min(90vw, 560px)" }}
           >
             <svg
               viewBox="0 0 640 26"
-              className="w-full overflow-visible"
+              className="w-full overflow-visible transition-opacity duration-300 group-hover:opacity-100"
               fill="none"
               stroke="currentColor"
               strokeWidth={3}
               strokeLinecap="round"
               strokeLinejoin="round"
-              style={{ color: "var(--vault-cream)" }}
+              style={{ color: INK }}
             >
               <path ref={ulPath} d="M4 12 H 604 Q 622 12 622 30" />
               <line ref={arrowStem} x1="622" y1="29" x2="622" y2="60" />
               <path ref={arrowHead} d="M611 49 L622 61 L633 49" />
             </svg>
             <p
-              className="mt-[4.5vh] text-center font-excon font-bold leading-none text-cream"
-              style={{ fontSize: "clamp(1rem, 2.3vw, 1.55rem)" }}
+              className="mt-[3vh] sm:mt-[4.5vh] text-center font-excon font-bold leading-none text-ink transition-transform duration-200 group-hover:-translate-y-0.5"
+              style={{ fontSize: "clamp(0.95rem, 2.3vw, 1.55rem)" }}
             >
-              <span ref={subtitleText} />
-              <span ref={subtitleCaret} className="vault-caret align-baseline" />
+              <EncryptedText
+                key={`sub-${decryptKey}`}
+                text={SUBTITLE}
+                revealDelayMs={70}
+                flipDelayMs={55}
+                startDelayMs={2200}
+                soundEffect={true}
+                encryptedClassName="text-neutral-400 font-mono font-medium"
+                revealedClassName="text-ink font-excon font-bold"
+                onComplete={() => {
+                  finishIntroRef.current();
+                }}
+              />
             </p>
           </div>
         </section>
 
         {/* ---------------------------------------- MAIN PANEL (About / Journey) */}
-        <div ref={mainPanel} className="absolute inset-0 z-20 bg-black">
+        <div ref={mainPanel} className="absolute inset-0 z-20 bg-bg">
           {/* Panel atmosphere — the panel is opaque (it occludes the hero as it
               rolls up), so it carries its own lighting layers. */}
           <div className="pointer-events-none absolute inset-0" aria-hidden>
@@ -850,374 +952,555 @@ export default function Experience() {
             <div className="vault-grain" />
             <div className="vault-vignette" />
           </div>
-          <div className="relative mx-auto flex h-full max-w-[1360px] items-center gap-[4%] px-[6vw]">
-            {/* Left: accordion chapter menu */}
+          <div className="relative mx-auto flex h-full max-w-[1480px] items-center px-4 sm:px-6 lg:px-[5vw] lg:gap-[4%]">
+            {/* Left: accordion chapter menu (desktop only) */}
             <ul
               ref={menu}
-              className="flex w-[32%] shrink-0 flex-col justify-center gap-[0.55rem] font-excon font-bold leading-[1.05]"
+              className="hidden lg:flex w-[26%] shrink-0 flex-col justify-center gap-[0.55rem] font-excon font-bold leading-[1.05]"
             >
               {MENU.map((item) => (
                 <li
                   key={item.key}
                   data-key={item.key}
-                  className="will-reveal cursor-pointer text-gold-dim"
-                  style={{ fontSize: MENU_SMALL }}
+                  onClick={() => handleMenuClick(item.key)}
+                  onMouseEnter={() => soundFX.playHoverTick()}
+                  className="group will-reveal cursor-pointer select-none whitespace-nowrap active:scale-[0.98] transition-transform duration-150"
+                  style={{
+                    fontSize: item.key === "about" ? MENU_ACTIVE : MENU_SMALL,
+                    color: item.key === "about" ? INK : INK_DIM,
+                  }}
                 >
-                  {/* Hover lives on the span so CSS transitions never fight the
-                      GSAP color tweens on the li (accordion + glow pulse). */}
-                  <span className="transition-colors duration-300 hover:text-cream">{item.label}</span>
-                  {/* Running tally of skills stored in the Vault. Sized in rem
-                      so the accordion's font-size tween never scales it. */}
-                  {item.key === "craft" && (
-                    <span
-                      data-craft-count
-                      aria-hidden
-                      className="ml-2.5 inline-flex shrink-0 items-center justify-center rounded-full align-middle font-inter font-medium text-black"
-                      style={{
-                        width: "1.35rem",
-                        height: "1.35rem",
-                        fontSize: "0.75rem",
-                        background: "var(--vault-gold)",
-                        opacity: 0,
-                      }}
-                    >
-                      0
+                  <span className="inline-flex items-center gap-3 transition-transform duration-300 ease-out group-hover:translate-x-2.5 group-active:translate-x-1">
+                    <span className="transition-colors duration-200 group-hover:text-black">
+                      {item.label}
                     </span>
-                  )}
+                    {(item.key === "skills" || item.key === "craft") && (
+                      <span
+                        data-craft-count
+                        aria-hidden
+                        className="inline-flex shrink-0 items-center justify-center rounded-full font-inter font-bold text-white bg-black shadow-sm transition-transform duration-300 ease-out group-hover:scale-125 group-hover:rotate-6"
+                        style={{
+                          width: "1.35rem",
+                          height: "1.35rem",
+                          fontSize: "0.72rem",
+                          lineHeight: 1,
+                        }}
+                      >
+                        16
+                      </span>
+                    )}
+                  </span>
                 </li>
               ))}
             </ul>
 
             {/* Right: swappable content */}
-            <div className="relative h-full flex-1">
+            <div className="relative h-full flex-1 w-full pb-14 lg:pb-0">
               {/* About */}
-              <div ref={aboutRight} className="absolute inset-0 flex items-center justify-center">
-                <div className="flex max-w-[380px] flex-col items-center text-center">
-                  <div ref={profile} className="will-reveal w-[clamp(180px,20vw,300px)]">
-                    <div className="rounded-[24%] p-[6px] ring-2 ring-cream">
-                      <ProfileSilhouette />
+              <div ref={aboutRight} className="absolute inset-0 flex items-center justify-center lg:justify-end">
+                <div className="flex w-full max-w-[480px] flex-col items-center text-center lg:items-end lg:text-right">
+                  <div ref={profile} className="will-reveal relative w-[clamp(160px,18vw,300px)]">
+                    <div data-portrait-glow aria-hidden className="hidden" />
+                    <div data-parallax="portrait">
+                      <div
+                        data-portrait
+                        className="aspect-square overflow-hidden rounded-[26px] sm:rounded-[36px] border-[10px] sm:border-[12px] md:border-[16px] border-black bg-white shadow-[0_16px_40px_rgba(0,0,0,0.06)] hover:shadow-[0_24px_50px_rgba(0,0,0,0.12)] hover:scale-[1.02] transition-all duration-500 ease-out cursor-default"
+                      >
+                        <ProfileSilhouette />
+                      </div>
                     </div>
                   </div>
-                  <h3
-                    ref={aboutName}
-                    className="will-reveal mt-6 font-excon font-bold leading-none text-cream"
-                    style={{ fontSize: "clamp(1.5rem, 2.6vw, 2.1rem)" }}
-                  >
-                    Tharun S
-                  </h3>
-                  <p
-                    ref={aboutPara}
-                    className="will-reveal mt-4 font-ranade leading-relaxed text-cream"
-                    style={{ fontSize: "clamp(0.95rem, 1.15vw, 1.12rem)" }}
-                  >
-                    I enjoy building products where thoughtful design meets reliable
-                    engineering. Every project is an opportunity to create something
-                    intuitive, purposeful, and crafted with attention to detail.
-                  </p>
+                  <div data-parallax="text" className="w-full mt-4 sm:mt-7">
+                    <h3
+                      ref={aboutName}
+                      className="will-reveal font-excon font-bold leading-none text-ink text-2xl sm:text-3xl lg:text-4xl"
+                    >
+                      Tharun S
+                    </h3>
+                    <p
+                      ref={aboutPara}
+                      className="will-reveal mt-2.5 sm:mt-4 font-inter leading-relaxed text-ink text-xs sm:text-sm md:text-base max-w-[44ch]"
+                    >
+                      I enjoy building products where thoughtful design meets reliable
+                      engineering. Every project is an opportunity to create something
+                      intuitive, purposeful, and crafted with attention to detail.
+                    </p>
+                  </div>
                 </div>
               </div>
 
-              {/* Journey — vertical dotted timeline */}
+              {/* Journey — Editorial Chapter Showcase */}
               <div ref={journeyRight} className="absolute inset-0 flex items-center justify-center">
-                {/* Oversized chapter numbers — part of the composition, not text */}
-                <div
-                  className="pointer-events-none absolute inset-0 flex items-center justify-center select-none"
-                  aria-hidden
-                >
-                  {["01", "02", "03", "04"].map((n, i) => (
-                    <span
-                      key={n}
-                      data-chnum={i}
-                      className="absolute font-excon font-bold leading-none"
-                      style={{
-                        fontSize: "clamp(16rem, 30vw, 30rem)",
-                        color: "rgba(244, 231, 168, 0.04)",
-                        letterSpacing: "0.02em",
-                      }}
-                    >
-                      {n}
-                    </span>
-                  ))}
-                </div>
-
-                <div className="relative flex items-start gap-8 md:gap-12">
-                  {/* Timeline column */}
-                  <div className="relative flex flex-col items-center gap-[0.85rem]">
-                    {/* Progress particle — travels the track between chapters */}
-                    <span
-                      data-particle
-                      className="absolute rounded-full"
-                      aria-hidden
-                      style={{
-                        width: 8,
-                        height: 8,
-                        left: "50%",
-                        marginLeft: -4,
-                        top: 0,
-                        background: "var(--vault-cream)",
-                        boxShadow: "0 0 14px 5px rgba(244, 231, 168, 0.55)",
-                        opacity: 0,
-                      }}
-                    />
-                    <div data-milestone className="relative mb-2">
-                      <div data-breathe className="relative">
-                        <div
-                          data-glow
-                          className="pointer-events-none absolute -inset-3 rounded-full"
-                          style={{
-                            background:
-                              "radial-gradient(circle, rgba(244,231,168,0.85) 0%, rgba(244,231,168,0) 70%)",
-                            filter: "blur(10px)",
-                          }}
-                        />
-                        <div
-                          className="relative flex items-center justify-center rounded-full bg-cream"
-                          style={{ width: 84, height: 84 }}
+                <div className="w-full max-w-[820px] 2xl:max-w-[880px] flex flex-col gap-3 sm:gap-5">
+                  {/* Chapter Navigation Tabs / Bar */}
+                  <div className="flex items-center justify-between border-b border-black/8 pb-2.5 sm:pb-4">
+                    <div className="flex items-center gap-1 sm:gap-2">
+                      {JOURNEY.map((step, i) => (
+                        <button
+                          key={step.title}
+                          data-jtab={i}
+                          onClick={() => handleChapterClick(i)}
+                          onMouseEnter={() => soundFX.playHoverTick()}
+                          className={`group flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 hover:-translate-y-0.5 active:scale-95 cursor-pointer ${
+                            i === 0
+                              ? "bg-black text-white shadow-sm"
+                              : "bg-black/[0.04] text-black/60 hover:text-black hover:bg-black/[0.08]"
+                          }`}
                         >
-                          <div className="relative" style={{ width: 42, height: 42 }}>
-                            {JOURNEY.map((step, i) => (
-                              <svg
-                                key={i}
-                                data-icon
-                                viewBox="0 0 24 24"
-                                className="absolute inset-0 h-full w-full"
-                              >
-                                <JourneyIcon name={step.icon} />
-                              </svg>
-                            ))}
+                          <span
+                            className="w-1.5 h-1.5 rounded-full transition-transform duration-300 ease-out group-hover:scale-150"
+                            style={{ backgroundColor: `rgb(${step.accent.join(" ")})` }}
+                          />
+                          <span>0{i + 1}</span>
+                          <span className="hidden sm:inline font-normal opacity-75">{step.title}</span>
+                        </button>
+                      ))}
+                    </div>
+                    <div className="flex items-center gap-1 text-xs font-mono font-medium text-neutral-400">
+                      <span data-jcount className="font-bold text-neutral-800">01</span>
+                      <span>/</span>
+                      <span>04</span>
+                    </div>
+                  </div>
+
+                  {/* Stacked Chapter Cards */}
+                  <div className="relative h-[410px] sm:h-[390px] md:h-[360px] w-full">
+                    {JOURNEY.map((step, i) => (
+                      <div
+                        key={step.title}
+                        data-jcard={i}
+                        className="absolute inset-0 rounded-[20px] sm:rounded-[24px] bg-white p-4 sm:p-7 md:p-8 border shadow-[0_12px_36px_rgba(0,0,0,0.04)] flex flex-col justify-between overflow-hidden"
+                        style={{
+                          borderColor: `rgb(${step.accent.join(" ")} / 0.45)`,
+                          opacity: i === 0 ? 1 : 0,
+                          transform: i === 0 ? "none" : "translateY(16px)",
+                          pointerEvents: i === 0 ? "auto" : "none",
+                        }}
+                      >
+                        <div>
+                          {/* Top row: Chapter metadata badge + Metric display */}
+                          <div className="flex items-start justify-between gap-2 sm:gap-4">
+                            <div>
+                              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                                <span
+                                  className="inline-flex items-center gap-1 sm:gap-1.5 text-[0.65rem] sm:text-xs font-semibold uppercase tracking-wider px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md"
+                                  style={{
+                                    backgroundColor: `rgb(${step.accent.join(" ")} / 0.12)`,
+                                    color: `rgb(${step.accent.join(" ")})`,
+                                  }}
+                                >
+                                  <span
+                                    className="w-1.5 h-1.5 rounded-full"
+                                    style={{ backgroundColor: `rgb(${step.accent.join(" ")})` }}
+                                  />
+                                  Chapter 0{i + 1} · {step.title}
+                                </span>
+                                {step.period && (
+                                  <span className="text-[0.65rem] sm:text-xs font-inter text-neutral-400 font-medium">
+                                    {step.period}
+                                  </span>
+                                )}
+                              </div>
+
+                              <h3 className="mt-2 sm:mt-3.5 font-excon text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-ink">
+                                {step.primary}
+                              </h3>
+                              {step.secondary && (
+                                <p className="mt-0.5 sm:mt-1 font-inter text-xs sm:text-sm md:text-base text-neutral-500 font-medium">
+                                  {step.secondary}
+                                </p>
+                              )}
+                            </div>
+
+                            {step.metric && (
+                              <div className="flex flex-col items-end shrink-0 rounded-xl sm:rounded-2xl bg-neutral-50 border border-black/6 px-2.5 py-1.5 sm:px-4 sm:py-2.5 transition-all duration-300 hover:scale-105 hover:bg-white hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] cursor-default">
+                                <div className="flex items-baseline font-excon font-bold text-xl sm:text-2xl md:text-3xl text-ink leading-none">
+                                  <span>{step.metric}</span>
+                                  {step.metricUnit && (
+                                    <span className="text-sm sm:text-lg font-light ml-0.5 text-neutral-600">
+                                      {step.metricUnit}
+                                    </span>
+                                  )}
+                                </div>
+                                {step.metricLabel && (
+                                  <span className="mt-0.5 text-[0.62rem] sm:text-[0.68rem] font-semibold uppercase tracking-widest text-neutral-400">
+                                    {step.metricLabel}
+                                  </span>
+                                )}
+                              </div>
+                            )}
                           </div>
+
+                          {/* Divider */}
+                          <div className="my-2.5 sm:my-5 h-px w-full bg-black/6" />
+
+                          {/* Narrative Story */}
+                          <p className="font-inter text-neutral-600 text-xs sm:text-sm md:text-[0.98rem] leading-relaxed max-w-[64ch] line-clamp-3 sm:line-clamp-none">
+                            {step.body}
+                          </p>
+                        </div>
+
+                        {/* Bottom row: Acquired skills */}
+                        <div className="mt-2.5 sm:mt-5 pt-2 sm:pt-3.5 border-t border-black/5 flex flex-wrap items-center gap-1.5 sm:gap-2">
+                          <span className="text-[0.65rem] sm:text-[0.7rem] uppercase font-semibold tracking-wider text-neutral-400 mr-1">
+                            Acquired:
+                          </span>
+                          {step.skills.map((skill) => (
+                            <span
+                              key={skill}
+                              className="group/pill inline-flex items-center gap-1 sm:gap-1.5 rounded-full border border-black/8 bg-neutral-50/70 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[0.68rem] sm:text-xs font-medium text-neutral-700 transition-all duration-200 hover:-translate-y-0.5 hover:border-black/20 hover:bg-white hover:shadow-sm cursor-default"
+                            >
+                              <span
+                                className="font-bold text-[0.65rem] sm:text-[0.7rem] transition-transform duration-200 group-hover/pill:scale-125"
+                                style={{ color: `rgb(${step.accent.join(" ")})` }}
+                              >
+                                ✓
+                              </span>
+                              {skill}
+                            </span>
+                          ))}
                         </div>
                       </div>
-                    </div>
-
-                    {/* Dotted track — subdued (future path) */}
-                    {Array.from({ length: 8 }).map((_, i) => (
-                      <span
-                        key={i}
-                        data-dot
-                        className="block rounded-full bg-cream"
-                        style={{ width: 6, height: 6, opacity: 0.25 }}
-                      />
-                    ))}
-                    {/* Remaining-milestone markers — dim / inactive */}
-                    {[0, 1, 2].map((i) => (
-                      <span
-                        key={`u${i}`}
-                        data-upcoming
-                        className="block rounded-full bg-cream"
-                        style={{ width: 11, height: 11, opacity: 0.35 }}
-                      />
-                    ))}
-                  </div>
-
-                  {/* Text column — the four chapters, stacked + page-turned */}
-                  <div className="relative w-[min(46vw,380px)]" style={{ minHeight: 260 }}>
-                    {JOURNEY.map((step, i) => (
-                      <div key={step.title} data-jtext={i} className={i === 0 ? "" : "absolute inset-0"}>
-                        {/* Chapter title — primary focal point */}
-                        <h3
-                          className="font-excon font-bold uppercase leading-[1.02] text-cream"
-                          style={{ fontSize: "clamp(2.2rem, 3vw, 3rem)", letterSpacing: "0.1em" }}
-                        >
-                          {step.title}
-                        </h3>
-
-                        {/* Key statistic — editorial pull-quote */}
-                        {step.metric && (
-                          <p
-                            className="mt-6 flex items-baseline font-excon leading-none text-cream"
-                            style={{ fontSize: "clamp(2.9rem, 3.8vw, 3.5rem)", fontWeight: 300 }}
-                          >
-                            <span>{step.metric}</span>
-                            {step.metricUnit && (
-                              <span style={{ fontSize: "0.6em", fontWeight: 300 }}>{step.metricUnit}</span>
-                            )}
-                            {step.metricLabel && (
-                              <span
-                                className="ml-3 font-inter uppercase text-cream/55"
-                                style={{ fontSize: "0.9rem", fontWeight: 500, letterSpacing: "0.14em" }}
-                              >
-                                {step.metricLabel}
-                              </span>
-                            )}
-                          </p>
-                        )}
-
-                        {/* Institution / company — medium presence */}
-                        <p
-                          className={`font-inter font-medium text-cream ${step.metric ? "mt-4" : "mt-7"}`}
-                          style={{ fontSize: "clamp(1.2rem, 1.5vw, 1.45rem)" }}
-                        >
-                          {step.primary}
-                        </p>
-
-                        {/* Supporting metadata — quiet */}
-                        {step.secondary && (
-                          <p
-                            className="mt-1.5 font-inter font-medium text-cream/55"
-                            style={{ fontSize: "clamp(0.95rem, 1.05vw, 1.05rem)", letterSpacing: "0.01em" }}
-                          >
-                            {step.secondary}
-                          </p>
-                        )}
-
-                        {/* Thin divider — breathing room before the story */}
-                        <div className="mt-8 h-px w-full bg-cream/[0.18]" />
-
-                        {/* Story paragraph — clean, editorial reading width */}
-                        <p
-                          className="mt-8 max-w-[32ch] font-inter text-cream/90"
-                          style={{ fontSize: "clamp(1.05rem, 1.15vw, 1.2rem)", lineHeight: 1.7, fontWeight: 400 }}
-                        >
-                          {step.body}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Reserved lane for the achievement card, so the card can
-                      never overlap the story column at any width. */}
-                  <div className="w-[232px] shrink-0" aria-hidden />
-
-                  {/* Achievement Unlocked — sits in the right-hand lane, level
-                      with the chapter title and in the reader's eyeline. It is
-                      read here, then travels across into "Craft", where the
-                      running tally of stored skills ticks up. */}
-                  <div
-                    data-achievement
-                    aria-hidden
-                    className="pointer-events-none absolute right-0 top-0 z-30 rounded-2xl border border-cream/15"
-                    style={{
-                      width: 232,
-                      padding: 20,
-                      opacity: 0,
-                      background: "rgba(22, 19, 11, 0.55)",
-                      backdropFilter: "blur(20px)",
-                      WebkitBackdropFilter: "blur(20px)",
-                      boxShadow: "0 16px 48px rgba(0, 0, 0, 0.4)",
-                    }}
-                  >
-                    <p
-                      data-ach-label
-                      className="font-inter font-medium uppercase text-cream/50"
-                      style={{ fontSize: "0.68rem", letterSpacing: "0.16em" }}
-                    >
-                      Achievement Unlocked
-                    </p>
-                    {JOURNEY.map((step, i) => (
-                      <ul key={i} data-ach-set={i} className="mt-4 space-y-2" style={{ display: "none" }}>
-                        {step.skills.map((s) => (
-                          <li
-                            key={s}
-                            data-ach-item
-                            className="flex items-baseline gap-2.5 font-inter text-cream/90"
-                            style={{ fontSize: "0.875rem" }}
-                          >
-                            <span data-ach-check className="inline-block text-gold" style={{ fontSize: "0.75rem" }}>
-                              ✓
-                            </span>
-                            <span data-ach-name className="inline-block">
-                              {s}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
                     ))}
                   </div>
                 </div>
               </div>
 
-              {/* Craft — the cabinet of accumulated achievements. Every skill
-                  shown here was earned (and watched being earned) in Journey. */}
+              {/* Skills — the cabinet of accumulated achievements */}
               <div ref={craftRight} className="absolute inset-0 flex items-center justify-center">
-                <div className="grid w-full max-w-[720px] grid-cols-2 gap-5">
-                  {CRAFT_CATEGORIES.map((cat, ci) => (
-                    <div
-                      key={cat.name}
-                      data-craft-card={ci}
-                      className="relative rounded-2xl"
-                      style={{
-                        padding: 20,
-                        opacity: 0,
-                        background: "rgba(22, 19, 11, 0.55)",
-                        backdropFilter: "blur(20px)",
-                        WebkitBackdropFilter: "blur(20px)",
-                      }}
-                    >
-                      {/* Unlit track + the stroke that is traced around it, so
-                          the card's border draws itself in before the contents
-                          are retrieved from the Vault. */}
-                      <svg
-                        className="pointer-events-none absolute inset-0 h-full w-full overflow-visible"
-                        aria-hidden
+                <div className="grid w-full max-w-[940px] 2xl:max-w-[1020px] grid-cols-2 gap-2.5 sm:gap-6 lg:gap-8">
+                  {CRAFT_CATEGORIES.map((cat, ci) => {
+                    const tally = cat.skills.reduce<Record<number, number>>((m, s) => {
+                      const o = originOf(s);
+                      m[o] = (m[o] ?? 0) + 1;
+                      return m;
+                    }, {});
+                    const dominant = Number(
+                      Object.keys(tally).sort((a, b) => tally[Number(b)] - tally[Number(a)])[0]
+                    );
+                    return (
+                      <div
+                        key={cat.name}
+                        data-craft-card={ci}
+                        className="relative rounded-[16px] sm:rounded-[24px] p-3.5 sm:p-7 lg:p-8 transition-shadow duration-300 hover:shadow-[0_20px_48px_rgba(0,0,0,0.08)] bg-white shadow-[0_12px_36px_rgba(0,0,0,0.05)]"
+                        style={
+                          {
+                            opacity: 0,
+                            "--origin-rgb": JOURNEY[dominant].accent.join(" "),
+                          } as React.CSSProperties
+                        }
                       >
-                        <rect
-                          x="0.75"
-                          y="0.75"
-                          width="calc(100% - 1.5px)"
-                          height="calc(100% - 1.5px)"
-                          rx="15"
-                          fill="none"
-                          stroke="var(--vault-cream)"
-                          strokeOpacity="0.1"
-                          strokeWidth="1.5"
-                        />
-                        <rect
-                          data-craft-trace
-                          x="0.75"
-                          y="0.75"
-                          width="calc(100% - 1.5px)"
-                          height="calc(100% - 1.5px)"
-                          rx="15"
-                          fill="none"
-                          stroke="var(--vault-cream)"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          pathLength={100}
-                          style={{
-                            strokeDasharray: 100,
-                            strokeDashoffset: 100,
-                            filter: "drop-shadow(0 0 6px rgba(244,231,168,0.55))",
-                          }}
-                        />
-                      </svg>
+                        <svg
+                          className="pointer-events-none absolute inset-0 h-full w-full overflow-visible"
+                          aria-hidden
+                        >
+                          <rect
+                            x="0.75"
+                            y="0.75"
+                            width="calc(100% - 1.5px)"
+                            height="calc(100% - 1.5px)"
+                            rx="16"
+                            fill="none"
+                            stroke="rgb(var(--origin-rgb))"
+                            strokeOpacity="0.65"
+                            strokeWidth="1.5"
+                          />
+                          <rect
+                            data-craft-trace
+                            x="0.75"
+                            y="0.75"
+                            width="calc(100% - 1.5px)"
+                            height="calc(100% - 1.5px)"
+                            rx="16"
+                            fill="none"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            pathLength={100}
+                            style={{
+                              stroke: "rgb(var(--origin-rgb))",
+                              strokeDasharray: 100,
+                              strokeDashoffset: 100,
+                              filter: "drop-shadow(0 0 6px rgb(var(--origin-rgb) / 0.55))",
+                            }}
+                          />
+                        </svg>
 
-                      <h4
-                        data-craft-head
-                        className="font-inter font-medium uppercase text-cream/50"
-                        style={{ fontSize: "0.68rem", letterSpacing: "0.16em" }}
-                      >
-                        {cat.name}
-                      </h4>
-                      <ul className="mt-4 space-y-2">
-                        {JOURNEY[cat.chapter].skills.map((s) => (
-                          <li
-                            key={s}
-                            data-craft-item
-                            className="flex items-baseline gap-2.5 font-inter text-cream/90"
-                            style={{ fontSize: "0.875rem" }}
-                          >
-                            <span
-                              data-craft-check
-                              className="inline-block text-gold"
-                              style={{ fontSize: "0.75rem" }}
-                            >
-                              ✓
-                            </span>
-                            <span data-craft-name className="inline-block">
-                              {s}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
+                        <h4
+                          data-craft-head
+                          className="font-inter font-semibold uppercase text-black/50 text-[0.68rem] sm:text-xs tracking-wider"
+                        >
+                          {cat.name}
+                        </h4>
+                        <ul className="mt-2 sm:mt-5 space-y-1 sm:space-y-3.5">
+                          {cat.skills.map((s) => {
+                            const origin = originOf(s);
+                            return (
+                              <li
+                                key={s}
+                                data-craft-item
+                                onMouseEnter={() => soundFX.playHoverTick()}
+                                className="group relative flex items-baseline gap-1.5 sm:gap-3 font-inter text-[#1a1a1a] text-xs sm:text-sm md:text-base transition-transform duration-200 ease-out hover:translate-x-1.5 cursor-default"
+                                style={
+                                  {
+                                    "--origin-rgb": JOURNEY[origin].accent.join(" "),
+                                  } as React.CSSProperties
+                                }
+                              >
+                                <span
+                                  data-craft-check
+                                  className="text-origin inline-block font-semibold text-xs sm:text-sm transition-transform duration-200 group-hover:scale-125 group-hover:rotate-6"
+                                >
+                                  ✓
+                                </span>
+                                <span data-craft-name className="inline-block font-medium truncate sm:whitespace-normal">
+                                  {s}
+                                </span>
+                                <span
+                                  aria-hidden
+                                  className="hidden sm:block pointer-events-none absolute right-0 top-1/2 z-10 -translate-y-1/2 translate-x-2 whitespace-nowrap rounded-md border border-black/10 px-2 py-1 font-inter uppercase text-black/75 opacity-0 transition-all duration-200 ease-out group-hover:translate-x-0 group-hover:opacity-100 text-[0.65rem] tracking-wider bg-white/95 shadow-md"
+                                >
+                                  Earned during {JOURNEY[origin].title}
+                                </span>
+                                <span className="sr-only">
+                                  , earned during {JOURNEY[origin].title}
+                                </span>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Works — Expandable Project Showcase */}
+              <div ref={worksRight} className="absolute inset-0 flex items-center justify-center">
+                <div className="w-full max-w-[880px] 2xl:max-w-[960px] flex flex-col gap-2 sm:gap-4">
+                  <div className="flex items-center justify-between border-b border-black/8 pb-2 sm:pb-3">
+                    <div className="flex items-center gap-1.5 sm:gap-2">
+                      <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                      <span className="font-excon font-bold text-xs sm:text-sm uppercase tracking-wider text-black">
+                        Selected Works
+                      </span>
+                      <span className="text-black/30">·</span>
+                      <span className="font-inter text-[0.68rem] sm:text-xs text-neutral-500">
+                        Click card to inspect
+                      </span>
                     </div>
-                  ))}
+                    <span className="font-mono text-xs font-semibold text-neutral-400">04 Projects</span>
+                  </div>
+                  <WorksExpandable
+                    onModalChange={(isOpen: boolean) => {
+                      if (isOpen) {
+                        lenisRef.current?.stop();
+                      } else {
+                        lenisRef.current?.start();
+                      }
+                    }}
+                  />
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* --------------------------------- MOBILE FLOATING SECTION NAV PILL */}
+      <nav
+        aria-label="Section navigation"
+        className={`lg:hidden fixed bottom-4 inset-x-0 mx-auto w-fit z-40 transition-all duration-300 ${
+          activeSection === "hero"
+            ? "opacity-0 pointer-events-none translate-y-4"
+            : "opacity-100 pointer-events-auto translate-y-0"
+        }`}
+      >
+        <div className="flex items-center gap-1 p-1.5 rounded-full bg-white/95 backdrop-blur-md border border-black/10 shadow-[0_8px_30px_rgba(0,0,0,0.12)]">
+          {[
+            { key: "about", label: "About" },
+            { key: "journey", label: "Journey" },
+            { key: "skills", label: "Skills" },
+            { key: "works", label: "Works" },
+          ].map((item) => {
+            const isActive = activeSection === item.key;
+            return (
+              <button
+                key={item.key}
+                onClick={() => handleMenuClick(item.key)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 active:scale-95 cursor-pointer ${
+                  isActive
+                    ? "bg-black text-white shadow-sm"
+                    : "text-black/60 hover:text-black hover:bg-black/[0.04]"
+                }`}
+              >
+                <span>{item.label}</span>
+                {item.key === "skills" && (
+                  <span
+                    className={`inline-flex shrink-0 items-center justify-center rounded-full font-mono text-[0.62rem] px-1 h-3.5 ${
+                      isActive ? "bg-white text-black font-bold" : "bg-black/10 text-black"
+                    }`}
+                  >
+                    16
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </nav>
+
+      {/* ---------------------------------------------------- CONTACT MODAL */}
+      {isContactOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="fixed inset-0 bg-white/80 backdrop-blur-md transition-opacity"
+            onClick={() => {
+              soundFX.playModalClose();
+              setIsContactOpen(false);
+            }}
+          />
+          <div className="relative w-full max-w-[480px] rounded-[28px] border border-black/10 bg-white p-7 md:p-9 shadow-2xl transition-all">
+            <div className="flex items-start justify-between">
+              <div>
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-50 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-emerald-700">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  Available for opportunities
+                </span>
+                <h3 className="mt-3.5 font-excon text-3xl font-bold tracking-tight text-ink">
+                  Let’s Talk.
+                </h3>
+                <p className="mt-1.5 font-inter text-sm text-neutral-500 leading-relaxed">
+                  Have a product to build, an interesting opportunity, or just want to connect?
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  soundFX.playModalClose();
+                  setIsContactOpen(false);
+                }}
+                className="group flex h-8 w-8 items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-100 hover:text-black transition-all hover:scale-105 active:scale-90 cursor-pointer"
+                aria-label="Close"
+              >
+                <span className="transition-transform duration-200 group-hover:rotate-90">✕</span>
+              </button>
+            </div>
+
+            <div className="mt-6 flex flex-col gap-3">
+              <div className="flex items-center justify-between rounded-2xl border border-black/8 bg-neutral-50/80 p-4">
+                <div>
+                  <span className="block text-[0.7rem] uppercase font-semibold tracking-wider text-neutral-400">
+                    Direct Email
+                  </span>
+                  <a
+                    href="mailto:tharun@example.com"
+                    className="font-inter text-base font-semibold text-neutral-900 hover:underline"
+                  >
+                    tharun@example.com
+                  </a>
+                </div>
+                <button
+                  onClick={handleCopyEmail}
+                  className={`rounded-full px-4 py-2 text-xs font-semibold transition-all duration-200 active:scale-95 cursor-pointer ${
+                    copiedEmail
+                      ? "bg-emerald-600 text-white scale-105 shadow-md shadow-emerald-600/25"
+                      : "bg-black text-white hover:bg-neutral-800 hover:shadow-sm"
+                  }`}
+                >
+                  {copiedEmail ? "Copied! ✓" : "Copy"}
+                </button>
+              </div>
+
+              <div className="flex items-center justify-between gap-3 pt-2">
+                <a
+                  href="https://github.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onMouseEnter={() => soundFX.playHoverTick()}
+                  className="group flex flex-1 items-center justify-center gap-1.5 rounded-2xl border border-black/8 bg-white py-3 text-xs font-semibold text-neutral-800 transition-all duration-200 hover:-translate-y-0.5 hover:border-black/25 hover:bg-neutral-50 hover:shadow-sm active:scale-95"
+                >
+                  <span>GitHub</span>
+                  <span className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 font-mono">
+                    ↗
+                  </span>
+                </a>
+                <a
+                  href="https://linkedin.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onMouseEnter={() => soundFX.playHoverTick()}
+                  className="group flex flex-1 items-center justify-center gap-1.5 rounded-2xl border border-black/8 bg-white py-3 text-xs font-semibold text-neutral-800 transition-all duration-200 hover:-translate-y-0.5 hover:border-black/25 hover:bg-neutral-50 hover:shadow-sm active:scale-95"
+                >
+                  <span>LinkedIn</span>
+                  <span className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 font-mono">
+                    ↗
+                  </span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ------------------------------------------------ BEYOND WORK MODAL */}
+      {isBeyondOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="fixed inset-0 bg-white/80 backdrop-blur-md transition-opacity"
+            onClick={() => {
+              soundFX.playModalClose();
+              setIsBeyondOpen(false);
+            }}
+          />
+          <div className="relative w-full max-w-[520px] rounded-[28px] border border-black/10 bg-white p-7 md:p-9 shadow-2xl transition-all">
+            <div className="flex items-start justify-between">
+              <div>
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-neutral-100 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-neutral-700">
+                  Life & Philosophy
+                </span>
+                <h3 className="mt-3.5 font-excon text-3xl font-bold tracking-tight text-ink">
+                  Beyond Work
+                </h3>
+                <p className="mt-1.5 font-inter text-sm text-neutral-500 leading-relaxed">
+                  The habits, interests, and disciplines that shape my perspective outside the codebase.
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  soundFX.playModalClose();
+                  setIsBeyondOpen(false);
+                }}
+                className="group flex h-8 w-8 items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-100 hover:text-black transition-all hover:scale-105 active:scale-90 cursor-pointer"
+                aria-label="Close"
+              >
+                <span className="transition-transform duration-200 group-hover:rotate-90">✕</span>
+              </button>
+            </div>
+
+            <div className="mt-6 space-y-3.5 font-inter text-sm">
+              <div className="rounded-2xl border border-black/6 bg-neutral-50/70 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-black/15 hover:bg-white hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] cursor-default">
+                <h4 className="font-semibold text-neutral-900">Endurance & Discipline</h4>
+                <p className="mt-1 text-xs text-neutral-600 leading-relaxed">
+                  Physical training and long-distance running build resilience, patience, and the mental stamina needed to solve tough engineering challenges.
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-black/6 bg-neutral-50/70 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-black/15 hover:bg-white hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] cursor-default">
+                <h4 className="font-semibold text-neutral-900">Systems & Mental Models</h4>
+                <p className="mt-1 text-xs text-neutral-600 leading-relaxed">
+                  Deeply interested in how complex systems interact—from distributed software architecture to team dynamics, decision theory, and human psychology.
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-black/6 bg-neutral-50/70 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-black/15 hover:bg-white hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] cursor-default">
+                <h4 className="font-semibold text-neutral-900">Creative Experiments</h4>
+                <p className="mt-1 text-xs text-neutral-600 leading-relaxed">
+                  Constantly exploring interactive web animations, generative UI, typography, and modern micro-interactions that elevate simple tools into memorable products.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
