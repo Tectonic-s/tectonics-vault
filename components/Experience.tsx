@@ -115,7 +115,71 @@ const ROOMS = {
   welcome: { accent: [0, 0, 0], lift: 0 },
   about: { accent: [0, 0, 0], lift: 0 },
   craft: { accent: [0, 0, 0], lift: 0 },
+  works: { accent: [16, 185, 129], lift: 0.05 },
+  talk: { accent: [0, 0, 0], lift: 0 },
 } as const;
+
+/* The four categories of Beyond Work — personal life, hobbies, and disciplines.
+   Mirrors the editorial hierarchy of Journey with metrics, context badges,
+   narrative body copy, and core disciplines. */
+const BEYOND = [
+  {
+    title: "Athletics & Endurance",
+    period: "Daily Discipline",
+    accent: [235, 115, 60], // fiery terra / warm ember
+    lift: 0.07,
+    metric: "10k+",
+    metricUnit: "runs",
+    metricLabel: "Endurance",
+    primary: "Physical Grit & Long Runs",
+    secondary: "Running, Functional Fitness & High-Stamina Conditioning",
+    habits: ["Mental Resilience", "Pacing & Stamina", "Focus Under Fatigue", "Recovery"],
+    body:
+      "Physical training and long-distance running build resilience, patience, and the mental stamina needed to solve tough engineering challenges. Pushing past physical walls teaches you how to keep moving forward when the code or architecture gets complex.",
+  },
+  {
+    title: "Systems & Mental Models",
+    period: "Continuous Learning",
+    accent: [65, 120, 220], // sapphire / architectural blue
+    lift: 0.065,
+    metric: "30+",
+    metricUnit: "books",
+    metricLabel: "Deep Dives",
+    primary: "Books, Psychology & First Principles",
+    secondary: "Decision Theory, Distributed Logic & Human Dynamics",
+    habits: ["First-Principles Thinking", "Second-Order Logic", "Behavioral Economics", "Feedback Loops"],
+    body:
+      "Deeply interested in how complex systems interact—from distributed software architecture to team dynamics, decision theory, and human psychology. Reading foundational texts across disciplines helps connect seemingly unrelated concepts into cohesive engineering solutions.",
+  },
+  {
+    title: "Creative Experiments",
+    period: "Play & Craft",
+    accent: [160, 95, 225], // deep electric violet
+    lift: 0.08,
+    metric: "60+",
+    metricUnit: "fps",
+    metricLabel: "Micro-UX",
+    primary: "Generative UI, WebGL & Audio",
+    secondary: "Interactive Physics, Typography & Audio Synthesizers",
+    habits: ["Interactive Canvas", "Fluid Animations", "Sound Design", "Typography Systems"],
+    body:
+      "Constantly exploring interactive web animations, generative UI, typography, and modern micro-interactions that elevate simple tools into memorable products. When software feels tactile and alive, engineering transcends into true product craft.",
+  },
+  {
+    title: "Life & Exploration",
+    period: "Perspective",
+    accent: [50, 165, 120], // evergreen / grounding sage
+    lift: 0.06,
+    metric: "01",
+    metricUnit: "mindset",
+    metricLabel: "Balance",
+    primary: "Coffee, Travel & Mindfulness",
+    secondary: "Specialty Brewing, Urban Walks & Intentional Living",
+    habits: ["Curiosity", "Observation", "Deliberate Presence", "Reflective Journaling"],
+    body:
+      "Great work requires moments of stillness. Whether dialing in an espresso brew, exploring new neighborhoods with an analog eye, or unplugging completely, maintaining a vibrant life outside the screen keeps creativity sharp, grounded, and purposeful.",
+  },
+];
 
 /* Craft renders ONLY what the Journey earned, regrouped by theme so a card
    can hold skills from different chapters. Origin is derived from JOURNEY
@@ -180,11 +244,12 @@ export default function Experience() {
   const journeyRight = useRef<HTMLDivElement>(null);
   const craftRight = useRef<HTMLDivElement>(null);
   const worksRight = useRef<HTMLDivElement>(null);
+  const beyondRight = useRef<HTMLDivElement>(null);
+  const talkRight = useRef<HTMLDivElement>(null);
 
-  const [isContactOpen, setIsContactOpen] = useState(false);
-  const [isBeyondOpen, setIsBeyondOpen] = useState(false);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [activeChapterIndex, setActiveChapterIndex] = useState(0);
+  const [activeBeyondIndex, setActiveBeyondIndex] = useState(0);
   const [copiedEmail, setCopiedEmail] = useState(false);
   const [hasInteracted, setHasInteracted] = useState(false);
   const [decryptKey, setDecryptKey] = useState(0);
@@ -215,30 +280,28 @@ export default function Experience() {
   };
 
   useEffect(() => {
-    if (isContactOpen || isBeyondOpen || isMobileNavOpen) {
+    if (isMobileNavOpen) {
       document.body.style.overflow = "hidden";
       lenisRef.current?.stop();
     } else {
       document.body.style.overflow = "auto";
       lenisRef.current?.start();
     }
-  }, [isContactOpen, isBeyondOpen, isMobileNavOpen]);
+  }, [isMobileNavOpen]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        if (isContactOpen || isBeyondOpen || isMobileNavOpen) {
+        if (isMobileNavOpen) {
           soundFX.playModalClose();
         }
-        setIsContactOpen(false);
-        setIsBeyondOpen(false);
         setIsMobileNavOpen(false);
         lastActiveElementRef.current?.focus();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isContactOpen, isBeyondOpen, isMobileNavOpen]);
+  }, [isMobileNavOpen]);
 
   const measureRef = useRef<() => void>(() => {});
   const finishIntroRef = useRef<() => void>(() => {});
@@ -252,18 +315,6 @@ export default function Experience() {
 
   const handleMenuClick = (key: string) => {
     soundFX.playMenuClick();
-    if (key === "beyond") {
-      soundFX.playModalOpen();
-      lastActiveElementRef.current = document.activeElement as HTMLElement;
-      setIsBeyondOpen(true);
-      return;
-    }
-    if (key === "talk") {
-      soundFX.playModalOpen();
-      lastActiveElementRef.current = document.activeElement as HTMLElement;
-      setIsContactOpen(true);
-      return;
-    }
     if (!lenisRef.current) return;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const dur = reduced ? 0 : 1.0;
@@ -276,10 +327,16 @@ export default function Experience() {
         break;
       case "skills":
       case "craft":
-        lenisRef.current.scrollTo(window.innerHeight * 4.6, { duration: dur });
+        lenisRef.current.scrollTo(window.innerHeight * 4.8, { duration: dur });
         break;
       case "works":
-        lenisRef.current.scrollTo(window.innerHeight * 6.2, { duration: dur });
+        lenisRef.current.scrollTo(window.innerHeight * 6.5, { duration: dur });
+        break;
+      case "beyond":
+        lenisRef.current.scrollTo(window.innerHeight * 8.2, { duration: dur });
+        break;
+      case "talk":
+        lenisRef.current.scrollTo(window.innerHeight * 10.7, { duration: dur });
         break;
     }
   };
@@ -298,7 +355,7 @@ export default function Experience() {
     lenisRef.current.scrollTo(offsets[index], { duration: reduced ? 0 : 0.8 });
   };
 
-  const handleTabKeyDown = (e: React.KeyboardEvent, index: number) => {
+  const handleChapterKeyDown = (e: React.KeyboardEvent, index: number) => {
     if (e.key === "ArrowRight") {
       e.preventDefault();
       const next = Math.min(JOURNEY.length - 1, index + 1);
@@ -309,6 +366,34 @@ export default function Experience() {
       const prev = Math.max(0, index - 1);
       handleChapterClick(prev);
       document.getElementById(`journey-tab-${prev}`)?.focus();
+    }
+  };
+
+  const handleBeyondChapterClick = (index: number) => {
+    soundFX.playTabSwitch();
+    setActiveBeyondIndex(index);
+    if (!lenisRef.current) return;
+    const offsets = [
+      window.innerHeight * 8.2,
+      window.innerHeight * 8.75,
+      window.innerHeight * 9.3,
+      window.innerHeight * 9.75,
+    ];
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    lenisRef.current.scrollTo(offsets[index], { duration: reduced ? 0 : 0.8 });
+  };
+
+  const handleBeyondTabKeyDown = (e: React.KeyboardEvent, index: number) => {
+    if (e.key === "ArrowRight") {
+      e.preventDefault();
+      const next = Math.min(BEYOND.length - 1, index + 1);
+      handleBeyondChapterClick(next);
+      document.getElementById(`beyond-tab-${next}`)?.focus();
+    } else if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      const prev = Math.max(0, index - 1);
+      handleBeyondChapterClick(prev);
+      document.getElementById(`beyond-tab-${prev}`)?.focus();
     }
   };
 
@@ -368,6 +453,9 @@ export default function Experience() {
       const jCards = q("[data-jcard]") as HTMLElement[];
       const jTabs = q("[data-jtab]") as HTMLElement[];
       const jCount = q("[data-jcount]")[0] ?? null;
+      const bCards = q("[data-bcard]") as HTMLElement[];
+      const bTabs = q("[data-btab]") as HTMLElement[];
+      const bCount = q("[data-bcount]")[0] ?? null;
       const blobs = q("[data-blob]");
       const craftCount = (q("[data-craft-count]")[0] as HTMLElement | undefined) ?? null;
       const craftCards = q("[data-craft-card]") as HTMLElement[];
@@ -425,15 +513,21 @@ export default function Experience() {
         } else if (scrollY < h * 1.6) {
           setActiveMenu("about", immediate);
           setActiveSection("about");
-        } else if (scrollY < h * 4.1) {
+        } else if (scrollY < h * 4.0) {
           setActiveMenu("journey", immediate);
           setActiveSection("journey");
-        } else if (scrollY < h * 5.7) {
+        } else if (scrollY < h * 5.6) {
           setActiveMenu("skills", immediate);
           setActiveSection("skills");
-        } else {
+        } else if (scrollY < h * 7.4) {
           setActiveMenu("works", immediate);
           setActiveSection("works");
+        } else if (scrollY < h * 10.0) {
+          setActiveMenu("beyond", immediate);
+          setActiveSection("beyond");
+        } else {
+          setActiveMenu("talk", immediate);
+          setActiveSection("talk");
         }
       };
 
@@ -448,6 +542,8 @@ export default function Experience() {
       gsap.set(journeyRight.current, { autoAlpha: 0, y: 34 });
       gsap.set(craftRight.current, { autoAlpha: 0, y: 34 });
       gsap.set(worksRight.current, { autoAlpha: 0, y: 34 });
+      gsap.set(beyondRight.current, { autoAlpha: 0, y: 34 });
+      gsap.set(talkRight.current, { autoAlpha: 0, y: 34 });
 
       // Journey cards starting states:
       jCards.forEach((card, i) => {
@@ -456,6 +552,35 @@ export default function Experience() {
           y: i === 0 ? 0 : 20,
         });
       });
+
+      // Beyond cards starting states:
+      bCards.forEach((card, i) => {
+        gsap.set(card, {
+          opacity: i === 0 ? 1 : 0,
+          y: i === 0 ? 0 : 20,
+        });
+      });
+
+      const setActiveBeyondTab = (index: number) => {
+        setActiveBeyondIndex(index);
+        bTabs.forEach((tab, i) => {
+          if (i === index) {
+            tab.classList.add("bg-black", "text-white", "shadow-sm");
+            tab.classList.remove("bg-black/[0.04]", "text-black/60");
+            tab.setAttribute("aria-selected", "true");
+            tab.setAttribute("tabindex", "0");
+          } else {
+            tab.classList.remove("bg-black", "text-white", "shadow-sm");
+            tab.classList.add("bg-black/[0.04]", "text-black/60");
+            tab.setAttribute("aria-selected", "false");
+            tab.setAttribute("tabindex", "-1");
+          }
+        });
+        if (bCount) bCount.textContent = `0${index + 1}`;
+        bCards.forEach((c, i) => {
+          c.style.pointerEvents = i === index ? "auto" : "none";
+        });
+      };
 
       // Craft cards starting states
       gsap.set(q("[data-craft-card]"), { opacity: 0 });
@@ -718,6 +843,68 @@ export default function Experience() {
         end: () => "top+=" + window.innerHeight * 6.0 + " top",
         scrub: true,
         animation: worksTransition,
+        onEnter: () => setRoom(ROOMS.works.accent, ROOMS.works.lift, 0.8),
+        onLeaveBack: () => setRoom(ROOMS.craft.accent, ROOMS.craft.lift, 0.8),
+      });
+
+      // ======== PHASE 5a — Works → Beyond Work ========
+      const worksToBeyond = gsap.timeline({ defaults: { ease: "power2.inOut" } });
+      worksToBeyond
+        .to(worksRight.current, { autoAlpha: 0, y: -28, duration: 0.4 }, 0)
+        .to(beyondRight.current, { autoAlpha: 1, y: 0, duration: 0.5 }, 0.25);
+
+      ScrollTrigger.create({
+        trigger: root.current,
+        start: () => "top+=" + window.innerHeight * 7.2 + " top",
+        end: () => "top+=" + window.innerHeight * 7.8 + " top",
+        scrub: true,
+        animation: worksToBeyond,
+        onEnter: () => setRoom(BEYOND[0].accent, BEYOND[0].lift, 0.8),
+        onLeaveBack: () => setRoom(ROOMS.works.accent, ROOMS.works.lift, 0.8),
+      });
+
+      // ======== PHASE 5b — Beyond Work Chapters Scrubbing ========
+      const beyondTl = gsap.timeline({ defaults: { ease: "power1.inOut" } });
+      beyondTl
+        .to(bCards[0], { opacity: 0, y: -16, duration: 0.5 }, 0.35)
+        .to(bCards[1], { opacity: 1, y: 0, duration: 0.5 }, 0.35)
+        .to(bCards[1], { opacity: 0, y: -16, duration: 0.5 }, 1.25)
+        .to(bCards[2], { opacity: 1, y: 0, duration: 0.5 }, 1.25)
+        .to(bCards[2], { opacity: 0, y: -16, duration: 0.5 }, 2.15)
+        .to(bCards[3], { opacity: 1, y: 0, duration: 0.5 }, 2.15)
+        .to({}, { duration: 0.35 });
+
+      ScrollTrigger.create({
+        trigger: root.current,
+        start: () => "top+=" + window.innerHeight * 7.8 + " top",
+        end: () => "top+=" + window.innerHeight * 9.8 + " top",
+        scrub: 0.5,
+        animation: beyondTl,
+        onUpdate: (self) => {
+          const p = self.progress;
+          let idx = 0;
+          if (p >= 0.78) idx = 3;
+          else if (p >= 0.48) idx = 2;
+          else if (p >= 0.18) idx = 1;
+          setActiveBeyondTab(idx);
+          setRoom(BEYOND[idx].accent, BEYOND[idx].lift, 0.4);
+        },
+      });
+
+      // ======== PHASE 6 — Beyond Work → Let's Talk ========
+      const beyondToTalk = gsap.timeline({ defaults: { ease: "power2.inOut" } });
+      beyondToTalk
+        .to(beyondRight.current, { autoAlpha: 0, y: -28, duration: 0.4 }, 0)
+        .to(talkRight.current, { autoAlpha: 1, y: 0, duration: 0.5 }, 0.25);
+
+      ScrollTrigger.create({
+        trigger: root.current,
+        start: () => "top+=" + window.innerHeight * 9.8 + " top",
+        end: () => "top+=" + window.innerHeight * 10.4 + " top",
+        scrub: true,
+        animation: beyondToTalk,
+        onEnter: () => setRoom(ROOMS.talk.accent, ROOMS.talk.lift, 0.8),
+        onLeaveBack: () => setRoom(BEYOND[3].accent, BEYOND[3].lift, 0.8),
       });
 
       // -------- Reduced motion --------
@@ -738,6 +925,7 @@ export default function Experience() {
           if (checks) gsap.set(checks, { opacity: 1, scale: 1 });
           if (names) gsap.set(names, { opacity: 1, x: 0, filter: "none" });
         });
+        gsap.set(bCards, { opacity: 1, y: 0, pointerEvents: "auto" });
         measure();
         unlockScroll();
         ScrollTrigger.refresh();
@@ -825,7 +1013,7 @@ export default function Experience() {
   }, []);
 
   return (
-    <main id="main-content" ref={root} className="relative h-[700vh] w-full">
+    <main id="main-content" ref={root} className="relative h-[1200vh] w-full">
       {/* ---------------------------------- VIEWPORT SCROLL PROGRESS HAIRLINE */}
       <div
         aria-hidden
@@ -874,18 +1062,14 @@ export default function Experience() {
           <button
             ref={letsTalk}
             type="button"
-            onClick={() => {
-              soundFX.playModalOpen();
-              lastActiveElementRef.current = letsTalk.current;
-              setIsContactOpen(true);
-            }}
+            onClick={() => handleMenuClick("talk")}
             onMouseEnter={() => soundFX.playHoverTick()}
-            aria-label="Open contact dialog"
+            aria-label="Scroll to contact section"
             className="group will-reveal flex items-center gap-1.5 sm:gap-2 font-excon font-bold leading-none text-ink rounded-full border-2 border-ink px-3.5 py-1.5 sm:px-5 sm:py-2.5 text-xs sm:text-sm transition-all duration-200 hover:bg-ink hover:text-bg hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(0,0,0,0.12)] active:scale-95 active:translate-y-0 cursor-pointer focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
           >
             <span>Let&rsquo;s Talk.</span>
-            <span aria-hidden="true" className="inline-block transition-transform duration-200 ease-out group-hover:translate-x-0.5 group-hover:-translate-y-0.5 font-mono text-[0.85em]">
-              ↗
+            <span aria-hidden="true" className="inline-block transition-transform duration-200 ease-out group-hover:translate-y-0.5 font-mono text-[0.85em]">
+              ↓
             </span>
           </button>
         </div>
@@ -1153,7 +1337,7 @@ export default function Experience() {
                           aria-label={`Chapter 0${i + 1}: ${step.title}`}
                           data-jtab={i}
                           onClick={() => handleChapterClick(i)}
-                          onKeyDown={(e) => handleTabKeyDown(e, i)}
+                          onKeyDown={(e) => handleChapterKeyDown(e, i)}
                           onMouseEnter={() => soundFX.playHoverTick()}
                           className={`group flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 hover:-translate-y-0.5 active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 ${
                             i === 0
@@ -1457,6 +1641,280 @@ export default function Experience() {
                   />
                 </div>
               </section>
+
+              {/* Beyond Work — Personal life, hobbies, and disciplines */}
+              <section
+                id="beyond"
+                aria-label="Beyond Work"
+                ref={beyondRight}
+                className="absolute inset-0 flex items-center justify-center"
+              >
+                <h2 className="sr-only">Beyond Work</h2>
+                <div className="w-full max-w-[880px] 2xl:max-w-[960px] flex flex-col justify-center">
+                  {/* Navigation Tabs Header */}
+                  <div className="flex items-center justify-between pb-2.5 sm:pb-4 border-b border-black/8 mb-3 sm:mb-5">
+                    <div
+                      role="tablist"
+                      aria-label="Beyond Work Categories"
+                      className="flex items-center gap-1 sm:gap-2 flex-wrap"
+                    >
+                      {BEYOND.map((item, i) => (
+                        <button
+                          key={item.title}
+                          id={`beyond-tab-${i}`}
+                          role="tab"
+                          type="button"
+                          aria-selected={i === activeBeyondIndex}
+                          aria-controls={`beyond-card-${i}`}
+                          tabIndex={i === activeBeyondIndex ? 0 : -1}
+                          data-btab={i}
+                          onClick={() => handleBeyondChapterClick(i)}
+                          onKeyDown={(e) => handleBeyondTabKeyDown(e, i)}
+                          onMouseEnter={() => soundFX.playHoverTick()}
+                          className={`group relative flex items-center gap-1 sm:gap-2 px-2.5 sm:px-4 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-semibold tracking-wide transition-all duration-200 active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-black ${
+                            i === activeBeyondIndex
+                              ? "bg-black text-white shadow-sm"
+                              : "bg-black/[0.04] text-black/60 hover:text-black hover:bg-black/[0.08]"
+                          }`}
+                        >
+                          <span
+                            aria-hidden="true"
+                            className="w-1.5 h-1.5 rounded-full transition-transform duration-300 ease-out group-hover:scale-150"
+                            style={{ backgroundColor: `rgb(${item.accent.join(" ")})` }}
+                          />
+                          <span>0{i + 1}</span>
+                          <span className="hidden sm:inline font-normal opacity-75">{item.title}</span>
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className="flex items-center gap-1.5 sm:gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleBeyondChapterClick(Math.max(0, activeBeyondIndex - 1))}
+                        disabled={activeBeyondIndex === 0}
+                        aria-label="Previous category"
+                        className="h-7 w-7 rounded-full border border-black/10 flex items-center justify-center text-xs font-mono text-neutral-600 hover:text-black hover:border-black/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-black"
+                      >
+                        ←
+                      </button>
+                      <div className="flex items-center gap-1 text-xs font-mono font-medium text-neutral-400" aria-live="polite">
+                        <span data-bcount className="font-bold text-neutral-800">
+                          0{activeBeyondIndex + 1}
+                        </span>
+                        <span>/</span>
+                        <span>04</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleBeyondChapterClick(Math.min(BEYOND.length - 1, activeBeyondIndex + 1))}
+                        disabled={activeBeyondIndex === BEYOND.length - 1}
+                        aria-label="Next category"
+                        className="h-7 w-7 rounded-full border border-black/10 flex items-center justify-center text-xs font-mono text-neutral-600 hover:text-black hover:border-black/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-black"
+                      >
+                        →
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Stacked Chapter Cards */}
+                  <div className="relative h-[430px] sm:h-[400px] md:h-[370px] w-full">
+                    {BEYOND.map((item, i) => (
+                      <div
+                        key={item.title}
+                        id={`beyond-card-${i}`}
+                        role="tabpanel"
+                        aria-labelledby={`beyond-tab-${i}`}
+                        tabIndex={0}
+                        data-bcard={i}
+                        className="absolute inset-0 rounded-[20px] sm:rounded-[24px] bg-white p-4 sm:p-7 md:p-8 border shadow-[0_12px_36px_rgba(0,0,0,0.04)] flex flex-col justify-between overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
+                        style={{
+                          borderColor: `rgb(${item.accent.join(" ")} / 0.45)`,
+                          opacity: i === 0 ? 1 : 0,
+                          transform: i === 0 ? "none" : "translateY(16px)",
+                          pointerEvents: i === 0 ? "auto" : "none",
+                        }}
+                      >
+                        <div>
+                          {/* Top row: Category metadata badge + Metric display */}
+                          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-4">
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                                <span
+                                  className="inline-flex items-center gap-1 sm:gap-1.5 text-[0.65rem] sm:text-xs font-semibold uppercase tracking-wider px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md"
+                                  style={{
+                                    backgroundColor: `rgb(${item.accent.join(" ")} / 0.12)`,
+                                    color: `rgb(${item.accent.join(" ")})`,
+                                  }}
+                                >
+                                  <span
+                                    aria-hidden="true"
+                                    className="w-1.5 h-1.5 rounded-full"
+                                    style={{ backgroundColor: `rgb(${item.accent.join(" ")})` }}
+                                  />
+                                  Category 0{i + 1} · {item.title}
+                                </span>
+                                {item.period && (
+                                  <span className="text-[0.65rem] sm:text-xs font-inter text-neutral-400 font-medium">
+                                    {item.period}
+                                  </span>
+                                )}
+                              </div>
+
+                              <h3 className="mt-2 sm:mt-3.5 font-excon text-lg sm:text-2xl md:text-3xl font-bold tracking-tight text-ink break-words">
+                                {item.primary}
+                              </h3>
+                              {item.secondary && (
+                                <p className="mt-0.5 sm:mt-1 font-inter text-xs sm:text-sm md:text-base text-neutral-500 font-medium">
+                                  {item.secondary}
+                                </p>
+                              )}
+                            </div>
+
+                            {item.metric && (
+                              <div className="flex flex-col items-start sm:items-end shrink-0 self-start rounded-xl sm:rounded-2xl bg-neutral-50 border border-black/6 px-2.5 py-1.5 sm:px-4 sm:py-2.5 transition-all duration-300 hover:scale-105 hover:bg-white hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] cursor-default">
+                                <div className="flex items-baseline font-excon font-bold text-lg sm:text-2xl md:text-3xl text-ink leading-none">
+                                  <span>{item.metric}</span>
+                                  {item.metricUnit && (
+                                    <span className="text-xs sm:text-lg font-light ml-0.5 text-neutral-600">
+                                      {item.metricUnit}
+                                    </span>
+                                  )}
+                                </div>
+                                {item.metricLabel && (
+                                  <span className="mt-0.5 text-[0.62rem] sm:text-[0.68rem] font-semibold uppercase tracking-widest text-neutral-400">
+                                    {item.metricLabel}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Divider */}
+                          <div className="my-2.5 sm:my-5 h-px w-full bg-black/6" />
+
+                          {/* Narrative Story */}
+                          <p className="font-inter text-neutral-600 text-xs sm:text-sm md:text-[0.98rem] leading-relaxed max-w-[64ch] line-clamp-3 sm:line-clamp-none">
+                            {item.body}
+                          </p>
+                        </div>
+
+                        {/* Bottom row: Habits & Core Disciplines */}
+                        <div className="mt-2.5 sm:mt-5 pt-2 sm:pt-3.5 border-t border-black/5 flex flex-wrap items-center gap-1.5 sm:gap-2">
+                          <span className="text-[0.65rem] sm:text-[0.7rem] uppercase font-semibold tracking-wider text-neutral-400 mr-1">
+                            Core Disciplines:
+                          </span>
+                          {item.habits.map((habit) => (
+                            <span
+                              key={habit}
+                              className="group/pill inline-flex items-center gap-1 sm:gap-1.5 rounded-full border border-black/8 bg-neutral-50/70 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[0.68rem] sm:text-xs font-medium text-neutral-700 transition-all duration-200 hover:-translate-y-0.5 hover:border-black/20 hover:bg-white hover:shadow-sm cursor-default"
+                            >
+                              <span
+                                aria-hidden="true"
+                                className="font-bold text-[0.65rem] sm:text-[0.7rem] transition-transform duration-200 group-hover/pill:scale-125"
+                                style={{ color: `rgb(${item.accent.join(" ")})` }}
+                              >
+                                ✓
+                              </span>
+                              {habit}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </section>
+
+              {/* Let's Talk — In-scroll contact destination */}
+              <section
+                id="talk"
+                aria-label="Let’s Talk"
+                ref={talkRight}
+                className="absolute inset-0 flex items-center justify-center"
+              >
+                <h2 className="sr-only">Let’s Talk</h2>
+                <div className="w-full max-w-[680px] rounded-[28px] sm:rounded-[36px] border border-black/10 bg-white p-6 sm:p-10 md:p-12 shadow-[0_20px_60px_rgba(0,0,0,0.06)] flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-50 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-emerald-700">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        Available for opportunities
+                      </span>
+                      <span className="font-mono text-xs font-semibold text-neutral-400">06 / 06</span>
+                    </div>
+
+                    <h3 className="mt-4 sm:mt-5 font-excon text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-ink">
+                      Let’s build something exceptional.
+                    </h3>
+                    <p className="mt-2 sm:mt-3 font-inter text-sm sm:text-base text-neutral-500 leading-relaxed max-w-[54ch]">
+                      Have a product to build, an engineering opportunity, or just want to connect? Reach out directly or connect on social platforms.
+                    </p>
+                  </div>
+
+                  <div className="mt-6 sm:mt-8 flex flex-col gap-3.5">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 rounded-2xl border border-black/8 bg-neutral-50/80 p-4 sm:p-5">
+                      <div>
+                        <span className="block text-[0.7rem] uppercase font-semibold tracking-wider text-neutral-400">
+                          Direct Communication
+                        </span>
+                        <a
+                          href="mailto:tharun@example.com"
+                          className="font-inter text-base sm:text-lg font-bold text-neutral-900 hover:underline"
+                        >
+                          tharun@example.com
+                        </a>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={handleCopyEmail}
+                          className={`flex-1 sm:flex-initial rounded-full px-5 py-2.5 text-xs font-semibold transition-all duration-200 active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-black ${
+                            copiedEmail
+                              ? "bg-emerald-600 text-white scale-105 shadow-md shadow-emerald-600/25"
+                              : "bg-black text-white hover:bg-neutral-800 hover:shadow-sm"
+                          }`}
+                        >
+                          {copiedEmail ? "Copied! ✓" : "Copy Email"}
+                        </button>
+                        <a
+                          href="mailto:tharun@example.com"
+                          className="rounded-full border border-black/15 bg-white px-4 py-2.5 text-xs font-semibold text-black hover:bg-neutral-100 transition-all active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-black"
+                        >
+                          Send ↗
+                        </a>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3 pt-1">
+                      <a
+                        href="https://github.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onMouseEnter={() => soundFX.playHoverTick()}
+                        className="group flex items-center justify-center gap-2 rounded-2xl border border-black/8 bg-white py-3.5 text-xs sm:text-sm font-semibold text-neutral-800 transition-all duration-200 hover:-translate-y-0.5 hover:border-black/25 hover:bg-neutral-50 hover:shadow-sm active:scale-95 focus-visible:ring-2 focus-visible:ring-black"
+                      >
+                        <span>GitHub</span>
+                        <span aria-hidden="true" className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 font-mono">
+                          ↗
+                        </span>
+                      </a>
+                      <a
+                        href="https://linkedin.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onMouseEnter={() => soundFX.playHoverTick()}
+                        className="group flex items-center justify-center gap-2 rounded-2xl border border-black/8 bg-white py-3.5 text-xs sm:text-sm font-semibold text-neutral-800 transition-all duration-200 hover:-translate-y-0.5 hover:border-black/25 hover:bg-neutral-50 hover:shadow-sm active:scale-95 focus-visible:ring-2 focus-visible:ring-black"
+                      >
+                        <span>LinkedIn</span>
+                        <span aria-hidden="true" className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 font-mono">
+                          ↗
+                        </span>
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </section>
             </div>
           </div>
         </div>
@@ -1471,13 +1929,8 @@ export default function Experience() {
             : "opacity-100 pointer-events-auto translate-y-0"
         }`}
       >
-        <div className="flex items-center gap-1 p-1.5 rounded-full bg-white/95 backdrop-blur-md border border-black/10 shadow-[0_8px_30px_rgba(0,0,0,0.12)]">
-          {[
-            { key: "about", label: "About" },
-            { key: "journey", label: "Journey" },
-            { key: "skills", label: "Skills" },
-            { key: "works", label: "Works" },
-          ].map((item) => {
+        <div className="flex items-center gap-1 p-1.5 rounded-full bg-white/95 backdrop-blur-md border border-black/10 shadow-[0_8px_30px_rgba(0,0,0,0.12)] overflow-x-auto max-w-[94vw] no-scrollbar">
+          {MENU.map((item) => {
             const isActive = activeSection === item.key;
             return (
               <button
@@ -1485,14 +1938,14 @@ export default function Experience() {
                 type="button"
                 onClick={() => handleMenuClick(item.key)}
                 aria-current={isActive ? "true" : undefined}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-black ${
+                className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-black ${
                   isActive
                     ? "bg-black text-white shadow-sm"
                     : "text-black/60 hover:text-black hover:bg-black/[0.04]"
                 }`}
               >
                 <span>{item.label}</span>
-                {item.key === "skills" && (
+                {(item.key === "skills" || item.key === "craft") && (
                   <span
                     aria-hidden="true"
                     className={`inline-flex shrink-0 items-center justify-center rounded-full font-mono text-[0.62rem] px-1 h-3.5 ${
@@ -1612,180 +2065,10 @@ export default function Experience() {
         </div>
       )}
 
-      {/* ---------------------------------------------------- CONTACT MODAL */}
-      {isContactOpen && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="contact-modal-title"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-        >
-          <div
-            className="fixed inset-0 bg-white/80 backdrop-blur-md transition-opacity"
-            onClick={() => {
-              soundFX.playModalClose();
-              setIsContactOpen(false);
-              lastActiveElementRef.current?.focus();
-            }}
-          />
-          <div className="relative w-full max-w-[480px] rounded-[28px] border border-black/10 bg-white p-7 md:p-9 shadow-2xl transition-all">
-            <div className="flex items-start justify-between">
-              <div>
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-50 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-emerald-700">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  Available for opportunities
-                </span>
-                <h3 id="contact-modal-title" className="mt-3.5 font-excon text-3xl font-bold tracking-tight text-ink">
-                  Let’s Talk.
-                </h3>
-                <p className="mt-1.5 font-inter text-sm text-neutral-500 leading-relaxed">
-                  Have a product to build, an interesting opportunity, or just want to connect?
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  soundFX.playModalClose();
-                  setIsContactOpen(false);
-                  lastActiveElementRef.current?.focus();
-                }}
-                className="group flex h-8 w-8 items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-100 hover:text-black transition-all hover:scale-105 active:scale-90 cursor-pointer focus-visible:ring-2 focus-visible:ring-black"
-                aria-label="Close contact dialog"
-              >
-                <span className="transition-transform duration-200 group-hover:rotate-90">✕</span>
-              </button>
-            </div>
-
-            <div className="mt-6 flex flex-col gap-3">
-              <div className="flex items-center justify-between rounded-2xl border border-black/8 bg-neutral-50/80 p-4">
-                <div>
-                  <span className="block text-[0.7rem] uppercase font-semibold tracking-wider text-neutral-400">
-                    Direct Email
-                  </span>
-                  <a
-                    href="mailto:tharun@example.com"
-                    className="font-inter text-base font-semibold text-neutral-900 hover:underline"
-                  >
-                    tharun@example.com
-                  </a>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleCopyEmail}
-                  className={`rounded-full px-4 py-2 text-xs font-semibold transition-all duration-200 active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-black ${
-                    copiedEmail
-                      ? "bg-emerald-600 text-white scale-105 shadow-md shadow-emerald-600/25"
-                      : "bg-black text-white hover:bg-neutral-800 hover:shadow-sm"
-                  }`}
-                >
-                  {copiedEmail ? "Copied! ✓" : "Copy"}
-                </button>
-              </div>
-
-              <div className="flex items-center justify-between gap-3 pt-2">
-                <a
-                  href="https://github.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onMouseEnter={() => soundFX.playHoverTick()}
-                  className="group flex flex-1 items-center justify-center gap-1.5 rounded-2xl border border-black/8 bg-white py-3 text-xs font-semibold text-neutral-800 transition-all duration-200 hover:-translate-y-0.5 hover:border-black/25 hover:bg-neutral-50 hover:shadow-sm active:scale-95 focus-visible:ring-2 focus-visible:ring-black"
-                >
-                  <span>GitHub</span>
-                  <span aria-hidden="true" className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 font-mono">
-                    ↗
-                  </span>
-                </a>
-                <a
-                  href="https://linkedin.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onMouseEnter={() => soundFX.playHoverTick()}
-                  className="group flex flex-1 items-center justify-center gap-1.5 rounded-2xl border border-black/8 bg-white py-3 text-xs font-semibold text-neutral-800 transition-all duration-200 hover:-translate-y-0.5 hover:border-black/25 hover:bg-neutral-50 hover:shadow-sm active:scale-95 focus-visible:ring-2 focus-visible:ring-black"
-                >
-                  <span>LinkedIn</span>
-                  <span aria-hidden="true" className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 font-mono">
-                    ↗
-                  </span>
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ------------------------------------------------ BEYOND WORK MODAL */}
-      {isBeyondOpen && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="beyond-modal-title"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-        >
-          <div
-            className="fixed inset-0 bg-white/80 backdrop-blur-md transition-opacity"
-            onClick={() => {
-              soundFX.playModalClose();
-              setIsBeyondOpen(false);
-              lastActiveElementRef.current?.focus();
-            }}
-          />
-          <div className="relative w-full max-w-[520px] rounded-[28px] border border-black/10 bg-white p-7 md:p-9 shadow-2xl transition-all">
-            <div className="flex items-start justify-between">
-              <div>
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-neutral-100 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-neutral-700">
-                  Life & Philosophy
-                </span>
-                <h3 id="beyond-modal-title" className="mt-3.5 font-excon text-3xl font-bold tracking-tight text-ink">
-                  Beyond Work
-                </h3>
-                <p className="mt-1.5 font-inter text-sm text-neutral-500 leading-relaxed">
-                  The habits, interests, and disciplines that shape my perspective outside the codebase.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  soundFX.playModalClose();
-                  setIsBeyondOpen(false);
-                  lastActiveElementRef.current?.focus();
-                }}
-                className="group flex h-8 w-8 items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-100 hover:text-black transition-all hover:scale-105 active:scale-90 cursor-pointer focus-visible:ring-2 focus-visible:ring-black"
-                aria-label="Close beyond work dialog"
-              >
-                <span className="transition-transform duration-200 group-hover:rotate-90">✕</span>
-              </button>
-            </div>
-
-            <div className="mt-6 space-y-3.5 font-inter text-sm">
-              <div className="rounded-2xl border border-black/6 bg-neutral-50/70 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-black/15 hover:bg-white hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] cursor-default">
-                <h4 className="font-semibold text-neutral-900">Endurance & Discipline</h4>
-                <p className="mt-1 text-xs text-neutral-600 leading-relaxed">
-                  Physical training and long-distance running build resilience, patience, and the mental stamina needed to solve tough engineering challenges.
-                </p>
-              </div>
-
-              <div className="rounded-2xl border border-black/6 bg-neutral-50/70 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-black/15 hover:bg-white hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] cursor-default">
-                <h4 className="font-semibold text-neutral-900">Systems & Mental Models</h4>
-                <p className="mt-1 text-xs text-neutral-600 leading-relaxed">
-                  Deeply interested in how complex systems interact—from distributed software architecture to team dynamics, decision theory, and human psychology.
-                </p>
-              </div>
-
-              <div className="rounded-2xl border border-black/6 bg-neutral-50/70 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-black/15 hover:bg-white hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] cursor-default">
-                <h4 className="font-semibold text-neutral-900">Creative Experiments</h4>
-                <p className="mt-1 text-xs text-neutral-600 leading-relaxed">
-                  Constantly exploring interactive web animations, generative UI, typography, and modern micro-interactions that elevate simple tools into memorable products.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* --------------------------------------------------- FOOTER LANDMARK */}
       <footer aria-label="Contact and portfolio credits" className="sr-only">
         <h2>Contact &amp; Links</h2>
-        <p>Tharun S — Available for product design and engineering opportunities. Version 1.1.1.</p>
+        <p>Tharun S — Available for product design and engineering opportunities. Version 1.2.0.</p>
         <ul>
           <li><a href="mailto:tharun@example.com">tharun@example.com</a></li>
           <li><a href="https://github.com">GitHub</a></li>
