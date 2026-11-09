@@ -1,46 +1,33 @@
+import Image from "next/image";
+
 /**
- * Placeholder profile portrait matching the Figma: a black side-profile
- * head-and-shoulders silhouette on white, inside a rounded, cream-bordered
- * square. Drawn as inline SVG so no raster asset is required — swap for a
- * real photo later by replacing the <svg> with an <Image />.
+ * Editorial framed profile portrait for Tharun S.
+ * Displays the photo inside a rounded, framed gallery print with
+ * subtle specular sweep sheen.
  */
 export default function ProfileSilhouette({ className = "" }: { className?: string }) {
   return (
     <div
-      className={`relative aspect-square w-full overflow-hidden bg-white ${className}`}
+      className={`relative aspect-square w-full overflow-hidden bg-neutral-900 group ${className}`}
     >
-      <svg
-        viewBox="0 0 300 300"
-        className="absolute inset-0 h-full w-full"
-        aria-hidden="true"
-      >
-        {/* Head-and-shoulders side profile, facing right */}
-        <path
-          fill="#000000"
-          d="M96 300
-             C96 258 96 236 108 220
-             C118 206 138 200 150 190
-             C160 182 162 170 158 160
-             C150 168 140 170 132 166
-             C120 160 112 146 112 128
-             C112 96 134 72 166 72
-             C196 72 216 96 216 128
-             C216 150 210 170 204 190
-             C198 210 196 220 210 232
-             C226 246 240 262 246 300
-             Z"
-        />
-      </svg>
+      <Image
+        src="/profile-square.jpg"
+        alt="Tharun S"
+        fill
+        sizes="(max-width: 640px) 240px, (max-width: 1024px) 280px, 320px"
+        priority
+        className="object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
+      />
 
       {/* Specular sweep — gallery light travelling across the glass of a
-          framed print. Driven by GSAP so it can be paced and paused. */}
+          framed print. */}
       <div
         data-sheen
         aria-hidden
-        className="pointer-events-none absolute inset-y-0 -left-1/3 w-1/4 opacity-0"
+        className="pointer-events-none absolute inset-y-0 -left-1/3 w-1/4 opacity-40 z-10 transition-opacity duration-300 group-hover:opacity-60"
         style={{
           background:
-            "linear-gradient(105deg, transparent 0%, rgba(255,255,255,0.7) 50%, transparent 100%)",
+            "linear-gradient(105deg, transparent 0%, rgba(255,255,255,0.45) 50%, transparent 100%)",
           filter: "blur(10px)",
         }}
       />
