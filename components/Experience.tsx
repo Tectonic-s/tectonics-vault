@@ -234,6 +234,11 @@ export default function Experience() {
   const heroVaultInner = useRef<HTMLSpanElement>(null);
   const heroSubInner = useRef<HTMLParagraphElement>(null);
   const scrollIndicator = useRef<HTMLDivElement>(null);
+  const heroBgRef = useRef<HTMLDivElement>(null);
+  const heroSpotlightRef = useRef<HTMLDivElement>(null);
+  const heroRingOuterRef = useRef<HTMLDivElement>(null);
+  const heroRingInnerRef = useRef<HTMLDivElement>(null);
+  const isTouchSwipingRef = useRef(false);
 
   // Scroll Progress
   const scrollProgressBar = useRef<HTMLDivElement>(null);
@@ -265,7 +270,12 @@ export default function Experience() {
   const [copiedEmail, setCopiedEmail] = useState(false);
   const [hasInteracted, setHasInteracted] = useState(false);
   const [decryptKey, setDecryptKey] = useState(0);
-  const [activeSection, setActiveSection] = useState<string>("hero");
+  const [activeSection, setActiveSectionState] = useState<string>("hero");
+  const activeSectionRef = useRef<string>("hero");
+  const setActiveSection = (s: string) => {
+    activeSectionRef.current = s;
+    setActiveSectionState(s);
+  };
   const [isBeyondMultiLine, setIsBeyondMultiLine] = useState(false);
   const beyondResetTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -351,8 +361,8 @@ export default function Experience() {
       return;
     }
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const isFromHero = activeSection === "hero" || window.scrollY < window.innerHeight * 0.5;
-    const dur = reduced ? 0 : (isFromHero && key === "about" ? 1.6 : 0.6);
+    const isFromHero = activeSectionRef.current === "hero" || activeSection === "hero" || window.scrollY < window.innerHeight * 0.5;
+    const dur = reduced ? 0 : (isFromHero && key === "about" ? 2.8 : 0.6);
     const finishNav = (after?: () => void) => {
       navTimeoutRef.current = setTimeout(() => {
         ensureSectionLoadedRef.current?.(key);
@@ -365,6 +375,9 @@ export default function Experience() {
       case "about":
         lenisRef.current.scrollTo(window.innerHeight * 1.2, {
           duration: dur,
+          easing: isFromHero
+            ? (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
+            : undefined,
           onComplete: () => finishNav(),
         });
         break;
@@ -417,14 +430,29 @@ export default function Experience() {
   };
 
   const handleHeroClick = () => {
-    if (!isIntroComplete) return;
+    if (isTouchSwipingRef.current) {
+      isTouchSwipingRef.current = false;
+      return;
+    }
+    if (!isIntroComplete) {
+      finishIntroRef.current?.();
+    }
     proceedToFirstSection();
   };
 
   useEffect(() => {
     const handleGlobalClick = (e: MouseEvent) => {
-      if (!isIntroComplete) return;
-      if (activeSection !== "hero" && window.scrollY >= window.innerHeight * 0.5) return;
+      if (isTouchSwipingRef.current) {
+        isTouchSwipingRef.current = false;
+        return;
+      }
+      if (
+        activeSectionRef.current !== "hero" &&
+        activeSection !== "hero" &&
+        window.scrollY >= window.innerHeight * 0.5
+      ) {
+        return;
+      }
       if (isMobileNavOpen) return;
 
       const target = e.target as HTMLElement | null;
@@ -437,12 +465,22 @@ export default function Experience() {
         return;
       }
 
+      if (!isIntroComplete) {
+        finishIntroRef.current?.();
+      }
       proceedToFirstSection();
     };
 
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      if (!isIntroComplete) return;
-      if (activeSection !== "hero" && window.scrollY >= window.innerHeight * 0.5) return;
+      // Don't intercept browser developer tools or system reload shortcuts
+      if (e.metaKey || e.ctrlKey || e.key === "F5" || e.key === "F12") return;
+      if (
+        activeSectionRef.current !== "hero" &&
+        activeSection !== "hero" &&
+        window.scrollY >= window.innerHeight * 0.5
+      ) {
+        return;
+      }
       if (isMobileNavOpen) return;
 
       if (
@@ -452,11 +490,10 @@ export default function Experience() {
         return;
       }
 
-      if (["Tab", "Shift", "Control", "Alt", "Meta", "CapsLock", "Escape"].includes(e.key)) {
-        return;
-      }
-
       e.preventDefault();
+      if (!isIntroComplete) {
+        finishIntroRef.current?.();
+      }
       proceedToFirstSection();
     };
 
@@ -609,6 +646,7 @@ export default function Experience() {
       });
       gsap.set(mainPanel.current, { yPercent: 100 });
       gsap.set(vaultFloat.current, { opacity: 0, transformOrigin: "left top" });
+      gsap.set(heroBgRef.current, { opacity: 1, scale: 1 });
 
       // Initialize all menu items consistently
       menuItems.forEach((li) => {
@@ -940,7 +978,7 @@ export default function Experience() {
           return;
         }
         // Remove scroll feature from Hero: only tapping anywhere or pressing any key continues
-        if (window.scrollY < window.innerHeight * 0.5) {
+        if (window.scrollY < window.innerHeight * 0.5 || activeSectionRef.current === "hero") {
           e.preventDefault();
           return;
         }
@@ -986,6 +1024,7 @@ export default function Experience() {
       const onTouchStart = (e: TouchEvent) => {
         touchStartY = e.touches[0].clientY;
         touchStartX = e.touches[0].clientX;
+        isTouchSwipingRef.current = false;
       };
 
       const onTouchMove = (e: TouchEvent) => {
@@ -993,9 +1032,14 @@ export default function Experience() {
           e.preventDefault();
           return;
         }
-        // Remove scroll feature from Hero: only tapping anywhere or pressing any key continues
-        if (window.scrollY < window.innerHeight * 0.5) {
+        // Completely disable swipe up / swipe scroll on Hero
+        if (window.scrollY < window.innerHeight * 0.5 || activeSectionRef.current === "hero") {
           e.preventDefault();
+          const dY = Math.abs(e.touches[0].clientY - touchStartY);
+          const dX = Math.abs(e.touches[0].clientX - touchStartX);
+          if (dY > 8 || dX > 8) {
+            isTouchSwipingRef.current = true;
+          }
           return;
         }
         const locked = lockedSectionRef.current;
@@ -1099,6 +1143,19 @@ export default function Experience() {
         const setPY = gsap.quickTo(pPortrait, "y", { duration: 0.9, ease: "power3" });
         const setTX = gsap.quickTo(pText, "x", { duration: 1.1, ease: "power3" });
         const setTY = gsap.quickTo(pText, "y", { duration: 1.1, ease: "power3" });
+
+        // Hero interactive background mouse hover / parallax animation
+        const setSpotX = gsap.quickTo(heroSpotlightRef.current, "x", { duration: 0.65, ease: "power2.out" });
+        const setSpotY = gsap.quickTo(heroSpotlightRef.current, "y", { duration: 0.65, ease: "power2.out" });
+        const setOuterX = gsap.quickTo(heroRingOuterRef.current, "x", { duration: 1.1, ease: "power3.out" });
+        const setOuterY = gsap.quickTo(heroRingOuterRef.current, "y", { duration: 1.1, ease: "power3.out" });
+        const setInnerX = gsap.quickTo(heroRingInnerRef.current, "x", { duration: 0.9, ease: "power3.out" });
+        const setInnerY = gsap.quickTo(heroRingInnerRef.current, "y", { duration: 0.9, ease: "power3.out" });
+        const setInnerRot = gsap.quickTo(heroRingInnerRef.current, "rotate", { duration: 1.2, ease: "power2.out" });
+        const setHeadX = gsap.quickTo([heroPre.current, heroVaultInline.current], "x", { duration: 0.8, ease: "power2.out" });
+        const setHeadY = gsap.quickTo([heroPre.current, heroVaultInline.current], "y", { duration: 0.8, ease: "power2.out" });
+
+        let hasMovedHeroMouse = false;
         const onPointer = (e: PointerEvent) => {
           const nx = e.clientX / window.innerWidth - 0.5;
           const ny = e.clientY / window.innerHeight - 0.5;
@@ -1106,6 +1163,22 @@ export default function Experience() {
           setPY(ny * 18);
           setTX(nx * -10);
           setTY(ny * -7);
+
+          if (activeSectionRef.current === "hero" || window.scrollY < window.innerHeight * 0.5) {
+            if (!hasMovedHeroMouse && heroSpotlightRef.current) {
+              hasMovedHeroMouse = true;
+              gsap.to(heroSpotlightRef.current, { opacity: 1, duration: 0.6, ease: "power2.out" });
+            }
+            setSpotX(e.clientX);
+            setSpotY(e.clientY);
+            setOuterX(nx * -32);
+            setOuterY(ny * -24);
+            setInnerX(nx * 20);
+            setInnerY(ny * 16);
+            setInnerRot(nx * 12);
+            setHeadX(nx * 10);
+            setHeadY(ny * 7);
+          }
         };
         window.addEventListener("pointermove", onPointer, { passive: true });
         pointerListener = () => window.removeEventListener("pointermove", onPointer);
@@ -1114,6 +1187,8 @@ export default function Experience() {
       // ======== PHASE 1 — hero → About (scrubbed, playful cinematic vault opening) ========
       const spatial = gsap.timeline({ defaults: { ease: "none" } });
       spatial
+        // Background hover elements gracefully scale and dissolve as vault opens
+        .to(heroBgRef.current, { opacity: 0, scale: 1.1, duration: 0.45, ease: "power2.in" }, 0)
         // Wordmark flight: smooth spatial glide with subtle playful rotation
         .fromTo(
           vaultFloat.current,
@@ -1792,11 +1867,64 @@ export default function Experience() {
         <section
           id="hero"
           aria-label="Introduction"
+          style={{ touchAction: "none" }}
+          onTouchMove={(e) => {
+            e.preventDefault();
+          }}
           onClick={handleHeroClick}
-          className={`absolute inset-0 z-10 flex flex-col items-center justify-center px-4 sm:px-6 text-center select-none ${
+          className={`absolute inset-0 z-10 flex flex-col items-center justify-center px-4 sm:px-6 text-center select-none touch-none ${
             isIntroComplete ? "cursor-pointer" : "cursor-default"
           }`}
         >
+          {/* Interactive background hover animations */}
+          <div
+            ref={heroBgRef}
+            className="pointer-events-none absolute inset-0 overflow-hidden select-none"
+            aria-hidden="true"
+          >
+            {/* Cursor spotlight */}
+            <div
+              ref={heroSpotlightRef}
+              className="absolute left-0 top-0 -translate-x-1/2 -translate-y-1/2 rounded-full w-[640px] h-[640px] will-change-transform opacity-0 pointer-events-none transition-opacity duration-700"
+              style={{
+                background: "radial-gradient(circle, rgba(0,0,0,0.045) 0%, rgba(0,0,0,0.015) 38%, transparent 72%)",
+              }}
+            />
+
+            {/* Concentric Architectural Vault Reticle Rings */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              {/* Outer dashed ring */}
+              <div
+                ref={heroRingOuterRef}
+                className="w-[min(88vw,620px)] h-[min(88vw,620px)] rounded-full border border-dashed border-black/[0.045] will-change-transform pointer-events-none"
+              />
+              {/* Inner concentric ring with cardinal ticks */}
+              <div
+                ref={heroRingInnerRef}
+                className="absolute w-[min(62vw,420px)] h-[min(62vw,420px)] rounded-full border border-black/[0.065] will-change-transform flex items-center justify-center pointer-events-none"
+              >
+                {/* Cardinal tick marks */}
+                <div className="absolute -top-1 w-2.5 h-[2px] bg-black/20" />
+                <div className="absolute -bottom-1 w-2.5 h-[2px] bg-black/20" />
+                <div className="absolute -left-1 h-2.5 w-[2px] bg-black/20" />
+                <div className="absolute -right-1 h-2.5 w-[2px] bg-black/20" />
+              </div>
+            </div>
+
+            {/* Technical Blueprint Corner Markings */}
+            <div className="hidden sm:block absolute top-8 left-8 lg:top-12 lg:left-12 font-mono text-[9px] tracking-widest text-black/20 uppercase pointer-events-none">
+              SEC // 001 · ENTRANCE
+            </div>
+            <div className="hidden sm:block absolute top-8 right-8 lg:top-12 lg:right-12 font-mono text-[9px] tracking-widest text-black/20 uppercase pointer-events-none">
+              SYS // ARMED
+            </div>
+            <div className="hidden sm:block absolute bottom-8 left-8 lg:bottom-12 lg:left-12 font-mono text-[9px] tracking-widest text-black/20 uppercase pointer-events-none">
+              MODE // EXPLORER
+            </div>
+            <div className="hidden sm:block absolute bottom-8 right-8 lg:bottom-12 lg:right-12 font-mono text-[9px] tracking-widest text-black/20 uppercase pointer-events-none">
+              EST // 2024
+            </div>
+          </div>
           <h1
             className="text-glow font-excon font-bold leading-[1.08] sm:leading-[1.02] text-ink flex flex-col sm:inline-flex sm:flex-row items-center justify-center text-center gap-0 sm:gap-2 select-none pointer-events-none"
             style={{ fontSize: HEADING_SIZE }}
