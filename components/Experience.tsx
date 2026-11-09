@@ -61,7 +61,7 @@ const JOURNEY = [
     metricLabel: "Score",
     primary: "A.M. Jain School",
     secondary: "Higher Secondary · Science & Mathematics",
-    skills: ["Curiosity", "Discipline", "Continuous Learning"],
+    skills: ["Curiosity", "Discipline", "Always Learning"],
     body:
       "This is where it all started. Science and mathematics introduced me to structured thinking, problem-solving, and the habit of asking why. What began as classroom curiosity gradually grew into an interest in understanding how things work.",
   },
@@ -76,7 +76,7 @@ const JOURNEY = [
     metricLabel: "CGPA",
     primary: "Guru Nanak College",
     secondary: "B.Sc. Data Analytics",
-    skills: ["Analytical Thinking", "Data Analysis", "Problem Solving", "Research"],
+    skills: ["Critical Thinking", "Problem Solving", "Research & Exploration", "Data Analysis"],
     body:
       "My first real step into the world of technology and data. This chapter introduced me to the art of turning information into insights, approaching problems analytically, and understanding the stories behind numbers.",
   },
@@ -106,7 +106,7 @@ const JOURNEY = [
     metricLabel: "Months of Experience",
     primary: "Bajaj Finserv",
     secondary: "Deputy Manager · Loan Against Property (LAP)",
-    skills: ["Communication", "Negotiation", "Client Management"],
+    skills: ["Communication", "Negotiation", "Relationship Management"],
     body:
       "My first corporate chapter brought business theory into the real world. Working across sales and customer relationship management, I handled client interactions, worked towards monthly targets, and experienced the importance of trust, communication, and execution. Achieving monthly targets and earning performance incentives made the experience even more rewarding.",
   },
@@ -121,7 +121,7 @@ const JOURNEY = [
     metricLabel: "Latest Confirmed CGPA",
     primary: "PSG College of Technology",
     secondary: "MCA · Master of Computer Applications",
-    skills: ["Software Engineering", "System Design", "Full Stack Development", "Modern Development Practices"],
+    skills: ["Software Engineering", "System Design", "Full-Stack Development", "Modern Development Practices"],
     body:
       "This is where I'm bringing everything together. With a background in analytics, business understanding, and corporate experience, I'm now focused on application development and product thinking. I'm particularly interested in building complete products — from identifying a problem and shaping an idea to designing and developing a working solution.",
   },
@@ -189,18 +189,24 @@ const BEYOND = [
    rather than restated, which makes "nothing here was not earned" a
    structural guarantee instead of a promise. */
 const CRAFT_CATEGORIES = [
-  { name: "Core Traits", skills: ["Curiosity", "Discipline", "Continuous Learning", "Leadership"] },
-  { name: "Analytical", skills: ["Analytical Thinking", "Problem Solving", "Research", "Data Analysis"] },
   {
-    name: "Working With People",
-    skills: ["Communication", "Negotiation", "Client Management", "Business Strategy"],
+    name: "The Essentials",
+    skills: ["Curiosity", "Discipline", "Always Learning", "Leadership"],
   },
   {
-    name: "Engineering",
+    name: "The Analytical Side",
+    skills: ["Critical Thinking", "Problem Solving", "Research & Exploration", "Data Analysis"],
+  },
+  {
+    name: "People & Business",
+    skills: ["Communication", "Negotiation", "Relationship Management", "Business Strategy"],
+  },
+  {
+    name: "The Engineering Side",
     skills: [
       "Software Engineering",
       "System Design",
-      "Full Stack Development",
+      "Full-Stack Development",
       "Modern Development Practices",
     ],
   },
@@ -265,12 +271,13 @@ export default function Experience() {
   const [isBeyondMultiLine, setIsBeyondMultiLine] = useState(false);
   const beyondResetTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const lockedSectionRef = useRef<"journey" | "beyond" | null>(null);
+  const lockedSectionRef = useRef<"journey" | "skills" | "beyond" | null>(null);
   const accumulatedDeltaRef = useRef(0);
   const isProgrammaticScrollRef = useRef(false);
   const rubberResetTimerRef = useRef<NodeJS.Timeout | null>(null);
   const switchJourneyChapterRef = useRef<((idx: number) => void) | null>(null);
   const switchBeyondChapterRef = useRef<((idx: number) => void) | null>(null);
+  const playToolkitShowcaseRef = useRef<((force?: boolean) => void) | null>(null);
 
   const mobileNavTriggerRef = useRef<HTMLButtonElement>(null);
   const lastActiveElementRef = useRef<HTMLElement | null>(null);
@@ -364,7 +371,11 @@ export default function Experience() {
       case "craft":
         lenisRef.current.scrollTo(window.innerHeight * 2.8, {
           duration: dur,
-          onComplete: () => finishNav(),
+          onComplete: () =>
+            finishNav(() => {
+              lockedSectionRef.current = "skills";
+              playToolkitShowcaseRef.current?.(false);
+            }),
         });
         break;
       case "works":
@@ -632,6 +643,19 @@ export default function Experience() {
         });
       });
 
+      // Craft cards starting states:
+      craftCards.forEach((card) => {
+        gsap.set(card, { opacity: 0, y: 16 });
+        const trace = card.querySelector("[data-craft-trace]");
+        const head = card.querySelector("[data-craft-head]");
+        const checks = card.querySelectorAll("[data-craft-check]");
+        const names = card.querySelectorAll("[data-craft-name]");
+        if (trace) gsap.set(trace, { strokeDashoffset: 100, strokeOpacity: 0.8 });
+        if (head) gsap.set(head, { opacity: 0, y: 8 });
+        if (checks) gsap.set(checks, { opacity: 0, scale: 0 });
+        if (names) gsap.set(names, { opacity: 0, x: -8 });
+      });
+
       // Beyond cards starting states:
       bCards.forEach((card, i) => {
         gsap.set(card, {
@@ -787,7 +811,7 @@ export default function Experience() {
       // Magnetic Snap & Section Locking with Tactile Rubber-Band Friction
       const FRICTION_THRESHOLD = 95;
 
-      const lockToSection = (section: "journey" | "beyond", anchorMultiplier: number) => {
+      const lockToSection = (section: "journey" | "skills" | "beyond", anchorMultiplier: number) => {
         if (isProgrammaticScrollRef.current) return;
         lockedSectionRef.current = section;
         accumulatedDeltaRef.current = 0;
@@ -803,12 +827,17 @@ export default function Experience() {
         });
       };
 
-      const releaseSection = (direction: "next" | "prev", locked: "journey" | "beyond") => {
+      const releaseSection = (direction: "next" | "prev", locked: "journey" | "skills" | "beyond") => {
         accumulatedDeltaRef.current = 0;
         lockedSectionRef.current = null;
         isProgrammaticScrollRef.current = true;
 
-        const targetContainer = locked === "journey" ? journeyRight.current : beyondRight.current;
+        const targetContainer =
+          locked === "journey"
+            ? journeyRight.current
+            : locked === "skills"
+            ? craftRight.current
+            : beyondRight.current;
         if (targetContainer) {
           gsap.to(targetContainer, { y: 0, duration: 0.2 });
         }
@@ -818,6 +847,8 @@ export default function Experience() {
         let targetScroll = 0;
         if (locked === "journey") {
           targetScroll = direction === "next" ? window.innerHeight * 2.8 : window.innerHeight * 1.2;
+        } else if (locked === "skills") {
+          targetScroll = direction === "next" ? window.innerHeight * 4.6 : window.innerHeight * 2.0;
         } else {
           targetScroll = direction === "next" ? window.innerHeight * 6.8 : window.innerHeight * 4.6;
         }
@@ -845,7 +876,12 @@ export default function Experience() {
         e.preventDefault();
         accumulatedDeltaRef.current += e.deltaY;
 
-        const targetContainer = locked === "journey" ? journeyRight.current : beyondRight.current;
+        const targetContainer =
+          locked === "journey"
+            ? journeyRight.current
+            : locked === "skills"
+            ? craftRight.current
+            : beyondRight.current;
         if (targetContainer) {
           const rubberY = -Math.sign(accumulatedDeltaRef.current) * Math.min(Math.pow(Math.abs(accumulatedDeltaRef.current), 0.72) * 0.75, 14);
           gsap.to(targetContainer, {
@@ -910,7 +946,12 @@ export default function Experience() {
         e.preventDefault();
         accumulatedDeltaRef.current += deltaY * 1.5;
 
-        const targetContainer = locked === "journey" ? journeyRight.current : beyondRight.current;
+        const targetContainer =
+          locked === "journey"
+            ? journeyRight.current
+            : locked === "skills"
+            ? craftRight.current
+            : beyondRight.current;
         if (targetContainer) {
           const rubberY = -Math.sign(accumulatedDeltaRef.current) * Math.min(Math.abs(accumulatedDeltaRef.current) * 0.1, 14);
           gsap.to(targetContainer, { y: rubberY, duration: 0.1, overwrite: "auto" });
@@ -1106,55 +1147,162 @@ export default function Experience() {
         onLeaveBack: () => setRoom(JOURNEY[activeChapterRef.current].accent, JOURNEY[activeChapterRef.current].lift, 0.8),
       });
 
-      // ======== PHASE 3b — Skills (Craft) Scroll-Triggered Scrubbing ========
-      const craftTl = gsap.timeline({ defaults: { ease: "power1.inOut" } });
-      craftCards.forEach((card, i) => {
-        const trace = card.querySelector("[data-craft-trace]");
-        const head = card.querySelector("[data-craft-head]");
-        const checks = card.querySelectorAll("[data-craft-check]");
-        const names = card.querySelectorAll("[data-craft-name]");
-        const start = i * 0.4;
-        craftTl
-          .to(card, { opacity: 1, y: 0, duration: 0.4 }, start)
-          .to(trace, { strokeDashoffset: 0, duration: 0.55 }, start)
-          .to(head, { opacity: 1, y: 0, duration: 0.3 }, start + 0.15)
-          .to(checks, { opacity: 1, scale: 1, duration: 0.3, stagger: 0.06 }, start + 0.15)
-          .to(names, { opacity: 1, x: 0, duration: 0.28, stagger: 0.05 }, start + 0.18)
-          .to(trace, { strokeOpacity: 0.45, duration: 0.3 }, start + 0.35);
-      });
-      craftTl.to({}, { duration: 0.3 });
+      // ======== PHASE 3b — Skills Video-Like Showcase with Magnetic Snap & Lock ========
+      let isToolkitAnimating = false;
+      let hasToolkitPlayed = false;
 
-      let cabinetSoundPlayed = false;
+      const playToolkitShowcase = (force = false) => {
+        if (isToolkitAnimating) return;
+        if (hasToolkitPlayed && !force) return;
+
+        const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        const statusEl = craftRight.current?.querySelector("[data-toolkit-status]");
+        const progressBar = craftRight.current?.querySelector("[data-toolkit-progress]");
+
+        if (reduced) {
+          hasToolkitPlayed = true;
+          craftCards.forEach((card) => {
+            const trace = card.querySelector("[data-craft-trace]");
+            const head = card.querySelector("[data-craft-head]");
+            const checks = card.querySelectorAll("[data-craft-check]");
+            const names = card.querySelectorAll("[data-craft-name]");
+            gsap.set(card, { opacity: 1, y: 0 });
+            if (trace) gsap.set(trace, { strokeDashoffset: 0, strokeOpacity: 0.45 });
+            if (head) gsap.set(head, { opacity: 1, y: 0 });
+            if (checks) gsap.set(checks, { opacity: 1, scale: 1 });
+            if (names) gsap.set(names, { opacity: 1, x: 0 });
+          });
+          if (statusEl) statusEl.textContent = "16 Capabilities Unlocked";
+          if (progressBar) gsap.set(progressBar, { scaleX: 1, opacity: 0.35 });
+          return;
+        }
+
+        isToolkitAnimating = true;
+        hasToolkitPlayed = true;
+        lockScroll();
+        soundFX.playCabinetUnlock();
+
+        if (statusEl) statusEl.textContent = "Unlocking Capabilities...";
+
+        if (progressBar) {
+          gsap.set(progressBar, { scaleX: 0, opacity: 1 });
+          gsap.to(progressBar, { scaleX: 1, duration: 3.2, ease: "none" });
+        }
+
+        craftCards.forEach((card) => {
+          const trace = card.querySelector("[data-craft-trace]");
+          const head = card.querySelector("[data-craft-head]");
+          const checks = card.querySelectorAll("[data-craft-check]");
+          const names = card.querySelectorAll("[data-craft-name]");
+          gsap.set(card, { opacity: 0, y: 16 });
+          if (trace) gsap.set(trace, { strokeDashoffset: 100, strokeOpacity: 0.8 });
+          if (head) gsap.set(head, { opacity: 0, y: 8 });
+          if (checks) gsap.set(checks, { opacity: 0, scale: 0 });
+          if (names) gsap.set(names, { opacity: 0, x: -8 });
+        });
+
+        const tl = gsap.timeline({
+          defaults: { ease: "power2.out" },
+          onComplete: () => {
+            isToolkitAnimating = false;
+            if (statusEl) statusEl.textContent = "16 Capabilities Unlocked";
+            if (progressBar) gsap.to(progressBar, { opacity: 0.35, duration: 0.4 });
+            unlockScroll();
+            ScrollTrigger.refresh();
+          },
+        });
+
+        craftCards.forEach((card, ci) => {
+          const trace = card.querySelector("[data-craft-trace]");
+          const head = card.querySelector("[data-craft-head]");
+          const checks = card.querySelectorAll("[data-craft-check]");
+          const names = card.querySelectorAll("[data-craft-name]");
+          const startTime = ci * 0.72;
+
+          tl.to(
+            card,
+            {
+              opacity: 1,
+              y: 0,
+              duration: 0.45,
+              onStart: () => {
+                soundFX.playHoverTick();
+              },
+            },
+            startTime
+          )
+            .to(trace, { strokeDashoffset: 0, duration: 0.65, ease: "power2.inOut" }, startTime + 0.05)
+            .to(head, { opacity: 1, y: 0, duration: 0.25 }, startTime + 0.15)
+            .to(
+              checks,
+              {
+                opacity: 1,
+                scale: 1,
+                duration: 0.3,
+                stagger: 0.07,
+                ease: "back.out(1.6)",
+              },
+              startTime + 0.22
+            )
+            .to(
+              names,
+              {
+                opacity: 1,
+                x: 0,
+                duration: 0.25,
+                stagger: 0.07,
+              },
+              startTime + 0.24
+            )
+            .to(trace, { strokeOpacity: 0.45, duration: 0.3 }, startTime + 0.6);
+        });
+      };
+      playToolkitShowcaseRef.current = playToolkitShowcase;
+
       ScrollTrigger.create({
         trigger: root.current,
-        start: () => "top+=" + window.innerHeight * 2.8 + " top",
-        end: () => "top+=" + window.innerHeight * 3.8 + " top",
-        scrub: 0.5,
-        animation: craftTl,
+        start: () => "top+=" + window.innerHeight * 2.65 + " top",
+        end: () => "top+=" + window.innerHeight * 3.0 + " top",
         onEnter: () => {
-          if (!cabinetSoundPlayed) {
-            cabinetSoundPlayed = true;
-            soundFX.playCabinetUnlock();
+          if (!isProgrammaticScrollRef.current && lockedSectionRef.current !== "skills") {
+            lockToSection("skills", 2.8);
+            if (!hasToolkitPlayed) {
+              playToolkitShowcase();
+            }
+          }
+        },
+        onEnterBack: () => {
+          if (!isProgrammaticScrollRef.current && lockedSectionRef.current !== "skills") {
+            lockToSection("skills", 2.8);
+          }
+        },
+        onLeave: () => {
+          if (lockedSectionRef.current === "skills" && !isProgrammaticScrollRef.current) {
+            lockedSectionRef.current = null;
           }
         },
         onLeaveBack: () => {
-          cabinetSoundPlayed = false;
-          if (craftCount) craftCount.textContent = "0";
-        },
-        onUpdate: (self) => {
-          const p = self.progress;
-          if (craftCount) {
-            if (p >= 0.85) craftCount.textContent = "16";
-            else if (p >= 0.60) craftCount.textContent = "12";
-            else if (p >= 0.35) craftCount.textContent = "8";
-            else if (p >= 0.10) craftCount.textContent = "4";
-            else craftCount.textContent = "0";
+          if (lockedSectionRef.current === "skills" && !isProgrammaticScrollRef.current) {
+            lockedSectionRef.current = null;
           }
         },
       });
 
       // ======== PHASE 4 — Craft → Works ========
       const worksTransition = gsap.timeline({ defaults: { ease: "power2.inOut" } });
+      worksTransition
+        .to(craftRight.current, { autoAlpha: 0, y: -28, duration: 0.4 }, 0)
+        .to(worksRight.current, { autoAlpha: 1, y: 0, duration: 0.5 }, 0.25);
+
+      ScrollTrigger.create({
+        trigger: root.current,
+        start: () => "top+=" + window.innerHeight * 3.6 + " top",
+        end: () => "top+=" + window.innerHeight * 4.3 + " top",
+        scrub: true,
+        animation: worksTransition,
+        onEnter: () => setRoom(ROOMS.works.accent, ROOMS.works.lift, 0.8),
+        onLeaveBack: () => setRoom(ROOMS.craft.accent, ROOMS.craft.lift, 0.8),
+      });
       worksTransition
         .to(craftRight.current, { autoAlpha: 0, y: -28, duration: 0.4 }, 0)
         .to(worksRight.current, { autoAlpha: 1, y: 0, duration: 0.5 }, 0.25);
@@ -1854,117 +2002,162 @@ export default function Experience() {
                 </div>
               </section>
 
-              {/* Skills — the cabinet of accumulated achievements */}
+              {/* Toolkit — The Cabinet of Accumulated Capabilities */}
               <section
                 id="skills"
-                aria-label="Skills & Capabilities"
+                aria-label="Toolkit & Capabilities"
                 ref={craftRight}
                 className="absolute inset-0 flex items-center justify-center will-change-[transform,opacity]"
               >
-                <h2 className="sr-only">Skills &amp; Capabilities</h2>
-                <div className="grid w-full max-w-[940px] 2xl:max-w-[1020px] grid-cols-2 gap-2.5 sm:gap-6 lg:gap-8">
-                  {CRAFT_CATEGORIES.map((cat, ci) => {
-                    const tally = cat.skills.reduce<Record<number, number>>((m, s) => {
-                      const o = originOf(s);
-                      m[o] = (m[o] ?? 0) + 1;
-                      return m;
-                    }, {});
-                    const dominant = Number(
-                      Object.keys(tally).sort((a, b) => tally[Number(b)] - tally[Number(a)])[0]
-                    );
-                    return (
-                      <div
-                        key={cat.name}
-                        data-craft-card={ci}
-                        className="relative rounded-[16px] sm:rounded-[24px] p-3.5 sm:p-7 lg:p-8 transition-shadow duration-300 hover:shadow-[0_20px_48px_rgba(0,0,0,0.08)] bg-white shadow-[0_12px_36px_rgba(0,0,0,0.05)]"
-                        style={
-                          {
-                            opacity: 0,
-                            "--origin-rgb": JOURNEY[dominant].accent.join(" "),
-                          } as React.CSSProperties
-                        }
-                      >
-                        <svg
-                          className="pointer-events-none absolute inset-0 h-full w-full overflow-visible"
-                          aria-hidden
-                        >
-                          <rect
-                            x="0.75"
-                            y="0.75"
-                            width="calc(100% - 1.5px)"
-                            height="calc(100% - 1.5px)"
-                            rx="16"
-                            fill="none"
-                            stroke="rgb(var(--origin-rgb))"
-                            strokeOpacity="0.65"
-                            strokeWidth="1.5"
-                          />
-                          <rect
-                            data-craft-trace
-                            x="0.75"
-                            y="0.75"
-                            width="calc(100% - 1.5px)"
-                            height="calc(100% - 1.5px)"
-                            rx="16"
-                            fill="none"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            pathLength={100}
-                            style={{
-                              stroke: "rgb(var(--origin-rgb))",
-                              strokeDasharray: 100,
-                              strokeDashoffset: 100,
-                              filter: "drop-shadow(0 0 6px rgb(var(--origin-rgb) / 0.55))",
-                            }}
-                          />
-                        </svg>
+                <h2 className="sr-only">Toolkit &amp; Capabilities</h2>
+                <div className="w-full max-w-[940px] 2xl:max-w-[1020px] flex flex-col gap-2.5 sm:gap-4">
+                  {/* Context Header */}
+                  <div className="flex items-center justify-between border-b border-black/8 pb-2 sm:pb-2.5">
+                    <div className="flex items-center gap-1.5 sm:gap-2">
+                      <span className="h-2 w-2 rounded-full bg-neutral-900" />
+                      <span className="font-excon font-bold text-xs sm:text-sm uppercase tracking-wider text-black">
+                        Toolkit
+                      </span>
+                      <span className="text-black/30 hidden sm:inline">·</span>
+                      <span className="font-inter text-[0.68rem] sm:text-xs text-neutral-500 hidden sm:inline">
+                        16 Capabilities accumulated across the journey
+                      </span>
+                    </div>
 
-                        <h3
-                          data-craft-head
-                          className="font-inter font-semibold uppercase text-black/50 text-[0.68rem] sm:text-xs tracking-wider"
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <span
+                        data-toolkit-status
+                        className="font-mono text-[0.68rem] sm:text-xs font-semibold text-neutral-400"
+                      >
+                        16 Capabilities Unlocked
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => playToolkitShowcaseRef.current?.(true)}
+                        onMouseEnter={() => soundFX.playHoverTick()}
+                        aria-label="Replay toolkit showcase animation"
+                        className="group flex items-center gap-1 rounded-full border border-black/10 px-2 sm:px-2.5 py-0.5 sm:py-1 text-[0.65rem] sm:text-xs font-mono font-medium text-neutral-600 transition-all hover:border-black/30 hover:text-black hover:bg-black/5 active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-black"
+                      >
+                        <span className="transition-transform duration-300 group-hover:rotate-180">↺</span>
+                        <span className="hidden sm:inline">Replay</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Video-style Progress Bar */}
+                  <div className="h-[2px] w-full bg-black/5 rounded-full overflow-hidden -mt-1 sm:-mt-2">
+                    <div
+                      data-toolkit-progress
+                      className="h-full bg-black origin-left transition-opacity duration-300"
+                      style={{ transform: "scaleX(0)" }}
+                    />
+                  </div>
+
+                  {/* 4 Cards Grid */}
+                  <div className="grid w-full grid-cols-2 gap-2.5 sm:gap-6 lg:gap-8">
+                    {CRAFT_CATEGORIES.map((cat, ci) => {
+                      const tally = cat.skills.reduce<Record<number, number>>((m, s) => {
+                        const o = originOf(s);
+                        m[o] = (m[o] ?? 0) + 1;
+                        return m;
+                      }, {});
+                      const dominant = Number(
+                        Object.keys(tally).sort((a, b) => tally[Number(b)] - tally[Number(a)])[0]
+                      );
+                      return (
+                        <div
+                          key={cat.name}
+                          data-craft-card={ci}
+                          className="relative rounded-[16px] sm:rounded-[24px] p-3.5 sm:p-7 lg:p-8 transition-shadow duration-300 hover:shadow-[0_20px_48px_rgba(0,0,0,0.08)] bg-white shadow-[0_12px_36px_rgba(0,0,0,0.05)]"
+                          style={
+                            {
+                              opacity: 0,
+                              "--origin-rgb": JOURNEY[dominant].accent.join(" "),
+                            } as React.CSSProperties
+                          }
                         >
-                          {cat.name}
-                        </h3>
-                        <ul className="mt-2 sm:mt-5 space-y-1 sm:space-y-3.5">
-                          {cat.skills.map((s) => {
-                            const origin = originOf(s);
-                            return (
-                              <li
-                                key={s}
-                                data-craft-item
-                                onMouseEnter={() => soundFX.playHoverTick()}
-                                className="group relative flex items-baseline gap-1.5 sm:gap-3 font-inter text-[#1a1a1a] text-xs sm:text-sm md:text-base transition-transform duration-200 ease-out hover:translate-x-1.5 cursor-default"
-                                style={
-                                  {
-                                    "--origin-rgb": JOURNEY[origin].accent.join(" "),
-                                  } as React.CSSProperties
-                                }
-                              >
-                                <span
-                                  data-craft-check
-                                  className="text-origin inline-block font-semibold text-xs sm:text-sm transition-transform duration-200 group-hover:scale-125 group-hover:rotate-6"
+                          <svg
+                            className="pointer-events-none absolute inset-0 h-full w-full overflow-visible"
+                            aria-hidden
+                          >
+                            <rect
+                              x="0.75"
+                              y="0.75"
+                              width="calc(100% - 1.5px)"
+                              height="calc(100% - 1.5px)"
+                              rx="16"
+                              fill="none"
+                              stroke="rgb(var(--origin-rgb))"
+                              strokeOpacity="0.65"
+                              strokeWidth="1.5"
+                            />
+                            <rect
+                              data-craft-trace
+                              x="0.75"
+                              y="0.75"
+                              width="calc(100% - 1.5px)"
+                              height="calc(100% - 1.5px)"
+                              rx="16"
+                              fill="none"
+                              strokeWidth="1.5"
+                              strokeLinecap="round"
+                              pathLength={100}
+                              style={{
+                                stroke: "rgb(var(--origin-rgb))",
+                                strokeDasharray: 100,
+                                strokeDashoffset: 100,
+                                filter: "drop-shadow(0 0 6px rgb(var(--origin-rgb) / 0.55))",
+                              }}
+                            />
+                          </svg>
+
+                          <h3
+                            data-craft-head
+                            className="font-inter font-semibold uppercase text-black/50 text-[0.68rem] sm:text-xs tracking-wider"
+                          >
+                            {cat.name}
+                          </h3>
+                          <ul className="mt-2 sm:mt-5 space-y-1 sm:space-y-3.5">
+                            {cat.skills.map((s) => {
+                              const origin = originOf(s);
+                              return (
+                                <li
+                                  key={s}
+                                  data-craft-item
+                                  onMouseEnter={() => soundFX.playHoverTick()}
+                                  className="group relative flex items-baseline gap-1.5 sm:gap-3 font-inter text-[#1a1a1a] text-xs sm:text-sm md:text-base transition-transform duration-200 ease-out hover:translate-x-1.5 cursor-default"
+                                  style={
+                                    {
+                                      "--origin-rgb": JOURNEY[origin].accent.join(" "),
+                                    } as React.CSSProperties
+                                  }
                                 >
-                                  ✓
-                                </span>
-                                <span data-craft-name className="inline-block font-medium truncate sm:whitespace-normal">
-                                  {s}
-                                </span>
-                                <span
-                                  aria-hidden
-                                  className="hidden sm:block pointer-events-none absolute right-0 top-1/2 z-10 -translate-y-1/2 translate-x-2 whitespace-nowrap rounded-md border border-black/10 px-2 py-1 font-inter uppercase text-black/75 opacity-0 transition-all duration-200 ease-out group-hover:translate-x-0 group-hover:opacity-100 text-[0.65rem] tracking-wider bg-white/95 shadow-md"
-                                >
-                                  Earned during {JOURNEY[origin].title}
-                                </span>
-                                <span className="sr-only">
-                                  , earned during {JOURNEY[origin].title}
-                                </span>
-                              </li>
-                            );
-                          })}
-                        </ul>
-                      </div>
-                    );
-                  })}
+                                  <span
+                                    data-craft-check
+                                    className="text-origin inline-block font-semibold text-xs sm:text-sm transition-transform duration-200 group-hover:scale-125 group-hover:rotate-6"
+                                  >
+                                    ✓
+                                  </span>
+                                  <span data-craft-name className="inline-block font-medium truncate sm:whitespace-normal">
+                                    {s}
+                                  </span>
+                                  <span
+                                    aria-hidden
+                                    className="hidden sm:block pointer-events-none absolute right-0 top-1/2 z-10 -translate-y-1/2 translate-x-2 whitespace-nowrap rounded-md border border-black/10 px-2 py-1 font-inter uppercase text-black/75 opacity-0 transition-all duration-200 ease-out group-hover:translate-x-0 group-hover:opacity-100 text-[0.65rem] tracking-wider bg-white/95 shadow-md"
+                                  >
+                                    Earned during {JOURNEY[origin].title}
+                                  </span>
+                                  <span className="sr-only">
+                                    , earned during {JOURNEY[origin].title}
+                                  </span>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </section>
 
