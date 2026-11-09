@@ -327,7 +327,7 @@ export default function Experience() {
         break;
       case "skills":
       case "craft":
-        lenisRef.current.scrollTo(window.innerHeight * 4.8, { duration: dur });
+        lenisRef.current.scrollTo(window.innerHeight * 4.3, { duration: dur });
         break;
       case "works":
         lenisRef.current.scrollTo(window.innerHeight * 6.5, { duration: dur });
@@ -583,7 +583,7 @@ export default function Experience() {
       };
 
       // Craft cards starting states
-      gsap.set(q("[data-craft-card]"), { opacity: 0 });
+      gsap.set(q("[data-craft-card]"), { opacity: 0, y: 16 });
       gsap.set(q("[data-craft-trace]"), { strokeDashoffset: 100, strokeOpacity: 1 });
       gsap.set(q("[data-craft-head]"), { opacity: 0, y: 12 });
       gsap.set(q("[data-craft-check]"), { opacity: 0, scale: 0.4 });
@@ -774,59 +774,66 @@ export default function Experience() {
         },
       });
 
-      // ======== PHASE 3 — Journey → Craft ========
+      // ======== PHASE 3a — Journey → Skills Panel Entrance ========
       const craftTransition = gsap.timeline({ defaults: { ease: "power2.inOut" } });
       craftTransition
         .to(journeyRight.current, { autoAlpha: 0, y: -28, duration: 0.4 }, 0)
-        .to(craftRight.current, { autoAlpha: 1, y: 0, duration: 0.5 }, 0.25)
-        .to({}, { duration: 0.3 });
-
-      const cabinet = gsap.timeline({ paused: true });
-      craftCards.forEach((card) => {
-        const trace = card.querySelector("[data-craft-trace]");
-        const head = card.querySelector("[data-craft-head]");
-        const checks = card.querySelectorAll("[data-craft-check]");
-        const names = card.querySelectorAll("[data-craft-name]");
-        cabinet
-          .to(card, { opacity: 1, duration: 0.3, ease: "power2.out" })
-          .to(trace, { strokeDashoffset: 0, duration: 0.8, ease: "power2.inOut" }, "<")
-          .to(head, { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" }, "<0.5")
-          .to(checks, { opacity: 1, scale: 1, duration: 0.3, stagger: 0.15, ease: "back.out(2.2)" }, "<0.15")
-          .to(
-            names,
-            { opacity: 1, x: 0, filter: "blur(0px)", duration: 0.35, stagger: 0.15, ease: "power2.out" },
-            "<0.06"
-          )
-          .to(trace, { strokeOpacity: 0.4, duration: 0.6, ease: "power2.out" }, "<0.2");
-      });
-
-      let cabinetSoundPlayed = false;
-      cabinet.add(() => {
-        if (!cabinetSoundPlayed) {
-          cabinetSoundPlayed = true;
-          soundFX.playCabinetUnlock();
-        }
-        if (craftCount) craftCount.textContent = "16";
-      });
+        .to(craftRight.current, { autoAlpha: 1, y: 0, duration: 0.5 }, 0.25);
 
       ScrollTrigger.create({
         trigger: root.current,
         start: () => "top+=" + window.innerHeight * 3.8 + " top",
-        end: () => "top+=" + window.innerHeight * 4.4 + " top",
+        end: () => "top+=" + window.innerHeight * 4.3 + " top",
         scrub: true,
         animation: craftTransition,
         onEnter: () => setRoom(ROOMS.craft.accent, ROOMS.craft.lift, 0.8),
+        onLeaveBack: () => setRoom(JOURNEY[3].accent, JOURNEY[3].lift, 0.8),
+      });
+
+      // ======== PHASE 3b — Skills (Craft) Scroll-Triggered Scrubbing ========
+      const craftTl = gsap.timeline({ defaults: { ease: "power1.inOut" } });
+      craftCards.forEach((card, i) => {
+        const trace = card.querySelector("[data-craft-trace]");
+        const head = card.querySelector("[data-craft-head]");
+        const checks = card.querySelectorAll("[data-craft-check]");
+        const names = card.querySelectorAll("[data-craft-name]");
+        const start = i * 0.4;
+        craftTl
+          .to(card, { opacity: 1, y: 0, duration: 0.4 }, start)
+          .to(trace, { strokeDashoffset: 0, duration: 0.55 }, start)
+          .to(head, { opacity: 1, y: 0, duration: 0.3 }, start + 0.15)
+          .to(checks, { opacity: 1, scale: 1, duration: 0.3, stagger: 0.06 }, start + 0.15)
+          .to(names, { opacity: 1, x: 0, filter: "blur(0px)", duration: 0.3, stagger: 0.06 }, start + 0.18)
+          .to(trace, { strokeOpacity: 0.45, duration: 0.3 }, start + 0.35);
+      });
+      craftTl.to({}, { duration: 0.3 });
+
+      let cabinetSoundPlayed = false;
+      ScrollTrigger.create({
+        trigger: root.current,
+        start: () => "top+=" + window.innerHeight * 4.3 + " top",
+        end: () => "top+=" + window.innerHeight * 5.4 + " top",
+        scrub: 0.5,
+        animation: craftTl,
+        onEnter: () => {
+          if (!cabinetSoundPlayed) {
+            cabinetSoundPlayed = true;
+            soundFX.playCabinetUnlock();
+          }
+        },
         onLeaveBack: () => {
           cabinetSoundPlayed = false;
-          setRoom(JOURNEY[3].accent, JOURNEY[3].lift, 0.8);
-        },
-        onEnterBack: () => {
-          setRoom(ROOMS.craft.accent, ROOMS.craft.lift, 0.8);
-          cabinet.progress(1);
+          if (craftCount) craftCount.textContent = "0";
         },
         onUpdate: (self) => {
-          if (self.progress > 0.7) cabinet.play();
-          else if (self.progress < 0.2) cabinet.pause(0);
+          const p = self.progress;
+          if (craftCount) {
+            if (p >= 0.85) craftCount.textContent = "16";
+            else if (p >= 0.60) craftCount.textContent = "12";
+            else if (p >= 0.35) craftCount.textContent = "8";
+            else if (p >= 0.10) craftCount.textContent = "4";
+            else craftCount.textContent = "0";
+          }
         },
       });
 
@@ -914,17 +921,18 @@ export default function Experience() {
           gsap.set(ulPath.current, { strokeDasharray: len, strokeDashoffset: 0 });
         }
         gsap.set([ulPath.current, arrowStem.current, arrowHead.current], { opacity: 1 });
-        gsap.set(craftCards, { opacity: 1 });
+        gsap.set(craftCards, { opacity: 1, y: 0 });
         craftCards.forEach((card) => {
           const trace = card.querySelector("[data-craft-trace]");
           const head = card.querySelector("[data-craft-head]");
           const checks = card.querySelectorAll("[data-craft-check]");
           const names = card.querySelectorAll("[data-craft-name]");
-          if (trace) gsap.set(trace, { strokeDashoffset: 0 });
+          if (trace) gsap.set(trace, { strokeDashoffset: 0, strokeOpacity: 0.45 });
           if (head) gsap.set(head, { opacity: 1, y: 0 });
           if (checks) gsap.set(checks, { opacity: 1, scale: 1 });
           if (names) gsap.set(names, { opacity: 1, x: 0, filter: "none" });
         });
+        if (craftCount) craftCount.textContent = "16";
         gsap.set(bCards, { opacity: 1, y: 0, pointerEvents: "auto" });
         measure();
         unlockScroll();
@@ -2068,7 +2076,7 @@ export default function Experience() {
       {/* --------------------------------------------------- FOOTER LANDMARK */}
       <footer aria-label="Contact and portfolio credits" className="sr-only">
         <h2>Contact &amp; Links</h2>
-        <p>Tharun S — Available for product design and engineering opportunities. Version 1.2.0.</p>
+        <p>Tharun S — Available for product design and engineering opportunities. Version 1.2.1.</p>
         <ul>
           <li><a href="mailto:tharun@example.com">tharun@example.com</a></li>
           <li><a href="https://github.com">GitHub</a></li>
