@@ -13,12 +13,12 @@ const HEADING_SIZE = "clamp(2rem, 8.4vw, 7rem)";
 const NAV_VAULT_SIZE = "clamp(1.5rem, 2.6vw, 2.15rem)";
 
 /* Accordion menu sizes — fixed rem so GSAP can interpolate them. */
-const MENU_ACTIVE = "4.4rem";
-const MENU_SMALL = "1.5rem";
+const MENU_ACTIVE = "2.4rem";
+const MENU_SMALL = "1.2rem";
 
 const getActiveMenuSize = () => {
   if (typeof window === "undefined") return MENU_ACTIVE;
-  return window.innerWidth < 1280 ? "3.6rem" : MENU_ACTIVE;
+  return window.innerWidth < 1280 ? "2.05rem" : MENU_ACTIVE;
 };
 
 /* Typography colours are resolved literals, never `rgb(var(--x) / a)`:
@@ -953,7 +953,7 @@ export default function Experience() {
             const checks = card.querySelectorAll("[data-craft-check]");
             const names = card.querySelectorAll("[data-craft-name]");
             gsap.set(card, { opacity: 1, y: 0 });
-            if (trace) gsap.set(trace, { strokeDashoffset: 0, strokeOpacity: 0.45 });
+            if (trace) gsap.set(trace, { strokeDashoffset: 0, strokeOpacity: 0.35 });
             if (head) gsap.set(head, { opacity: 1, y: 0 });
             if (checks) gsap.set(checks, { opacity: 1, scale: 1 });
             if (names) gsap.set(names, { opacity: 1, x: 0 });
@@ -1006,7 +1006,7 @@ export default function Experience() {
           const checks = card.querySelectorAll("[data-craft-check]");
           const names = card.querySelectorAll("[data-craft-name]");
           tl.to(card, { opacity: 1, y: 0, duration: 0.4 }, cardDelay);
-          if (trace) tl.to(trace, { strokeDashoffset: 0, strokeOpacity: 0.45, duration: 0.5 }, cardDelay);
+          if (trace) tl.to(trace, { strokeDashoffset: 0, strokeOpacity: 0.35, duration: 0.5 }, cardDelay);
           if (head) tl.to(head, { opacity: 1, y: 0, duration: 0.35 }, cardDelay + 0.1);
           checks.forEach((chk, ki) => {
             tl.to(chk, { opacity: 1, scale: 1, duration: 0.25 }, cardDelay + 0.18 + ki * 0.08);
@@ -1444,12 +1444,12 @@ export default function Experience() {
             <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/80 to-transparent pointer-events-none" />
           </div>
 
-          <div className="relative mx-auto flex h-full max-w-[1480px] items-center px-4 sm:px-6 lg:px-[5vw] lg:gap-[4%]">
+          <div className="relative mx-auto flex h-full max-w-[1520px] items-center px-4 sm:px-6 lg:px-[4vw] lg:gap-12 xl:gap-16 2xl:gap-20">
             {/* Left: accordion chapter menu (desktop only) */}
-            <nav aria-label="Section navigation" className="hidden lg:flex w-[28%] shrink-0 relative z-10">
+            <nav aria-label="Section navigation" className="hidden lg:flex w-[220px] xl:w-[240px] 2xl:w-[260px] shrink-0 relative z-10">
               <ul
                 ref={menu}
-                className="w-full flex flex-col justify-center gap-[0.55rem] font-excon font-bold leading-[1.05]"
+                className="w-full flex flex-col justify-center gap-3.5 2xl:gap-4 font-excon font-bold leading-[1.1]"
               >
                 {MENU.map((item) => {
                   const isActive = currentCanonicalKey === item.key;
@@ -1471,18 +1471,23 @@ export default function Experience() {
                         aria-current={isActive ? "true" : undefined}
                         className={`w-full text-left flex ${
                           isMultiLine ? "items-start" : "items-center"
-                        } justify-between py-1 rounded-lg cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 active:scale-[0.98] transition-transform duration-150 border-0 bg-transparent p-0 text-inherit font-inherit`}
+                        } py-1 cursor-pointer outline-none focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 active:scale-[0.98] transition-all duration-200 border-0 bg-transparent p-0 text-inherit font-inherit`}
                       >
                         <span
-                          className={`inline-flex ${
-                            isMultiLine ? "items-start" : "items-center"
-                          } transition-transform duration-300 ease-out group-hover:translate-x-2.5 group-active:translate-x-1`}
+                          className={`inline-flex items-center gap-3 transition-transform duration-300 ease-out group-hover:translate-x-1.5`}
                         >
+                          <span
+                            className={`w-1.5 h-1.5 rounded-full transition-all duration-300 shrink-0 ${
+                              isActive
+                                ? "bg-white scale-100 opacity-100 shadow-[0_0_8px_rgba(255,255,255,0.9)]"
+                                : "bg-white/30 scale-0 opacity-0 -mr-2"
+                            }`}
+                          />
                           {"lines" in item && item.lines ? (
                             <span
                               className={`inline-flex transition-all duration-300 ease-out ${
                                 isMultiLine
-                                  ? "flex-col items-start leading-[0.92]"
+                                  ? "flex-col items-start leading-[0.95]"
                                   : "flex-row items-baseline gap-[0.28em] leading-normal"
                               }`}
                             >
@@ -1853,7 +1858,7 @@ export default function Experience() {
                   </div>
 
                   {/* 4 Cards Grid */}
-                  <div className="grid w-full grid-cols-2 gap-2.5 sm:gap-6 lg:gap-8">
+                  <div className="grid w-full grid-cols-2 gap-3 sm:gap-5 lg:gap-6">
                     {CRAFT_CATEGORIES.map((cat, ci) => {
                       const tally = cat.skills.reduce<Record<number, number>>((m, s) => {
                         const o = originOf(s);
@@ -1867,10 +1872,12 @@ export default function Experience() {
                         <div
                           key={cat.name}
                           data-craft-card={ci}
-                          className="relative rounded-[16px] sm:rounded-[24px] p-3.5 sm:p-7 lg:p-8 transition-shadow duration-300 hover:shadow-[0_20px_48px_rgba(0,0,0,0.6)] bg-neutral-900/80 backdrop-blur-xl border border-white/10 shadow-[0_16px_40px_rgba(0,0,0,0.4)]"
+                          className="group relative rounded-[20px] sm:rounded-[24px] p-4 sm:p-6 lg:p-7 overflow-hidden transition-all duration-300 hover:shadow-[0_24px_60px_rgba(0,0,0,0.65)] hover:-translate-y-0.5 border border-white/[0.08] hover:border-white/20 shadow-[0_16px_40px_rgba(0,0,0,0.45)] backdrop-blur-2xl"
                           style={
                             {
                               "--origin-rgb": JOURNEY[dominant].accent.join(" "),
+                              background:
+                                "radial-gradient(ellipse 90% 60% at 0% 0%, rgb(var(--origin-rgb) / 0.12) 0%, transparent 70%), rgba(18, 18, 22, 0.7)",
                             } as React.CSSProperties
                           }
                         >
@@ -1879,25 +1886,14 @@ export default function Experience() {
                             aria-hidden
                           >
                             <rect
-                              x="0.75"
-                              y="0.75"
-                              width="calc(100% - 1.5px)"
-                              height="calc(100% - 1.5px)"
-                              rx="16"
-                              fill="none"
-                              stroke="rgb(var(--origin-rgb))"
-                              strokeOpacity="0.65"
-                              strokeWidth="1.5"
-                            />
-                            <rect
                               data-craft-trace
                               x="0.75"
                               y="0.75"
                               width="calc(100% - 1.5px)"
                               height="calc(100% - 1.5px)"
-                              rx="16"
+                              rx="22"
                               fill="none"
-                              strokeWidth="1.5"
+                              strokeWidth="1.2"
                               strokeLinecap="round"
                               pathLength={100}
                               style={{
@@ -1909,13 +1905,22 @@ export default function Experience() {
                             />
                           </svg>
 
-                          <h3
-                            data-craft-head
-                            className="font-inter font-semibold uppercase text-white/60 text-[0.68rem] sm:text-xs tracking-wider"
-                          >
-                            {cat.name}
-                          </h3>
-                          <ul className="mt-2 sm:mt-5 space-y-1 sm:space-y-3.5">
+                          {/* Category Header */}
+                          <div data-craft-head className="flex items-center gap-2 mb-2.5 sm:mb-4">
+                            <span
+                              className="h-1.5 w-1.5 rounded-full shrink-0"
+                              style={{
+                                backgroundColor: "rgb(var(--origin-rgb))",
+                                boxShadow: "0 0 8px rgb(var(--origin-rgb) / 0.7)",
+                              }}
+                            />
+                            <h3 className="font-mono font-semibold uppercase text-white/70 text-[0.68rem] sm:text-xs tracking-wider">
+                              {cat.name}
+                            </h3>
+                          </div>
+
+                          {/* Skills List */}
+                          <ul className="space-y-1 sm:space-y-1.5">
                             {cat.skills.map((s) => {
                               const origin = originOf(s);
                               return (
@@ -1923,30 +1928,32 @@ export default function Experience() {
                                   key={s}
                                   data-craft-item
                                   onMouseEnter={() => soundFX.playHoverTick()}
-                                  className="group relative flex items-baseline gap-1.5 sm:gap-3 font-inter text-neutral-200 text-xs sm:text-sm md:text-base transition-transform duration-200 ease-out hover:translate-x-1.5 hover:text-white cursor-default"
+                                  className="group/item relative flex items-center justify-between rounded-lg px-2 sm:px-2.5 py-1 sm:py-1.5 transition-all duration-200 hover:bg-white/[0.04] cursor-default"
                                   style={
                                     {
                                       "--origin-rgb": JOURNEY[origin].accent.join(" "),
                                     } as React.CSSProperties
                                   }
                                 >
-                                  <span
-                                    data-craft-check
-                                    className="text-origin inline-block font-semibold text-xs sm:text-sm transition-transform duration-200 group-hover:scale-125 group-hover:rotate-6"
-                                  >
-                                    ✓
-                                  </span>
-                                  <span data-craft-name className="inline-block font-medium truncate sm:whitespace-normal">
-                                    {s}
-                                  </span>
+                                  <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+                                    <span
+                                      data-craft-check
+                                      className="text-origin inline-flex items-center justify-center font-bold text-xs sm:text-sm shrink-0 transition-transform duration-200 group-hover/item:scale-125"
+                                    >
+                                      ✓
+                                    </span>
+                                    <span
+                                      data-craft-name
+                                      className="font-inter font-medium text-neutral-200 text-xs sm:text-sm md:text-[0.92rem] truncate transition-colors duration-200 group-hover/item:text-white"
+                                    >
+                                      {s}
+                                    </span>
+                                  </div>
                                   <span
                                     aria-hidden
-                                    className="hidden sm:block pointer-events-none absolute right-0 top-1/2 z-10 -translate-y-1/2 translate-x-2 whitespace-nowrap rounded-md border border-white/15 px-2 py-1 font-inter uppercase text-white/85 opacity-0 transition-all duration-200 ease-out group-hover:translate-x-0 group-hover:opacity-100 text-[0.65rem] tracking-wider bg-neutral-800/95 shadow-md"
+                                    className="hidden sm:inline-block font-mono text-[0.62rem] text-neutral-500 opacity-0 transition-opacity duration-200 group-hover/item:opacity-100 shrink-0 ml-2"
                                   >
-                                    Earned during {JOURNEY[origin].title}
-                                  </span>
-                                  <span className="sr-only">
-                                    , earned during {JOURNEY[origin].title}
+                                    {JOURNEY[origin].title}
                                   </span>
                                 </li>
                               );

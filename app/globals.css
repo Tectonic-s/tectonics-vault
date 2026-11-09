@@ -143,12 +143,9 @@ body {
   text-shadow: none;
 }
 
-/* Keyboard focus stays ink: an accent ring would vary in visibility from
-   room to room, which is a contrast failure you only hit in some chapters. */
+/* Keyboard focus */
 :where(a, button, [tabindex]):focus-visible {
-  outline: 2px solid rgb(var(--ink-rgb));
-  outline-offset: 4px;
-  border-radius: 4px;
+  outline: none;
 }
 :focus:not(:focus-visible) {
   outline: none;
