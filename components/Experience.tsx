@@ -36,12 +36,12 @@ const HERO_VAULT = "Vault.";
 const SUBTITLE = "Scroll Down to explore";
 
 const MENU: { key: string; label: string; numeral: string; lines?: string[] }[] = [
-  { key: "about", label: "About", numeral: "01" },
+  { key: "about", label: "Intro", numeral: "01" },
   { key: "journey", label: "Journey", numeral: "02" },
-  { key: "skills", label: "Skills", numeral: "03" },
-  { key: "works", label: "Works", numeral: "04" },
-  { key: "beyond", label: "Beyond Work", numeral: "05", lines: ["Beyond", "Work"] },
-  { key: "talk", label: "Let’s Talk.", numeral: "06" },
+  { key: "skills", label: "Toolkit", numeral: "03" },
+  { key: "works", label: "Projects", numeral: "04" },
+  { key: "beyond", label: "Off Script", numeral: "05", lines: ["Off", "Script"] },
+  { key: "talk", label: "Connect", numeral: "06" },
 ];
 
 /* The four chapters of the Journey timeline. Fields are split for an
@@ -1379,10 +1379,10 @@ export default function Experience() {
             type="button"
             onClick={() => handleMenuClick("talk")}
             onMouseEnter={() => soundFX.playHoverTick()}
-            aria-label="Scroll to contact section"
+            aria-label="Scroll to connect section"
             className="group will-reveal flex items-center gap-1.5 sm:gap-2 font-excon font-bold leading-none text-ink rounded-full border-2 border-ink px-3.5 py-1.5 sm:px-5 sm:py-2.5 text-xs sm:text-sm transition-all duration-200 hover:bg-ink hover:text-bg hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(0,0,0,0.12)] active:scale-95 active:translate-y-0 cursor-pointer focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
           >
-            <span>Let&rsquo;s Talk.</span>
+            <span>Connect</span>
             <span aria-hidden="true" className="inline-block transition-transform duration-200 ease-out group-hover:translate-y-0.5 font-mono text-[0.85em]">
               ↓
             </span>
@@ -1546,31 +1546,7 @@ export default function Experience() {
                               {item.label}
                             </span>
                           )}
-                          {(item.key === "skills" || item.key === "craft") && (
-                            <span
-                              data-craft-count
-                              aria-hidden="true"
-                              className="inline-flex shrink-0 items-center justify-center rounded-full font-inter font-bold text-white bg-black shadow-sm transition-transform duration-300 ease-out group-hover:scale-125 group-hover:rotate-6"
-                              style={{
-                                width: "1.35rem",
-                                height: "1.35rem",
-                                fontSize: "0.72rem",
-                                lineHeight: 1,
-                              }}
-                            >
-                              16
-                            </span>
-                          )}
                         </span>
-                        {isActive && (
-                          <span
-                            aria-hidden="true"
-                            className={`font-mono text-xs tracking-wider font-semibold opacity-60 ml-2 ${isMultiLine ? "mt-[0.25em]" : ""
-                              } shrink-0`}
-                          >
-                            {item.numeral} / 06
-                          </span>
-                        )}
                       </button>
                     </li>
                   );
@@ -1659,8 +1635,7 @@ export default function Experience() {
                             className="w-1.5 h-1.5 rounded-full transition-transform duration-300 ease-out group-hover:scale-150"
                             style={{ backgroundColor: `rgb(${step.accent.join(" ")})` }}
                           />
-                          <span>0{i + 1}</span>
-                          <span className="hidden sm:inline font-normal opacity-75">{step.title}</span>
+                          <span>{step.title}</span>
                         </button>
                       ))}
                     </div>
@@ -1675,13 +1650,6 @@ export default function Experience() {
                       >
                         ←
                       </button>
-                      <div className="flex items-center gap-1 text-xs font-mono font-medium text-neutral-400" aria-live="polite">
-                        <span data-jcount className="font-bold text-neutral-800">
-                          0{activeChapterIndex + 1}
-                        </span>
-                        <span>/</span>
-                        <span>04</span>
-                      </div>
                       <button
                         type="button"
                         onClick={() => handleChapterClick(Math.min(JOURNEY.length - 1, activeChapterIndex + 1))}
@@ -1726,7 +1694,7 @@ export default function Experience() {
                                     className="w-1.5 h-1.5 rounded-full"
                                     style={{ backgroundColor: `rgb(${step.accent.join(" ")})` }}
                                   />
-                                  Chapter 0{i + 1} · {step.title}
+                                  {step.title}
                                 </span>
                                 {step.period && (
                                   <span className="text-[0.65rem] sm:text-xs font-inter text-neutral-400 font-medium">
@@ -1921,20 +1889,19 @@ export default function Experience() {
                 ref={worksRight}
                 className="absolute inset-0 flex items-center justify-center will-change-[transform,opacity]"
               >
-                <h2 className="sr-only">Selected Works</h2>
+                <h2 className="sr-only">Selected Projects</h2>
                 <div className="w-full max-w-[880px] 2xl:max-w-[960px] flex flex-col gap-2 sm:gap-4">
                   <div className="flex items-center justify-between border-b border-black/8 pb-2 sm:pb-3">
                     <div className="flex items-center gap-1.5 sm:gap-2">
                       <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
                       <span className="font-excon font-bold text-xs sm:text-sm uppercase tracking-wider text-black">
-                        Selected Works
+                        Selected Projects
                       </span>
                       <span className="text-black/30">·</span>
                       <span className="font-inter text-[0.68rem] sm:text-xs text-neutral-500">
                         Click card to inspect
                       </span>
                     </div>
-                    <span className="font-mono text-xs font-semibold text-neutral-400">04 Projects</span>
                   </div>
                   <WorksExpandable
                     onModalChange={(isOpen: boolean) => {
@@ -2001,7 +1968,6 @@ export default function Experience() {
                             className="w-1.5 h-1.5 rounded-full transition-transform duration-300 ease-out group-hover:scale-150"
                             style={{ backgroundColor: `rgb(${item.accent.join(" ")})` }}
                           />
-                          <span>0{i + 1}</span>
                           <span className="font-normal opacity-85">{item.title}</span>
                         </button>
                       ))}
@@ -2017,13 +1983,6 @@ export default function Experience() {
                       >
                         ←
                       </button>
-                      <div className="flex items-center gap-1 text-xs font-mono font-medium text-neutral-400" aria-live="polite">
-                        <span data-bcount className="font-bold text-neutral-800">
-                          0{activeBeyondIndex + 1}
-                        </span>
-                        <span>/</span>
-                        <span>04</span>
-                      </div>
                       <button
                         type="button"
                         onClick={() => handleBeyondChapterClick(Math.min(BEYOND.length - 1, activeBeyondIndex + 1))}
@@ -2065,7 +2024,7 @@ export default function Experience() {
                                 }}
                               />
                               <span className="font-mono text-[0.72rem] sm:text-xs uppercase tracking-wider font-bold text-neutral-800">
-                                0{i + 1} // {item.title}
+                                {item.title}
                               </span>
                             </div>
 
@@ -2116,14 +2075,14 @@ export default function Experience() {
                 </div>
               </section>
 
-              {/* Let's Talk — In-scroll contact destination */}
+              {/* Connect — In-scroll contact destination */}
               <section
                 id="talk"
-                aria-label="Let’s Talk"
+                aria-label="Connect"
                 ref={talkRight}
                 className="absolute inset-0 flex items-center justify-center will-change-[transform,opacity]"
               >
-                <h2 className="sr-only">Let’s Talk</h2>
+                <h2 className="sr-only">Connect</h2>
                 <div className="w-full max-w-[680px] rounded-[28px] sm:rounded-[36px] border border-black/10 bg-white p-6 sm:p-10 md:p-12 shadow-[0_20px_60px_rgba(0,0,0,0.06)] flex flex-col justify-between">
                   <div>
                     <div className="flex items-center justify-between">
@@ -2131,7 +2090,6 @@ export default function Experience() {
                         <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
                         Available for opportunities
                       </span>
-                      <span className="font-mono text-xs font-semibold text-neutral-400">06 / 06</span>
                     </div>
 
                     <h3 className="mt-4 sm:mt-5 font-excon text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-ink">
@@ -2232,15 +2190,6 @@ export default function Experience() {
                   }`}
               >
                 <span>{item.label}</span>
-                {(item.key === "skills" || item.key === "craft") && (
-                  <span
-                    aria-hidden="true"
-                    className={`inline-flex shrink-0 items-center justify-center rounded-full font-mono text-[0.62rem] px-1 h-3.5 ${isActive ? "bg-white text-black font-bold" : "bg-black/10 text-black"
-                      }`}
-                  >
-                    16
-                  </span>
-                )}
               </button>
             );
           })}
@@ -2315,22 +2264,6 @@ export default function Experience() {
                       <span className="font-excon font-bold text-base">
                         {item.label}
                       </span>
-                      {(item.key === "skills" || item.key === "craft") && (
-                        <span
-                          className={`inline-flex shrink-0 items-center justify-center rounded-full font-mono text-[0.65rem] px-1.5 h-4 font-bold ${isActive ? "bg-white text-black" : "bg-black text-white"
-                            }`}
-                        >
-                          16
-                        </span>
-                      )}
-                      {item.key === "works" && (
-                        <span
-                          className={`inline-flex shrink-0 items-center justify-center rounded-full font-mono text-[0.65rem] px-1.5 h-4 font-bold ${isActive ? "bg-white text-black" : "bg-black/10 text-neutral-700"
-                            }`}
-                        >
-                          04
-                        </span>
-                      )}
                     </div>
                     {isActive ? (
                       <span className="w-1.5 h-1.5 rounded-full bg-white" />
