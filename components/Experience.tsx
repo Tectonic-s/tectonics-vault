@@ -52,63 +52,78 @@ const MENU: { key: string; label: string; numeral: string; lines?: string[] }[] 
 const JOURNEY = [
   {
     icon: "backpack" as const,
-    title: "Pre-Graduate",
+    title: "The Beginning",
     period: "2018 — 2020",
-    accent: [201, 150, 92], // warm bronze — foundation, archive light
+    accent: [205, 140, 80], // warm bronze — foundation, archive light
     lift: 0.07,
     metric: "89",
     metricUnit: "%",
     metricLabel: "Score",
-    primary: "A.M.Jain School",
+    primary: "A.M. Jain School",
     secondary: "Higher Secondary · Science & Mathematics",
     skills: ["Curiosity", "Discipline", "Continuous Learning"],
     body:
-      "Every story has a beginning. Mine started in a classroom, where curiosity slowly grew into a passion for learning, creating, and solving problems. Those early years became the foundation for everything that followed.",
+      "This is where it all started. Science and mathematics introduced me to structured thinking, problem-solving, and the habit of asking why. What began as classroom curiosity gradually grew into an interest in understanding how things work.",
   },
   {
     icon: "gradcap" as const,
-    title: "Under-Graduate",
-    period: "2020 — 2023",
-    accent: [82, 186, 148], // emerald (named #064E3B) — growth, discovery
+    title: "The Foundation",
+    period: "2021 — 2024",
+    accent: [46, 175, 135], // emerald mint — growth, data & discovery
     lift: 0.065,
     metric: "8.1",
     metricUnit: "",
     metricLabel: "CGPA",
     primary: "Guru Nanak College",
-    secondary: "B.Sc Data Analytics",
+    secondary: "B.Sc. Data Analytics",
     skills: ["Analytical Thinking", "Data Analysis", "Problem Solving", "Research"],
     body:
-      "This was the chapter where curiosity found direction. Through data, technology, and countless hands-on projects, I learned to approach problems with logic, creativity, and a desire to build solutions that make an impact.",
-  },
-  {
-    icon: "briefcase" as const,
-    title: "Corporate Life",
-    period: "Jan 25 — Jul 25",
-    accent: [212, 175, 95], // deep gold — leadership, executive light
-    lift: 0.085,
-    metric: "6+",
-    metricUnit: "mos",
-    metricLabel: "Experience",
-    primary: "Bajaj Finserv",
-    secondary: "Deputy Manager",
-    skills: ["Communication", "Leadership", "Negotiation", "Client Management", "Business Strategy"],
-    body:
-      "Leading sales taught me that every conversation begins with understanding people. Managing relationships, solving customer problems, and taking ownership of results helped me build confidence, adaptability, and a stronger business mindset.",
+      "My first real step into the world of technology and data. This chapter introduced me to the art of turning information into insights, approaching problems analytically, and understanding the stories behind numbers.",
   },
   {
     icon: "gradcap" as const,
-    title: "Post Graduate",
-    period: "2024 — Present",
-    accent: [70, 155, 175], // slate cyan — engineering lab
-    lift: 0.06,
-    metric: "7.0",
+    title: "The Business Perspective",
+    period: "2024 — 2026",
+    accent: [75, 125, 225], // sapphire / architectural cobalt — executive & strategy
+    lift: 0.07,
+    metric: "7.5",
     metricUnit: "",
     metricLabel: "CGPA",
+    primary: "Jain Online · Jain University, Bengaluru",
+    secondary: "MBA · Business Intelligence & Analytics",
+    skills: ["Leadership", "Business Strategy"],
+    body:
+      "A parallel journey into the business side of things. This programme helped me explore management principles, organisational thinking, and how business decisions shape the way organisations operate.",
+  },
+  {
+    icon: "briefcase" as const,
+    title: "The Real World",
+    period: "January 2025 — July 2025",
+    accent: [215, 160, 60], // deep warm gold — enterprise & corporate leadership
+    lift: 0.08,
+    metric: "6+",
+    metricUnit: "",
+    metricLabel: "Months of Experience",
+    primary: "Bajaj Finserv",
+    secondary: "Deputy Manager · Loan Against Property (LAP)",
+    skills: ["Communication", "Negotiation", "Client Management"],
+    body:
+      "My first corporate chapter brought business theory into the real world. Working across sales and customer relationship management, I handled client interactions, worked towards monthly targets, and experienced the importance of trust, communication, and execution. Achieving monthly targets and earning performance incentives made the experience even more rewarding.",
+  },
+  {
+    icon: "gradcap" as const,
+    title: "The Builder",
+    period: "2025 — 2027",
+    accent: [60, 160, 185], // slate cyan / engineering lab
+    lift: 0.065,
+    metric: "7.0",
+    metricUnit: "",
+    metricLabel: "Latest Confirmed CGPA",
     primary: "PSG College of Technology",
     secondary: "MCA · Master of Computer Applications",
     skills: ["Software Engineering", "System Design", "Full Stack Development", "Modern Development Practices"],
     body:
-      "Returning to academia marked the beginning of a new chapter. With a stronger foundation and real-world experience behind me, I am now deepening my understanding of software engineering, system design, and modern application development.",
+      "This is where I'm bringing everything together. With a background in analytics, business understanding, and corporate experience, I'm now focused on application development and product thinking. I'm particularly interested in building complete products — from identifying a problem and shaping an idea to designing and developing a working solution.",
   },
 ];
 
@@ -598,6 +613,7 @@ export default function Experience() {
         gsap.set(card, {
           opacity: i === 0 ? 1 : 0,
           y: i === 0 ? 0 : 20,
+          pointerEvents: i === 0 ? "auto" : "none",
         });
       });
 
@@ -1603,13 +1619,27 @@ export default function Experience() {
                 className="absolute inset-0 flex items-center justify-center will-change-[transform,opacity]"
               >
                 <h2 className="sr-only">Journey Chapters</h2>
-                <div className="w-full max-w-[820px] 2xl:max-w-[880px] flex flex-col gap-3 sm:gap-5">
+                <div className="w-full max-w-[820px] 2xl:max-w-[880px] flex flex-col gap-2.5 sm:gap-3.5">
+                  {/* Section Context Header */}
+                  <div className="flex items-center justify-between border-b border-black/8 pb-2 sm:pb-2.5">
+                    <div className="flex items-center gap-1.5 sm:gap-2">
+                      <span className="h-2 w-2 rounded-full bg-neutral-900" />
+                      <span className="font-excon font-bold text-xs sm:text-sm uppercase tracking-wider text-black">
+                        The Journey
+                      </span>
+                      <span className="text-black/30 hidden sm:inline">·</span>
+                      <span className="font-inter text-[0.68rem] sm:text-xs text-neutral-500 hidden sm:inline">
+                        Every chapter added something to the person I am today.
+                      </span>
+                    </div>
+                  </div>
+
                   {/* Chapter Navigation Tabs / Bar */}
-                  <div className="flex items-center justify-between border-b border-black/8 pb-2.5 sm:pb-4">
+                  <div className="flex items-center justify-between">
                     <div
                       role="tablist"
                       aria-label="Journey chapter selector"
-                      className="flex items-center gap-1 sm:gap-2"
+                      className="flex items-center gap-1 sm:gap-2 flex-wrap"
                     >
                       {JOURNEY.map((step, i) => (
                         <button
@@ -1620,7 +1650,7 @@ export default function Experience() {
                           aria-controls={`journey-card-${i}`}
                           aria-selected={i === activeChapterIndex}
                           tabIndex={i === activeChapterIndex ? 0 : -1}
-                          aria-label={`Chapter 0${i + 1}: ${step.title}`}
+                          aria-label={`Chapter: ${step.title}`}
                           data-jtab={i}
                           onClick={() => handleChapterClick(i)}
                           onKeyDown={(e) => handleChapterKeyDown(e, i)}
@@ -1635,12 +1665,15 @@ export default function Experience() {
                             className="w-1.5 h-1.5 rounded-full transition-transform duration-300 ease-out group-hover:scale-150"
                             style={{ backgroundColor: `rgb(${step.accent.join(" ")})` }}
                           />
-                          <span>{step.title}</span>
+                          <span className="hidden md:inline">{step.title}</span>
+                          <span className="md:hidden">
+                            {step.title === "The Business Perspective" ? "Business" : step.title}
+                          </span>
                         </button>
                       ))}
                     </div>
 
-                    <div className="flex items-center gap-1.5 sm:gap-2">
+                    <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                       <button
                         type="button"
                         onClick={() => handleChapterClick(Math.max(0, activeChapterIndex - 1))}
@@ -1663,7 +1696,7 @@ export default function Experience() {
                   </div>
 
                   {/* Stacked Chapter Cards */}
-                  <div className="relative h-[430px] sm:h-[400px] md:h-[370px] w-full">
+                  <div className="relative h-[430px] sm:h-[400px] md:h-[375px] w-full">
                     {JOURNEY.map((step, i) => (
                       <div
                         key={step.title}
@@ -1672,7 +1705,7 @@ export default function Experience() {
                         aria-labelledby={`journey-tab-${i}`}
                         tabIndex={0}
                         data-jcard={i}
-                        className="absolute inset-0 rounded-[20px] sm:rounded-[24px] bg-white p-4 sm:p-7 md:p-8 border shadow-[0_12px_36px_rgba(0,0,0,0.04)] flex flex-col justify-between overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black will-change-[transform,opacity]"
+                        className="absolute inset-0 rounded-[20px] sm:rounded-[24px] bg-white p-4 sm:p-6 md:p-7 border shadow-[0_12px_36px_rgba(0,0,0,0.04)] flex flex-col justify-between overflow-y-auto sm:overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black will-change-[transform,opacity]"
                         style={{
                           borderColor: `rgb(${step.accent.join(" ")} / 0.45)`,
                         }}
@@ -1703,7 +1736,7 @@ export default function Experience() {
                                 )}
                               </div>
 
-                              <h3 className="mt-2 sm:mt-3.5 font-excon text-lg sm:text-2xl md:text-3xl font-bold tracking-tight text-ink break-words">
+                              <h3 className="mt-2 sm:mt-3 font-excon text-lg sm:text-2xl md:text-3xl font-bold tracking-tight text-ink break-words">
                                 {step.primary}
                               </h3>
                               {step.secondary && (
@@ -1714,7 +1747,7 @@ export default function Experience() {
                             </div>
 
                             {step.metric && (
-                              <div className="flex flex-col items-start sm:items-end shrink-0 self-start rounded-xl sm:rounded-2xl bg-neutral-50 border border-black/6 px-2.5 py-1.5 sm:px-4 sm:py-2.5 transition-all duration-300 hover:scale-105 hover:bg-white hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] cursor-default">
+                              <div className="flex flex-col items-start sm:items-end shrink-0 self-start rounded-xl sm:rounded-2xl bg-neutral-50 border border-black/6 px-2.5 py-1.5 sm:px-4 sm:py-2 transition-all duration-300 hover:scale-105 hover:bg-white hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] cursor-default">
                                 <div className="flex items-baseline font-excon font-bold text-lg sm:text-2xl md:text-3xl text-ink leading-none">
                                   <span>{step.metric}</span>
                                   {step.metricUnit && (
@@ -1733,16 +1766,16 @@ export default function Experience() {
                           </div>
 
                           {/* Divider */}
-                          <div className="my-2.5 sm:my-5 h-px w-full bg-black/6" />
+                          <div className="my-2 sm:my-3.5 h-px w-full bg-black/6" />
 
                           {/* Narrative Story */}
-                          <p className="font-inter text-neutral-600 text-xs sm:text-sm md:text-[0.98rem] leading-relaxed max-w-[64ch] line-clamp-3 sm:line-clamp-none">
+                          <p className="font-inter text-neutral-600 text-xs sm:text-sm md:text-[0.94rem] leading-relaxed max-w-[66ch]">
                             {step.body}
                           </p>
                         </div>
 
                         {/* Bottom row: Acquired skills */}
-                        <div className="mt-2.5 sm:mt-5 pt-2 sm:pt-3.5 border-t border-black/5 flex flex-wrap items-center gap-1.5 sm:gap-2">
+                        <div className="mt-2 sm:mt-3.5 pt-2 sm:pt-3 border-t border-black/5 flex flex-wrap items-center gap-1.5 sm:gap-2">
                           <span className="text-[0.65rem] sm:text-[0.7rem] uppercase font-semibold tracking-wider text-neutral-400 mr-1">
                             Acquired:
                           </span>
@@ -1764,6 +1797,16 @@ export default function Experience() {
                         </div>
                       </div>
                     ))}
+                  </div>
+
+                  {/* Closing Sign-Off Note */}
+                  <div className="mt-2 sm:mt-2.5 flex flex-col sm:flex-row sm:items-baseline justify-between gap-1.5 border-t border-black/[0.06] pt-2 sm:pt-2.5">
+                    <span className="font-mono text-[0.68rem] sm:text-xs font-bold uppercase tracking-wider text-neutral-800 shrink-0">
+                      The story continues.
+                    </span>
+                    <p className="font-inter text-[0.68rem] sm:text-xs text-neutral-500 leading-normal">
+                      I&apos;m still learning, experimenting, and figuring things out. Every chapter has given me a different perspective, and I&apos;m looking forward to seeing what I build with all of them.
+                    </p>
                   </div>
                 </div>
               </section>
