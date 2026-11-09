@@ -1307,13 +1307,17 @@ export default function Experience() {
           >
             {/* Aceternity Dot Distortion Shader Background */}
             <DotDistortionShader
-              dotGap={26}
-              dotSize={1.4}
-              mouseRadius={140}
-              distortionStrength={22}
+              dotGap={24}
+              dotSize={1.8}
+              mouseRadius={150}
+              distortionStrength={26}
               returnSpeed={0.08}
               friction={0.84}
-              dotColorRgb={[0, 0, 0]}
+              dotColorRgb={[15, 15, 15]}
+              minAlpha={0.25}
+              maxAlpha={0.78}
+              baseAlphaMin={0.28}
+              baseAlphaMax={0.48}
             />
 
             {/* Cursor spotlight */}

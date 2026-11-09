@@ -11,6 +11,10 @@ export interface DotDistortionShaderProps {
   friction?: number;
   dotColor?: string;
   dotColorRgb?: [number, number, number];
+  minAlpha?: number;
+  maxAlpha?: number;
+  baseAlphaMin?: number;
+  baseAlphaMax?: number;
   className?: string;
 }
 
@@ -34,13 +38,17 @@ interface Dot {
  * breathing and twinkling.
  */
 export function DotDistortionShader({
-  dotGap = 28,
-  dotSize = 1.4,
-  mouseRadius = 140,
-  distortionStrength = 22,
+  dotGap = 24,
+  dotSize = 1.75,
+  mouseRadius = 150,
+  distortionStrength = 24,
   returnSpeed = 0.08,
   friction = 0.84,
-  dotColorRgb = [0, 0, 0],
+  dotColorRgb = [10, 10, 10],
+  minAlpha = 0.22,
+  maxAlpha = 0.78,
+  baseAlphaMin = 0.26,
+  baseAlphaMax = 0.46,
   className = "",
 }: DotDistortionShaderProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -94,7 +102,7 @@ export function DotDistortionShader({
             y: oy,
             vx: 0,
             vy: 0,
-            baseAlpha: Math.random() * 0.12 + 0.08,
+            baseAlpha: Math.random() * (baseAlphaMax - baseAlphaMin) + baseAlphaMin,
             pulseSpeed: Math.random() * 0.03 + 0.015,
             offset: Math.random() * Math.PI * 2,
             scale: 1,
@@ -181,10 +189,10 @@ export function DotDistortionShader({
 
         // Ambient breathing and twinkling wave calculation
         const wave = Math.sin(time * 0.8 + dot.ox * 0.005 + dot.oy * 0.005);
-        const twinkle = Math.sin(time * 1.5 + dot.offset) * 0.05;
+        const twinkle = Math.sin(time * 1.5 + dot.offset) * 0.06;
         const alpha = Math.max(
-          0.04,
-          Math.min(0.42, dot.baseAlpha + wave * 0.04 + twinkle + (dot.scale - 1) * 0.25)
+          minAlpha,
+          Math.min(maxAlpha, dot.baseAlpha + wave * 0.06 + twinkle + (dot.scale - 1) * 0.35)
         );
 
         // Draw refined architectural dot
@@ -206,7 +214,19 @@ export function DotDistortionShader({
       if (resizeTimer) clearTimeout(resizeTimer);
       cancelAnimationFrame(animId);
     };
-  }, [dotGap, dotSize, mouseRadius, distortionStrength, returnSpeed, friction, dotColorRgb]);
+  }, [
+    dotGap,
+    dotSize,
+    mouseRadius,
+    distortionStrength,
+    returnSpeed,
+    friction,
+    dotColorRgb,
+    minAlpha,
+    maxAlpha,
+    baseAlphaMin,
+    baseAlphaMax,
+  ]);
 
   return (
     <canvas
