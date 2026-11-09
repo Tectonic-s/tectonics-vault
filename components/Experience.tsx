@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
@@ -270,7 +270,6 @@ export default function Experience() {
   const activeBeyondRef = useRef(0);
   const [copiedEmail, setCopiedEmail] = useState(false);
   const [hasInteracted, setHasInteracted] = useState(false);
-  const [decryptKey, setDecryptKey] = useState(0);
   const [activeSection, setActiveSectionState] = useState<string>("hero");
   const activeSectionRef = useRef<string>("hero");
   const setActiveSection = (s: string) => {
@@ -342,7 +341,7 @@ export default function Experience() {
     setTimeout(() => setCopiedEmail(false), 2000);
   };
 
-  const handleMenuClick = (key: string) => {
+  const handleMenuClick = useCallback((key: string) => {
     if (navTimeoutRef.current) {
       clearTimeout(navTimeoutRef.current);
       navTimeoutRef.current = null;
@@ -362,7 +361,7 @@ export default function Experience() {
       return;
     }
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const isFromHero = activeSectionRef.current === "hero" || activeSection === "hero" || window.scrollY < window.innerHeight * 0.5;
+    const isFromHero = activeSectionRef.current === "hero" || window.scrollY < window.innerHeight * 0.5;
     const dur = reduced ? 0 : (isFromHero && key === "about" ? 2.8 : 0.6);
     const finishNav = (after?: () => void) => {
       navTimeoutRef.current = setTimeout(() => {
@@ -417,18 +416,17 @@ export default function Experience() {
         });
         break;
     }
-  };
+  }, []);
 
-  const proceedToFirstSection = () => {
+  const proceedToFirstSection = useCallback(() => {
     if (isProgrammaticScrollRef.current) return;
     soundFX.unlockAudio();
     soundFX.playCabinetUnlock();
     if (!hasInteracted) {
       setHasInteracted(true);
-      setDecryptKey((k) => k + 1);
     }
     handleMenuClick("about");
-  };
+  }, [hasInteracted, handleMenuClick]);
 
   const handleHeroClick = () => {
     if (isTouchSwipingRef.current) {
@@ -504,7 +502,7 @@ export default function Experience() {
       window.removeEventListener("click", handleGlobalClick);
       window.removeEventListener("keydown", handleGlobalKeyDown);
     };
-  }, [isIntroComplete, activeSection, isMobileNavOpen]);
+  }, [isIntroComplete, activeSection, isMobileNavOpen, proceedToFirstSection]);
 
   const handleChapterClick = (index: number) => {
     switchJourneyChapterRef.current?.(index);
@@ -526,20 +524,6 @@ export default function Experience() {
 
   const handleBeyondChapterClick = (index: number) => {
     switchBeyondChapterRef.current?.(index);
-  };
-
-  const handleBeyondTabKeyDown = (e: React.KeyboardEvent, index: number) => {
-    if (e.key === "ArrowRight") {
-      e.preventDefault();
-      const next = Math.min(BEYOND.length - 1, index + 1);
-      switchBeyondChapterRef.current?.(next);
-      document.getElementById(`beyond-tab-${next}`)?.focus();
-    } else if (e.key === "ArrowLeft") {
-      e.preventDefault();
-      const prev = Math.max(0, index - 1);
-      switchBeyondChapterRef.current?.(prev);
-      document.getElementById(`beyond-tab-${prev}`)?.focus();
-    }
   };
 
   useEffect(() => {
@@ -624,10 +608,6 @@ export default function Experience() {
       const jCards = q("[data-jcard]") as HTMLElement[];
       const jTabs = q("[data-jtab]") as HTMLElement[];
       const jCount = q("[data-jcount]")[0] ?? null;
-      const bCards = q("[data-bcard]") as HTMLElement[];
-      const bTabs = q("[data-btab]") as HTMLElement[];
-      const bCount = q("[data-bcount]")[0] ?? null;
-      const blobs = q("[data-blob]");
       const craftCount = (q("[data-craft-count]")[0] as HTMLElement | undefined) ?? null;
       const craftCards = q("[data-craft-card]") as HTMLElement[];
 
@@ -762,15 +742,6 @@ export default function Experience() {
         if (head) gsap.set(head, { opacity: 1, y: 0 });
         if (checks) gsap.set(checks, { opacity: 1, scale: 1 });
         if (names) gsap.set(names, { opacity: 1, x: 0 });
-      });
-
-      // Beyond cards starting states:
-      bCards.forEach((card, i) => {
-        gsap.set(card, {
-          opacity: i === 0 ? 1 : 0,
-          y: i === 0 ? 0 : 20,
-          pointerEvents: i === 0 ? "auto" : "none",
-        });
       });
 
       // In-place Chapter & Category Transition Engines
@@ -1474,16 +1445,6 @@ export default function Experience() {
           });
           setRoom(JOURNEY[activeChapterRef.current].accent, JOURNEY[activeChapterRef.current].lift, 0.45);
         } else if (canonical === "beyond") {
-          bCards.forEach((card, i) => {
-            const isActive = i === activeBeyondRef.current;
-            gsap.to(card, {
-              opacity: isActive ? 1 : 0,
-              y: isActive ? 0 : 20,
-              duration: 0.25,
-              overwrite: "auto",
-            });
-            card.style.pointerEvents = isActive ? "auto" : "none";
-          });
           setRoom(BEYOND[activeBeyondRef.current].accent, BEYOND[activeBeyondRef.current].lift, 0.45);
         } else if (canonical === "works") {
           setRoom(ROOMS.works.accent, ROOMS.works.lift, 0.45);
@@ -1509,17 +1470,6 @@ export default function Experience() {
         animation: worksToBeyond,
         onEnter: () => {
           setRoom(BEYOND[activeBeyondRef.current].accent, BEYOND[activeBeyondRef.current].lift, 0.8);
-          const activeCard = bCards[activeBeyondRef.current];
-          if (activeCard) {
-            const headline = activeCard.querySelector("[data-bhead]");
-            if (headline) {
-              gsap.fromTo(
-                headline,
-                { yPercent: 120, opacity: 0 },
-                { yPercent: 0, opacity: 1, duration: 0.65, ease: "power4.out" }
-              );
-            }
-          }
         },
         onLeaveBack: () => setRoom(ROOMS.works.accent, ROOMS.works.lift, 0.8),
       });
@@ -1584,13 +1534,6 @@ export default function Experience() {
           if (names) gsap.set(names, { opacity: 1, x: 0 });
         });
         if (craftCount) craftCount.textContent = "16";
-        bCards.forEach((c, i) => {
-          gsap.set(c, {
-            opacity: i === 0 ? 1 : 0,
-            y: 0,
-            pointerEvents: i === 0 ? "auto" : "none",
-          });
-        });
         measure();
         setIsIntroComplete(true);
         unlockScroll();
@@ -2748,8 +2691,8 @@ export default function Experience() {
         <p>Tharun S — Available for product design and engineering opportunities. Version 1.2.5.</p>
         <ul>
           <li><a href="mailto:tharun@example.com">tharun@example.com</a></li>
-          <li><a href="https://github.com">GitHub</a></li>
-          <li><a href="https://linkedin.com">LinkedIn</a></li>
+          <li><a href="https://github.com" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+          <li><a href="https://linkedin.com" target="_blank" rel="noopener noreferrer">LinkedIn</a></li>
         </ul>
       </footer>
     </main>

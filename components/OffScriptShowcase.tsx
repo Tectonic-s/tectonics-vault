@@ -221,11 +221,6 @@ function OffScriptImageCanvas({ chapter }: { chapter: OffScriptChapter }) {
     `/beyond/${chapter.id}.png`,
   ];
 
-  useEffect(() => {
-    setCurrentSrcIndex(0);
-    setHasFailedAll(false);
-  }, [chapter.slug, chapter.id]);
-
   const handleImageError = () => {
     if (currentSrcIndex < candidatePaths.length - 1) {
       setCurrentSrcIndex((i) => i + 1);
@@ -429,7 +424,7 @@ export function OffScriptShowcase({
               {/* Category Breadcrumb & Chapter Tag */}
               <div className="flex items-center justify-between gap-2 mb-1.5">
                 <span className="font-mono text-[0.65rem] sm:text-[0.72rem] font-semibold uppercase tracking-wider text-neutral-400">
-                  {selectedChapter.numeral} // {selectedChapter.category}
+                  {`${selectedChapter.numeral} // ${selectedChapter.category}`}
                 </span>
                 <span
                   className="inline-flex items-center gap-1.5 font-mono text-[0.62rem] sm:text-[0.68rem] font-medium px-2.5 py-0.5 rounded-full border"
@@ -517,7 +512,7 @@ export function OffScriptShowcase({
             className="lg:col-span-5 w-full cursor-pointer transition-transform duration-300 hover:scale-[1.015]"
             title={`Click to read ${selectedChapter.headline}`}
           >
-            <OffScriptImageCanvas chapter={selectedChapter} />
+            <OffScriptImageCanvas key={selectedChapter.slug} chapter={selectedChapter} />
           </div>
         </motion.div>
       </AnimatePresence>
@@ -572,7 +567,7 @@ export function OffScriptShowcase({
 
                   {/* Header Showcase Visual */}
                   <div className="relative h-44 sm:h-56 w-full shrink-0 overflow-hidden bg-neutral-950">
-                    <OffScriptImageCanvas chapter={activeModalChapter} />
+                    <OffScriptImageCanvas key={activeModalChapter.slug} chapter={activeModalChapter} />
                   </div>
 
                   {/* Modal Body */}
@@ -580,7 +575,7 @@ export function OffScriptShowcase({
                     {/* Header */}
                     <div className="pb-4 border-b border-black/6">
                       <span className="font-mono text-[0.68rem] sm:text-xs font-semibold uppercase tracking-wider text-neutral-400">
-                        {activeModalChapter.numeral} // {activeModalChapter.category}
+                        {`${activeModalChapter.numeral} // ${activeModalChapter.category}`}
                       </span>
                       <h3
                         id="offscript-modal-title"

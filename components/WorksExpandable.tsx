@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import React, { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "motion/react";
 import { useOutsideClick } from "@/hooks/use-outside-click";
@@ -320,12 +320,6 @@ function ProjectImageCanvas({ project }: { project: WorkProject }) {
     `/projects/${project.id}.png`,
   ];
 
-  // Reset when project changes
-  useEffect(() => {
-    setCurrentSrcIndex(0);
-    setHasFailedAll(false);
-  }, [project.slug, project.id]);
-
   const handleImageError = () => {
     if (currentSrcIndex < candidatePaths.length - 1) {
       setCurrentSrcIndex((i) => i + 1);
@@ -391,21 +385,20 @@ export function WorksExpandable({
 
   const selectedProject = projects[selectedIndex] ?? projects[0];
 
-  const handleSelect = (idx: number) => {
-    if (idx === selectedIndex) return;
+  const handleSelect = useCallback((idx: number) => {
     soundFX.playTabSwitch();
     setSelectedIndex(idx);
-  };
+  }, []);
 
-  const handlePrev = () => {
-    const nextIdx = selectedIndex === 0 ? projects.length - 1 : selectedIndex - 1;
-    handleSelect(nextIdx);
-  };
+  const handlePrev = useCallback(() => {
+    soundFX.playTabSwitch();
+    setSelectedIndex((prev) => (prev === 0 ? projects.length - 1 : prev - 1));
+  }, [projects.length]);
 
-  const handleNext = () => {
-    const nextIdx = selectedIndex === projects.length - 1 ? 0 : selectedIndex + 1;
-    handleSelect(nextIdx);
-  };
+  const handleNext = useCallback(() => {
+    soundFX.playTabSwitch();
+    setSelectedIndex((prev) => (prev === projects.length - 1 ? 0 : prev + 1));
+  }, [projects.length]);
 
   // Keyboard navigation across projects with Arrow keys & 1-5 numbers
   useEffect(() => {
@@ -430,7 +423,7 @@ export function WorksExpandable({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selectedIndex, activeModalProject, projects]);
+  }, [activeModalProject, handleNext, handlePrev, handleSelect, projects]);
 
   const openModal = (project: WorkProject, trigger?: HTMLElement | null) => {
     soundFX.playModalOpen();
@@ -559,7 +552,7 @@ export function WorksExpandable({
               {/* Category Breadcrumb & Status */}
               <div className="flex items-center justify-between gap-2 mb-1.5">
                 <span className="font-mono text-[0.65rem] sm:text-[0.72rem] font-semibold uppercase tracking-wider text-neutral-400">
-                  {selectedProject.numeral} // {selectedProject.category}
+                  {`${selectedProject.numeral} // ${selectedProject.category}`}
                 </span>
                 <span
                   className={`inline-flex items-center gap-1 font-mono text-[0.62rem] sm:text-[0.68rem] font-medium px-2.5 py-0.5 rounded-full border ${
@@ -676,7 +669,7 @@ export function WorksExpandable({
             className="lg:col-span-5 w-full cursor-pointer transition-transform duration-300 hover:scale-[1.015]"
             title={`Click to inspect ${selectedProject.title}`}
           >
-            <ProjectImageCanvas project={selectedProject} />
+            <ProjectImageCanvas key={selectedProject.slug} project={selectedProject} />
           </div>
         </motion.div>
       </AnimatePresence>
@@ -731,7 +724,7 @@ export function WorksExpandable({
 
                   {/* Hero Showcase Image in Modal */}
                   <div className="relative h-44 sm:h-56 w-full shrink-0 overflow-hidden bg-neutral-950">
-                    <ProjectImageCanvas project={activeModalProject} />
+                    <ProjectImageCanvas key={activeModalProject.slug} project={activeModalProject} />
                   </div>
 
                   {/* Modal Body */}
@@ -740,7 +733,7 @@ export function WorksExpandable({
                     <div className="flex items-start justify-between gap-3 pb-4 border-b border-black/6">
                       <div className="min-w-0">
                         <span className="font-mono text-[0.68rem] sm:text-xs font-semibold uppercase tracking-wider text-neutral-400">
-                          {activeModalProject.numeral} // {activeModalProject.category}
+                          {`${activeModalProject.numeral} // ${activeModalProject.category}`}
                         </span>
                         <div className="flex items-center gap-2 mt-1">
                           <h3 id="works-modal-title" className="font-excon text-2xl sm:text-3xl font-bold tracking-tight text-ink">

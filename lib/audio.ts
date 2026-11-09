@@ -16,10 +16,27 @@ class SoundFX {
     if (this.listenersAttached || typeof window === "undefined") return;
     this.listenersAttached = true;
 
+    const cleanupListeners = () => {
+      events.forEach((evt) => {
+        window.removeEventListener(evt, unlock, { capture: true });
+      });
+    };
+
     const unlock = () => {
       const ctx = this.initCtx();
-      if (ctx && ctx.state === "suspended") {
-        ctx.resume().catch(() => {});
+      if (ctx) {
+        if (ctx.state === "suspended") {
+          ctx
+            .resume()
+            .then(() => {
+              if (ctx.state === "running") {
+                cleanupListeners();
+              }
+            })
+            .catch(() => {});
+        } else if (ctx.state === "running") {
+          cleanupListeners();
+        }
       }
     };
 

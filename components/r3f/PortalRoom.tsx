@@ -57,6 +57,13 @@ export default function PortalRoom({
     gsap.to(camera.position, { x: 0, duration: 1.1, ease: "power2.inOut" });
   };
 
+  // Reset cursor on unmount to prevent cursor sticking
+  useEffect(() => {
+    return () => {
+      document.body.style.cursor = "auto";
+    };
+  }, []);
+
   // Escape leaves the room — the visitor must never be trapped inside.
   useEffect(() => {
     if (!isActive) return;
