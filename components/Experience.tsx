@@ -44,8 +44,8 @@ const BEYOND_BG = [
   "#09160f", // Explore: Evergreen Sage
 ];
 
-const getChamberBg = (section: string, journeyIdx: number, beyondIdx: number) => {
-  if (section === "hero") return "#f5f5f5";
+const getChamberBg = (section: string, journeyIdx: number, beyondIdx: number, isDark = false) => {
+  if (section === "hero") return isDark ? "#08080a" : "#f5f5f5";
   if (section === "about") return "#0b1410";
   if (section === "journey") return JOURNEY_BG[journeyIdx] ?? "#0c111c";
   if (section === "skills" || section === "craft") return "#08111c";
@@ -288,6 +288,33 @@ export default function Experience() {
   const activeBeyondRef = useRef(0);
   const [copiedEmail, setCopiedEmail] = useState(false);
   const [hasInteracted, setHasInteracted] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return window.matchMedia("(prefers-color-scheme: dark)").matches;
+  });
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+
+    if (mq.matches) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+
+    const handler = (e: MediaQueryListEvent) => {
+      setIsDarkMode(e.matches);
+      if (e.matches) {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+    };
+
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
 
   const [activeSection, setActiveSectionState] = useState<string>("hero");
   const activeSectionRef = useRef<string>("hero");
@@ -1151,7 +1178,7 @@ export default function Experience() {
       : currentCanonicalKey === "beyond"
       ? BEYOND[activeBeyondIndex]?.accent.join(" ")
       : ROOMS[currentCanonicalKey as keyof typeof ROOMS]?.accent?.join(" ") || "10 10 10";
-  const currentChamberBg = getChamberBg(activeSection, activeChapterIndex, activeBeyondIndex);
+  const currentChamberBg = getChamberBg(activeSection, activeChapterIndex, activeBeyondIndex, isDarkMode);
   const isChamberActive = activeSection !== "hero";
 
   return (
@@ -1185,8 +1212,8 @@ export default function Experience() {
             aria-label="Open editorial section navigation"
             aria-expanded={isMobileNavOpen}
             aria-controls="mobile-nav-drawer"
-            className={`lg:hidden text-xs font-mono font-medium rounded-full px-3 py-1.5 backdrop-blur-md active:scale-95 transition-all shadow-xs cursor-pointer flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-white ${
-              isChamberActive
+            className={`lg:hidden text-xs font-mono font-medium rounded-full px-3 py-1.5 backdrop-blur-md active:scale-95 transition-all shadow-xs cursor-pointer flex items-center gap-2 focus:outline-none ${
+              isChamberActive || isDarkMode
                 ? "text-white hover:text-white border border-white/15 bg-black/60"
                 : "text-neutral-800 hover:text-black border border-black/10 bg-white/90"
             }`}
@@ -1195,10 +1222,10 @@ export default function Experience() {
               className="w-1.5 h-1.5 rounded-full transition-colors duration-300"
               style={{ backgroundColor: `rgb(${currentAccentColor})` }}
             />
-            <span className={`font-semibold ${isChamberActive ? "text-neutral-300" : "text-neutral-500"}`}>{currentMenuItem.numeral}</span>
-            <span className={isChamberActive ? "text-white/30" : "text-black/20"}>/</span>
-            <span className={`font-excon font-bold tracking-tight ${isChamberActive ? "text-white" : "text-ink"}`}>{currentMenuItem.label}</span>
-            <span className={`${isChamberActive ? "text-white/50" : "text-black/40"} text-[0.65rem] ml-0.5`}>▾</span>
+            <span className={`font-semibold ${isChamberActive || isDarkMode ? "text-neutral-300" : "text-neutral-500"}`}>{currentMenuItem.numeral}</span>
+            <span className={isChamberActive || isDarkMode ? "text-white/30" : "text-black/20"}>/</span>
+            <span className={`font-excon font-bold tracking-tight ${isChamberActive || isDarkMode ? "text-white" : "text-ink"}`}>{currentMenuItem.label}</span>
+            <span className={`${isChamberActive || isDarkMode ? "text-white/50" : "text-black/40"} text-[0.65rem] ml-0.5`}>▾</span>
           </button>
           <button
             ref={letsTalk}
@@ -1206,8 +1233,8 @@ export default function Experience() {
             onClick={() => switchSectionTo("talk")}
             onMouseEnter={() => soundFX.playHoverTick()}
             aria-label="Go to connect section"
-            className={`group will-reveal relative overflow-hidden flex items-center gap-2 sm:gap-2.5 font-excon font-bold leading-none rounded-full border-2 px-4 py-2 sm:px-6 sm:py-3 text-xs sm:text-base transition-all duration-300 ease-out hover:scale-108 hover:-translate-y-0.5 active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 ${
-              isChamberActive
+            className={`group will-reveal relative overflow-hidden flex items-center gap-2 sm:gap-2.5 font-excon font-bold leading-none rounded-full border-2 px-4 py-2 sm:px-6 sm:py-3 text-xs sm:text-base transition-all duration-300 ease-out hover:scale-108 hover:-translate-y-0.5 active:scale-95 cursor-pointer focus:outline-none ${
+              isChamberActive || isDarkMode
                 ? "text-white border-white/35 hover:border-white hover:bg-white hover:text-black hover:shadow-[0_12px_28px_rgba(255,255,255,0.18)]"
                 : "text-ink border-ink hover:bg-ink hover:text-bg hover:shadow-[0_12px_28px_rgba(0,0,0,0.18)]"
             }`}
@@ -1266,8 +1293,8 @@ export default function Experience() {
               soundFX.playHoverTick();
             }
           }}
-          className={`text-glow pointer-events-auto fixed left-0 top-0 font-excon font-bold leading-none cursor-pointer active:scale-95 border-0 bg-transparent p-0 z-50 select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 rounded transition-colors duration-500 ${
-            isChamberActive ? "text-white" : "text-ink"
+          className={`text-glow pointer-events-auto fixed left-0 top-0 font-excon font-bold leading-none cursor-pointer active:scale-95 border-0 bg-transparent p-0 z-50 select-none focus:outline-none rounded transition-colors duration-500 ${
+            isChamberActive || isDarkMode ? "text-white" : "text-ink"
           }`}
           style={{ fontSize: HEADING_SIZE, willChange: "transform" }}
         >
@@ -1313,11 +1340,11 @@ export default function Experience() {
               distortionStrength={26}
               returnSpeed={0.08}
               friction={0.84}
-              dotColorRgb={[15, 15, 15]}
-              minAlpha={0.25}
-              maxAlpha={0.78}
-              baseAlphaMin={0.28}
-              baseAlphaMax={0.48}
+              dotColorRgb={isDarkMode ? [240, 245, 255] : [15, 15, 15]}
+              minAlpha={isDarkMode ? 0.22 : 0.25}
+              maxAlpha={isDarkMode ? 0.85 : 0.78}
+              baseAlphaMin={isDarkMode ? 0.25 : 0.28}
+              baseAlphaMax={isDarkMode ? 0.50 : 0.48}
             />
 
             {/* Cursor spotlight */}
@@ -1325,7 +1352,9 @@ export default function Experience() {
               ref={heroSpotlightRef}
               className="absolute left-0 top-0 -translate-x-1/2 -translate-y-1/2 rounded-full w-[640px] h-[640px] will-change-transform opacity-0 pointer-events-none transition-opacity duration-700"
               style={{
-                background: "radial-gradient(circle, rgba(0,0,0,0.045) 0%, rgba(0,0,0,0.015) 38%, transparent 72%)",
+                background: isDarkMode
+                  ? "radial-gradient(circle, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 40%, transparent 72%)"
+                  : "radial-gradient(circle, rgba(0,0,0,0.045) 0%, rgba(0,0,0,0.015) 38%, transparent 72%)",
               }}
             />
 
@@ -1334,37 +1363,51 @@ export default function Experience() {
               {/* Outer dashed ring */}
               <div
                 ref={heroRingOuterRef}
-                className="w-[min(88vw,620px)] h-[min(88vw,620px)] rounded-full border border-dashed border-black/[0.045] will-change-transform pointer-events-none"
+                className={`w-[min(88vw,620px)] h-[min(88vw,620px)] rounded-full border border-dashed will-change-transform pointer-events-none transition-colors duration-500 ${
+                  isDarkMode ? "border-white/[0.08]" : "border-black/[0.045]"
+                }`}
               />
               {/* Inner concentric ring with cardinal ticks */}
               <div
                 ref={heroRingInnerRef}
-                className="absolute w-[min(62vw,420px)] h-[min(62vw,420px)] rounded-full border border-black/[0.065] will-change-transform flex items-center justify-center pointer-events-none"
+                className={`absolute w-[min(62vw,420px)] h-[min(62vw,420px)] rounded-full border will-change-transform flex items-center justify-center pointer-events-none transition-colors duration-500 ${
+                  isDarkMode ? "border-white/[0.12]" : "border-black/[0.065]"
+                }`}
               >
                 {/* Cardinal tick marks */}
-                <div className="absolute -top-1 w-2.5 h-[2px] bg-black/20" />
-                <div className="absolute -bottom-1 w-2.5 h-[2px] bg-black/20" />
-                <div className="absolute -left-1 h-2.5 w-[2px] bg-black/20" />
-                <div className="absolute -right-1 h-2.5 w-[2px] bg-black/20" />
+                <div className={`absolute -top-1 w-2.5 h-[2px] transition-colors duration-500 ${isDarkMode ? "bg-white/30" : "bg-black/20"}`} />
+                <div className={`absolute -bottom-1 w-2.5 h-[2px] transition-colors duration-500 ${isDarkMode ? "bg-white/30" : "bg-black/20"}`} />
+                <div className={`absolute -left-1 h-2.5 w-[2px] transition-colors duration-500 ${isDarkMode ? "bg-white/30" : "bg-black/20"}`} />
+                <div className={`absolute -right-1 h-2.5 w-[2px] transition-colors duration-500 ${isDarkMode ? "bg-white/30" : "bg-black/20"}`} />
               </div>
             </div>
 
             {/* Technical Blueprint Corner Markings */}
-            <div className="hidden sm:block absolute top-8 left-8 lg:top-12 lg:left-12 font-mono text-[9px] tracking-widest text-black/20 uppercase pointer-events-none">
+            <div className={`hidden sm:block absolute top-8 left-8 lg:top-12 lg:left-12 font-mono text-[9px] tracking-widest uppercase pointer-events-none transition-colors duration-500 ${
+              isDarkMode ? "text-white/25" : "text-black/20"
+            }`}>
               SEC // 001 · ENTRANCE
             </div>
-            <div className="hidden sm:block absolute top-8 right-8 lg:top-12 lg:right-12 font-mono text-[9px] tracking-widest text-black/20 uppercase pointer-events-none">
+            <div className={`hidden sm:block absolute top-8 right-8 lg:top-12 lg:right-12 font-mono text-[9px] tracking-widest uppercase pointer-events-none transition-colors duration-500 ${
+              isDarkMode ? "text-white/25" : "text-black/20"
+            }`}>
               SYS // ARMED
             </div>
-            <div className="hidden sm:block absolute bottom-8 left-8 lg:bottom-12 lg:left-12 font-mono text-[9px] tracking-widest text-black/20 uppercase pointer-events-none">
+            <div className={`hidden sm:block absolute bottom-8 left-8 lg:bottom-12 lg:left-12 font-mono text-[9px] tracking-widest uppercase pointer-events-none transition-colors duration-500 ${
+              isDarkMode ? "text-white/25" : "text-black/20"
+            }`}>
               MODE // EXPLORER
             </div>
-            <div className="hidden sm:block absolute bottom-8 right-8 lg:bottom-12 lg:right-12 font-mono text-[9px] tracking-widest text-black/20 uppercase pointer-events-none">
+            <div className={`hidden sm:block absolute bottom-8 right-8 lg:bottom-12 lg:right-12 font-mono text-[9px] tracking-widest uppercase pointer-events-none transition-colors duration-500 ${
+              isDarkMode ? "text-white/25" : "text-black/20"
+            }`}>
               EST // 2024
             </div>
           </div>
           <h1
-            className="text-glow font-excon font-bold leading-[1.08] sm:leading-[1.02] text-ink flex flex-col sm:inline-flex sm:flex-row items-center justify-center text-center gap-0 sm:gap-2 select-none pointer-events-none"
+            className={`text-glow font-excon font-bold leading-[1.08] sm:leading-[1.02] flex flex-col sm:inline-flex sm:flex-row items-center justify-center text-center gap-0 sm:gap-2 select-none pointer-events-none transition-colors duration-500 ${
+              isDarkMode ? "text-white" : "text-ink"
+            }`}
             style={{ fontSize: HEADING_SIZE }}
           >
             <span ref={heroPre} className="inline-block overflow-hidden py-1">
@@ -1397,22 +1440,34 @@ export default function Experience() {
               }
             }}
             aria-label="Continue to intro section"
-            className="group mt-[3vh] sm:mt-[4.5vh] flex w-full flex-col items-center cursor-pointer transition-transform duration-300 hover:scale-[1.03] active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-4 rounded-xl p-2"
+            className="group mt-[3vh] sm:mt-[4.5vh] flex w-full flex-col items-center cursor-pointer transition-transform duration-300 hover:scale-[1.03] active:scale-95 focus:outline-none rounded-xl p-2"
             style={{ maxWidth: "min(90vw, 560px)" }}
           >
             <div className="overflow-hidden py-1">
               <p
                 ref={heroSubInner}
-                className="text-center font-excon font-bold leading-none text-ink transition-transform duration-200 group-hover:-translate-y-0.5 will-change-transform flex items-center justify-center gap-2"
+                className={`text-center font-excon font-bold leading-none transition-colors duration-300 group-hover:-translate-y-0.5 will-change-transform flex items-center justify-center gap-2 ${
+                  isDarkMode ? "text-white/90" : "text-ink"
+                }`}
                 style={{ fontSize: "clamp(0.92rem, 2.1vw, 1.45rem)" }}
               >
                 <span>{SUBTITLE}</span>
               </p>
             </div>
-            <div className="mt-2.5 flex items-center gap-2 text-neutral-400 font-mono text-[0.65rem] sm:text-xs tracking-wider transition-opacity duration-300">
-              <span className="hidden sm:inline border border-black/10 rounded px-2 py-0.5 bg-black/[0.03]">Press any key</span>
-              <span className="sm:hidden border border-black/10 rounded px-2 py-0.5 bg-black/[0.03]">Tap anywhere</span>
-              <span className="text-black/35">to enter</span>
+            <div className="mt-2.5 flex items-center gap-2 font-mono text-[0.65rem] sm:text-xs tracking-wider transition-all duration-300">
+              <span className={`hidden sm:inline border rounded px-2 py-0.5 transition-colors duration-300 ${
+                isDarkMode ? "border-white/15 bg-white/[0.06] text-neutral-300" : "border-black/10 bg-black/[0.03] text-neutral-600"
+              }`}>
+                Press any key
+              </span>
+              <span className={`sm:hidden border rounded px-2 py-0.5 transition-colors duration-300 ${
+                isDarkMode ? "border-white/15 bg-white/[0.06] text-neutral-300" : "border-black/10 bg-black/[0.03] text-neutral-600"
+              }`}>
+                Tap anywhere
+              </span>
+              <span className={`transition-colors duration-300 ${isDarkMode ? "text-white/40" : "text-black/35"}`}>
+                to enter
+              </span>
             </div>
           </div>
         </section>

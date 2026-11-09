@@ -70,7 +70,26 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={cn("antialiased", excon.variable, ranade.variable, inter.variable, "font-sans", notoSans.variable, playfairDisplayHeading.variable)}>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={cn(
+        "antialiased",
+        excon.variable,
+        ranade.variable,
+        inter.variable,
+        "font-sans",
+        notoSans.variable,
+        playfairDisplayHeading.variable
+      )}
+    >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var m=window.matchMedia('(prefers-color-scheme: dark)');if(m.matches){document.documentElement.classList.add('dark');}}catch(e){}})();`,
+          }}
+        />
+      </head>
       <body>{children}</body>
     </html>
   );
