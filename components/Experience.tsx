@@ -6,6 +6,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
 import ProfileSilhouette from "./ProfileSilhouette";
 import { WorksExpandable } from "./WorksExpandable";
+import { OffScriptShowcase } from "./OffScriptShowcase";
 import { soundFX } from "@/lib/audio";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -834,83 +835,12 @@ export default function Experience() {
       };
       switchJourneyChapterRef.current = switchJourneyChapter;
 
-      let isBeyondCardAnimating = false;
       const switchBeyondChapter = (newIndex: number) => {
         const currentIndex = activeBeyondRef.current;
-        if (currentIndex === newIndex || isBeyondCardAnimating) return;
-        isBeyondCardAnimating = true;
+        if (currentIndex === newIndex) return;
         soundFX.playTabSwitch();
         activeBeyondRef.current = newIndex;
         setActiveBeyondIndex(newIndex);
-
-        const direction = newIndex > currentIndex ? 1 : -1;
-
-        if (bCards[currentIndex]) {
-          gsap.to(bCards[currentIndex], {
-            opacity: 0,
-            y: -14 * direction,
-            scale: 0.98,
-            duration: 0.3,
-            ease: "power2.out",
-          });
-          bCards[currentIndex].style.pointerEvents = "none";
-        }
-
-        if (bCards[newIndex]) {
-          gsap.fromTo(
-            bCards[newIndex],
-            { opacity: 0, y: 16 * direction, scale: 0.98 },
-            {
-              opacity: 1,
-              y: 0,
-              scale: 1,
-              duration: 0.36,
-              ease: "power2.out",
-              onComplete: () => {
-                isBeyondCardAnimating = false;
-              },
-            }
-          );
-          bCards[newIndex].style.pointerEvents = "auto";
-
-          // Masked kinetic line reveal on the category headline:
-          const headline = bCards[newIndex].querySelector("[data-bhead]");
-          if (headline) {
-            gsap.fromTo(
-              headline,
-              { yPercent: 120, opacity: 0 },
-              { yPercent: 0, opacity: 1, duration: 0.65, ease: "power4.out", delay: 0.05 }
-            );
-          }
-
-          // Micro-stagger on the interest tags:
-          const pills = bCards[newIndex].querySelectorAll("[data-bpill]");
-          if (pills.length) {
-            gsap.fromTo(
-              pills,
-              { y: 8, opacity: 0 },
-              { y: 0, opacity: 1, duration: 0.32, stagger: 0.03, ease: "power3.out", delay: 0.12 }
-            );
-          }
-        } else {
-          isBeyondCardAnimating = false;
-        }
-
-        bTabs.forEach((tab, i) => {
-          if (i === newIndex) {
-            tab.classList.add("bg-black", "text-white", "shadow-sm");
-            tab.classList.remove("bg-black/[0.04]", "text-black/60");
-            tab.setAttribute("aria-selected", "true");
-            tab.setAttribute("tabindex", "0");
-          } else {
-            tab.classList.remove("bg-black", "text-white", "shadow-sm");
-            tab.classList.add("bg-black/[0.04]", "text-black/60");
-            tab.setAttribute("aria-selected", "false");
-            tab.setAttribute("tabindex", "-1");
-          }
-        });
-
-        if (bCount) bCount.textContent = `0${newIndex + 1}`;
         setRoom(BEYOND[newIndex].accent, BEYOND[newIndex].lift, 0.45);
       };
       switchBeyondChapterRef.current = switchBeyondChapter;
@@ -2501,156 +2431,38 @@ export default function Experience() {
                 ref={beyondRight}
                 className="absolute inset-0 flex items-center justify-center will-change-[transform,opacity]"
               >
-                <h2 className="sr-only">Beyond Work</h2>
-                <div className="w-full max-w-[840px] 2xl:max-w-[900px] flex flex-col justify-center">
-                  {/* Editorial Intro */}
-                  <div className="mb-2.5 sm:mb-3.5">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="h-1.5 w-1.5 rounded-full bg-neutral-900" />
-                      <p className="font-mono text-[0.68rem] sm:text-xs uppercase tracking-wider font-semibold text-neutral-500">
-                        A little more about the person behind the pixels.
-                      </p>
-                    </div>
-                    <p className="font-inter text-xs sm:text-[0.84rem] text-neutral-600 leading-relaxed max-w-[70ch]">
-                      I&apos;m curious by default and rarely stick to just one thing. Some days you&apos;ll find me behind a camera, on a cricket field, exploring a new place, or getting lost in a film. I enjoy learning, making things, and finding inspiration in places that have nothing to do with work.
-                    </p>
-                  </div>
-
-                  {/* Navigation Tabs Header */}
-                  <div className="flex items-center justify-between pb-2 sm:pb-3 border-b border-black/8 mb-3 sm:mb-4">
-                    <div
-                      role="tablist"
-                      aria-label="Beyond Work Categories"
-                      className="flex items-center gap-1 sm:gap-2 flex-wrap"
-                    >
-                      {BEYOND.map((item, i) => (
-                        <button
-                          key={item.title}
-                          id={`beyond-tab-${i}`}
-                          role="tab"
-                          type="button"
-                          aria-selected={i === activeBeyondIndex}
-                          aria-controls={`beyond-card-${i}`}
-                          tabIndex={i === activeBeyondIndex ? 0 : -1}
-                          data-btab={i}
-                          onClick={() => handleBeyondChapterClick(i)}
-                          onKeyDown={(e) => handleBeyondTabKeyDown(e, i)}
-                          onMouseEnter={() => soundFX.playHoverTick()}
-                          className={`group relative flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold tracking-wide transition-all duration-200 active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-black ${
-                            i === activeBeyondIndex
-                              ? "bg-black text-white shadow-sm"
-                              : "bg-black/[0.04] text-black/60 hover:text-black hover:bg-black/[0.08]"
-                          }`}
-                        >
-                          <span
-                            aria-hidden="true"
-                            className="w-1.5 h-1.5 rounded-full transition-transform duration-300 ease-out group-hover:scale-150"
-                            style={{ backgroundColor: `rgb(${item.accent.join(" ")})` }}
-                          />
-                          <span className="font-normal opacity-85">{item.title}</span>
-                        </button>
-                      ))}
-                    </div>
-
+                <h2 className="sr-only">Off Script</h2>
+                <div className="w-full max-w-[880px] 2xl:max-w-[960px] flex flex-col gap-2 sm:gap-4">
+                  {/* Context Header */}
+                  <div className="flex items-center justify-between border-b border-black/8 pb-2 sm:pb-2.5">
                     <div className="flex items-center gap-1.5 sm:gap-2">
-                      <button
-                        type="button"
-                        onClick={() => handleBeyondChapterClick(Math.max(0, activeBeyondIndex - 1))}
-                        disabled={activeBeyondIndex === 0}
-                        aria-label="Previous category"
-                        className="h-7 w-7 rounded-full border border-black/10 flex items-center justify-center text-xs font-mono text-neutral-600 hover:text-black hover:border-black/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-black"
-                      >
-                        ←
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleBeyondChapterClick(Math.min(BEYOND.length - 1, activeBeyondIndex + 1))}
-                        disabled={activeBeyondIndex === BEYOND.length - 1}
-                        aria-label="Next category"
-                        className="h-7 w-7 rounded-full border border-black/10 flex items-center justify-center text-xs font-mono text-neutral-600 hover:text-black hover:border-black/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-black"
-                      >
-                        →
-                      </button>
+                      <span className="h-2 w-2 rounded-full bg-neutral-900 animate-pulse" />
+                      <span className="font-excon font-bold text-xs sm:text-sm uppercase tracking-wider text-black">
+                        Off Script
+                      </span>
+                      <span className="text-black/30 hidden sm:inline">·</span>
+                      <span className="font-inter text-[0.68rem] sm:text-xs text-neutral-500 hidden sm:inline">
+                        A little more about the person behind the pixels.
+                      </span>
+                    </div>
+                    <div className="hidden sm:flex items-center gap-1.5 font-mono text-[0.65rem] text-neutral-400">
+                      <span>Keys:</span>
+                      <kbd className="px-1.5 py-0.5 rounded border border-black/10 bg-neutral-100 text-neutral-700 font-mono">1–4</kbd>
+                      <kbd className="px-1.5 py-0.5 rounded border border-black/10 bg-neutral-100 text-neutral-700 font-mono">← / →</kbd>
                     </div>
                   </div>
 
-                  {/* Stacked Minimalist Cards */}
-                  <div className="relative h-[290px] sm:h-[260px] md:h-[240px] w-full">
-                    {BEYOND.map((item, i) => {
-                      const isCurrent = i === activeBeyondIndex;
-                      return (
-                        <div
-                          key={item.title}
-                          id={`beyond-card-${i}`}
-                          role="tabpanel"
-                          aria-labelledby={`beyond-tab-${i}`}
-                          tabIndex={0}
-                          data-bcard={i}
-                          className="absolute inset-0 rounded-[20px] sm:rounded-[24px] bg-white p-5 sm:p-6 md:p-7 border shadow-[0_12px_36px_rgba(0,0,0,0.03)] flex flex-col justify-between overflow-y-auto sm:overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black will-change-[transform,opacity]"
-                          style={{
-                            borderColor: `rgb(${item.accent.join(" ")} / 0.35)`,
-                          }}
-                        >
-                          <div className="flex flex-col">
-                            {/* Minimal Category Header */}
-                            <div className="flex items-center gap-2 pb-2.5 border-b border-black/[0.05]">
-                              <span
-                                aria-hidden="true"
-                                className="w-2 h-2 rounded-full"
-                                style={{
-                                  backgroundColor: `rgb(${item.accent.join(" ")})`,
-                                  boxShadow: `0 0 8px rgb(${item.accent.join(" ")} / 0.6)`,
-                                }}
-                              />
-                              <span className="font-mono text-[0.72rem] sm:text-xs uppercase tracking-wider font-bold text-neutral-800">
-                                {item.title}
-                              </span>
-                            </div>
-
-                            {/* Headline with Masked Kinetic Line Slide */}
-                            <div className="mt-3 overflow-hidden py-1">
-                              <h3
-                                data-bhead
-                                className="font-excon text-lg sm:text-xl md:text-2xl font-bold tracking-tight text-ink leading-snug will-change-transform"
-                              >
-                                {item.headline}
-                              </h3>
-                            </div>
-
-                            {/* Narrative Story */}
-                            <p className="mt-2.5 font-inter text-neutral-600 text-xs sm:text-sm md:text-[0.92rem] leading-relaxed max-w-[66ch]">
-                              {item.body}
-                            </p>
-                          </div>
-
-                          {/* Minimal Interest / Focus Tags */}
-                          {item.habits && item.habits.length > 0 && (
-                            <div className="mt-3 pt-3 border-t border-black/[0.05] flex flex-wrap items-center gap-1.5 sm:gap-2">
-                              {item.habits.map((habit) => (
-                                <span
-                                  key={habit}
-                                  data-bpill
-                                  className="inline-flex items-center rounded-full bg-neutral-100/80 px-2.5 sm:px-3 py-0.5 text-[0.68rem] sm:text-xs font-medium text-neutral-700 hover:bg-neutral-200/80 transition-colors cursor-default will-change-transform"
-                                >
-                                  {habit}
-                                </span>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {/* Closing Sign-Off Note */}
-                  <div className="mt-3 sm:mt-3.5 flex flex-col sm:flex-row sm:items-baseline justify-between gap-1.5 border-t border-black/[0.06] pt-2.5 sm:pt-3">
-                    <span className="font-mono text-[0.68rem] sm:text-xs font-bold uppercase tracking-wider text-neutral-800 shrink-0">
-                      Still figuring it out.
-                    </span>
-                    <p className="font-inter text-[0.68rem] sm:text-xs text-neutral-500 leading-normal">
-                      There&apos;s always something new to learn, somewhere new to go, or something new to make. I like keeping room for all of it.
-                    </p>
-                  </div>
+                  <OffScriptShowcase
+                    activeIndex={activeBeyondIndex}
+                    onSelectIndex={(idx) => handleBeyondChapterClick(idx)}
+                    onModalChange={(isOpen) => {
+                      if (isOpen) {
+                        lenisRef.current?.stop();
+                      } else {
+                        lenisRef.current?.start();
+                      }
+                    }}
+                  />
                 </div>
               </section>
 
