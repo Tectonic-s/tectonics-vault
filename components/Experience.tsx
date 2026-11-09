@@ -331,67 +331,58 @@ export default function Experience() {
   };
 
   const handleMenuClick = (key: string) => {
+    if (isProgrammaticScrollRef.current) return;
     soundFX.playMenuClick();
     lockedSectionRef.current = null;
     accumulatedDeltaRef.current = 0;
     isProgrammaticScrollRef.current = true;
+    document.documentElement.classList.add("nav-animating");
     if (!lenisRef.current) return;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const dur = reduced ? 0 : 0.85;
+    const finishNav = (after?: () => void) => {
+      setTimeout(() => {
+        isProgrammaticScrollRef.current = false;
+        document.documentElement.classList.remove("nav-animating");
+        after?.();
+      }, 150);
+    };
     switch (key) {
       case "about":
         lenisRef.current.scrollTo(window.innerHeight * 1.2, {
           duration: dur,
-          onComplete: () => {
-            setTimeout(() => { isProgrammaticScrollRef.current = false; }, 150);
-          },
+          onComplete: () => finishNav(),
         });
         break;
       case "journey":
         lenisRef.current.scrollTo(window.innerHeight * 2.0, {
           duration: dur,
-          onComplete: () => {
-            setTimeout(() => {
-              isProgrammaticScrollRef.current = false;
-              lockedSectionRef.current = "journey";
-            }, 150);
-          },
+          onComplete: () => finishNav(() => { lockedSectionRef.current = "journey"; }),
         });
         break;
       case "skills":
       case "craft":
         lenisRef.current.scrollTo(window.innerHeight * 2.8, {
           duration: dur,
-          onComplete: () => {
-            setTimeout(() => { isProgrammaticScrollRef.current = false; }, 150);
-          },
+          onComplete: () => finishNav(),
         });
         break;
       case "works":
         lenisRef.current.scrollTo(window.innerHeight * 4.6, {
           duration: dur,
-          onComplete: () => {
-            setTimeout(() => { isProgrammaticScrollRef.current = false; }, 150);
-          },
+          onComplete: () => finishNav(),
         });
         break;
       case "beyond":
         lenisRef.current.scrollTo(window.innerHeight * 5.8, {
           duration: dur,
-          onComplete: () => {
-            setTimeout(() => {
-              isProgrammaticScrollRef.current = false;
-              lockedSectionRef.current = "beyond";
-            }, 150);
-          },
+          onComplete: () => finishNav(() => { lockedSectionRef.current = "beyond"; }),
         });
         break;
       case "talk":
         lenisRef.current.scrollTo(window.innerHeight * 6.8, {
           duration: dur,
-          onComplete: () => {
-            setTimeout(() => { isProgrammaticScrollRef.current = false; }, 150);
-          },
+          onComplete: () => finishNav(),
         });
         break;
     }
@@ -441,7 +432,6 @@ export default function Experience() {
     // Pointer-parallax listener for the About room.
     let pointerListener: (() => void) | null = null;
     let cleanupWheelListeners: (() => void) | null = null;
-    let cleanupEarlyGestures: (() => void) | null = null;
 
     const lenis = new Lenis({ duration: 1.15, smoothWheel: true });
     lenisRef.current = lenis;
@@ -459,13 +449,38 @@ export default function Experience() {
     gsap.ticker.add(tick);
     gsap.ticker.lagSmoothing(500, 33);
 
+    const blockEvent = (e: Event) => {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+    };
+    const blockKeyScroll = (e: KeyboardEvent) => {
+      if (
+        ["Space", "ArrowDown", "ArrowUp", "PageDown", "PageUp", "Home", "End"].includes(e.code) ||
+        [" ", "ArrowDown", "ArrowUp", "PageDown", "PageUp", "Home", "End"].includes(e.key)
+      ) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+      }
+    };
+
+    let isIntroLocked = false;
     const lockScroll = () => {
+      if (isIntroLocked) return;
+      isIntroLocked = true;
       document.documentElement.classList.add("vault-locked");
       lenis.stop();
+      window.addEventListener("wheel", blockEvent, { capture: true, passive: false });
+      window.addEventListener("touchmove", blockEvent, { capture: true, passive: false });
+      window.addEventListener("keydown", blockKeyScroll, { capture: true });
     };
     const unlockScroll = () => {
+      if (!isIntroLocked) return;
+      isIntroLocked = false;
       document.documentElement.classList.remove("vault-locked");
       lenis.start();
+      window.removeEventListener("wheel", blockEvent, { capture: true });
+      window.removeEventListener("touchmove", blockEvent, { capture: true });
+      window.removeEventListener("keydown", blockKeyScroll, { capture: true });
     };
 
     // Hero "Vault." → nav-logo flight measurement.
@@ -627,9 +642,11 @@ export default function Experience() {
       });
 
       // In-place Chapter & Category Transition Engines
+      let isJourneyCardAnimating = false;
       const switchJourneyChapter = (newIndex: number) => {
         const currentIndex = activeChapterRef.current;
-        if (currentIndex === newIndex) return;
+        if (currentIndex === newIndex || isJourneyCardAnimating) return;
+        isJourneyCardAnimating = true;
         soundFX.playTabSwitch();
         activeChapterRef.current = newIndex;
         setActiveChapterIndex(newIndex);
@@ -651,9 +668,20 @@ export default function Experience() {
           gsap.fromTo(
             jCards[newIndex],
             { opacity: 0, y: 16 * direction, scale: 0.98 },
-            { opacity: 1, y: 0, scale: 1, duration: 0.36, ease: "power2.out" }
+            {
+              opacity: 1,
+              y: 0,
+              scale: 1,
+              duration: 0.36,
+              ease: "power2.out",
+              onComplete: () => {
+                isJourneyCardAnimating = false;
+              },
+            }
           );
           jCards[newIndex].style.pointerEvents = "auto";
+        } else {
+          isJourneyCardAnimating = false;
         }
 
         jTabs.forEach((tab, i) => {
@@ -675,9 +703,11 @@ export default function Experience() {
       };
       switchJourneyChapterRef.current = switchJourneyChapter;
 
+      let isBeyondCardAnimating = false;
       const switchBeyondChapter = (newIndex: number) => {
         const currentIndex = activeBeyondRef.current;
-        if (currentIndex === newIndex) return;
+        if (currentIndex === newIndex || isBeyondCardAnimating) return;
+        isBeyondCardAnimating = true;
         soundFX.playTabSwitch();
         activeBeyondRef.current = newIndex;
         setActiveBeyondIndex(newIndex);
@@ -699,7 +729,16 @@ export default function Experience() {
           gsap.fromTo(
             bCards[newIndex],
             { opacity: 0, y: 16 * direction, scale: 0.98 },
-            { opacity: 1, y: 0, scale: 1, duration: 0.36, ease: "power2.out" }
+            {
+              opacity: 1,
+              y: 0,
+              scale: 1,
+              duration: 0.36,
+              ease: "power2.out",
+              onComplete: () => {
+                isBeyondCardAnimating = false;
+              },
+            }
           );
           bCards[newIndex].style.pointerEvents = "auto";
 
@@ -722,6 +761,8 @@ export default function Experience() {
               { y: 0, opacity: 1, duration: 0.32, stagger: 0.03, ease: "power3.out", delay: 0.12 }
             );
           }
+        } else {
+          isBeyondCardAnimating = false;
         }
 
         bTabs.forEach((tab, i) => {
@@ -781,17 +822,23 @@ export default function Experience() {
           targetScroll = direction === "next" ? window.innerHeight * 6.8 : window.innerHeight * 4.6;
         }
 
+        document.documentElement.classList.add("nav-animating");
         lenisRef.current?.scrollTo(targetScroll, {
           duration: 0.85,
           onComplete: () => {
             setTimeout(() => {
               isProgrammaticScrollRef.current = false;
+              document.documentElement.classList.remove("nav-animating");
             }, 180);
           },
         });
       };
 
       const onWheel = (e: WheelEvent) => {
+        if (isProgrammaticScrollRef.current) {
+          e.preventDefault();
+          return;
+        }
         const locked = lockedSectionRef.current;
         if (!locked) return;
 
@@ -832,6 +879,10 @@ export default function Experience() {
       };
 
       const onTouchMove = (e: TouchEvent) => {
+        if (isProgrammaticScrollRef.current) {
+          e.preventDefault();
+          return;
+        }
         const locked = lockedSectionRef.current;
         if (!locked) return;
 
@@ -1226,6 +1277,7 @@ export default function Experience() {
       }
 
       // -------- Masked Kinetic Line Slide Entrance for Hero --------
+      lockScroll();
       const len = ulPath.current?.getTotalLength() ?? 640;
       if (ulPath.current) {
         gsap.set(ulPath.current, { strokeDasharray: len, strokeDashoffset: len, opacity: 1 });
@@ -1249,28 +1301,20 @@ export default function Experience() {
       };
       finishIntroRef.current = finishIntro;
 
-      const handleEarlyGesture = () => {
-        finishIntro();
-        window.removeEventListener("wheel", handleEarlyGesture);
-        window.removeEventListener("touchstart", handleEarlyGesture);
-      };
-      window.addEventListener("wheel", handleEarlyGesture, { passive: true });
-      window.addEventListener("touchstart", handleEarlyGesture, { passive: true });
-      cleanupEarlyGestures = () => {
-        window.removeEventListener("wheel", handleEarlyGesture);
-        window.removeEventListener("touchstart", handleEarlyGesture);
-      };
-
       const run = () => {
         measure();
-        unlockScroll();
-        if (isCancelled() || introFinished) return;
+        if (isCancelled() || introFinished) {
+          unlockScroll();
+          return;
+        }
 
         const heroTl = gsap.timeline({
-          delay: 0.1,
-          defaults: { ease: "power4.out" },
+          delay: 0.25,
+          defaults: { ease: "power3.out" },
           onComplete: () => {
+            introFinished = true;
             measure();
+            unlockScroll();
             ScrollTrigger.refresh();
           },
         });
@@ -1279,31 +1323,31 @@ export default function Experience() {
           .fromTo(
             heroPreInner.current,
             { yPercent: 125, opacity: 0 },
-            { yPercent: 0, opacity: 1, duration: 0.85 }
+            { yPercent: 0, opacity: 1, duration: 1.25, ease: "power3.out" }
           )
           .fromTo(
             heroVaultInner.current,
             { yPercent: 125, opacity: 0 },
-            { yPercent: 0, opacity: 1, duration: 0.9 },
-            "-=0.72"
+            { yPercent: 0, opacity: 1, duration: 1.35, ease: "power3.out" },
+            "-=0.85"
           )
           .fromTo(
             ulPath.current,
             { strokeDashoffset: len },
-            { strokeDashoffset: 0, duration: 0.7, ease: "power3.inOut" },
-            "-=0.5"
+            { strokeDashoffset: 0, duration: 1.15, ease: "power2.inOut" },
+            "-=0.7"
           )
           .fromTo(
             [arrowStem.current, arrowHead.current],
             { opacity: 0, scale: 0.8 },
-            { opacity: 1, scale: 1, duration: 0.35, ease: "back.out(1.5)" },
-            "-=0.2"
+            { opacity: 1, scale: 1, duration: 0.65, ease: "back.out(1.4)" },
+            "-=0.4"
           )
           .fromTo(
             heroSubInner.current,
             { yPercent: 125, opacity: 0 },
-            { yPercent: 0, opacity: 1, duration: 0.8 },
-            "-=0.35"
+            { yPercent: 0, opacity: 1, duration: 1.1, ease: "power3.out" },
+            "-=0.4"
           );
 
         // Continuous subtle arrow breathing loop
@@ -1334,7 +1378,6 @@ export default function Experience() {
         rubberResetTimerRef.current = null;
       }
       cleanupWheelListeners?.();
-      cleanupEarlyGestures?.();
       unlockScroll();
       pointerListener?.();
       gsap.ticker.remove(tick);
