@@ -273,11 +273,17 @@ html.nav-animating {
   body {
     background-color: var(--vault-bg);
     color: rgb(var(--ink-rgb));
+    overflow: hidden;
+    height: 100%;
+    overscroll-behavior: none;
   }
   html {
     font-family: var(--font-sans);
     background-color: var(--vault-bg);
     color: rgb(var(--ink-rgb));
+    overflow: hidden;
+    height: 100%;
+    overscroll-behavior: none;
   }
 }
 

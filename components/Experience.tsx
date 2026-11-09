@@ -2,14 +2,10 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import Lenis from "lenis";
 import ProfileSilhouette from "./ProfileSilhouette";
 import { WorksExpandable } from "./WorksExpandable";
 import { OffScriptShowcase } from "./OffScriptShowcase";
 import { soundFX } from "@/lib/audio";
-
-gsap.registerPlugin(ScrollTrigger);
 
 /* Type sizes shared between the hero "Vault." and the flying logo so they
    scale into each other pixel-perfectly. */
@@ -225,10 +221,9 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 export default function Experience() {
-  const root = useRef<HTMLDivElement>(null);
-  const lenisRef = useRef<Lenis | null>(null);
+  const root = useRef<HTMLElement>(null);
 
-  // Hero
+  // Hero refs
   const heroPre = useRef<HTMLSpanElement>(null);
   const heroPreInner = useRef<HTMLSpanElement>(null);
   const heroVaultInline = useRef<HTMLSpanElement>(null);
@@ -239,17 +234,13 @@ export default function Experience() {
   const heroSpotlightRef = useRef<HTMLDivElement>(null);
   const heroRingOuterRef = useRef<HTMLDivElement>(null);
   const heroRingInnerRef = useRef<HTMLDivElement>(null);
-  const isTouchSwipingRef = useRef(false);
 
-  // Scroll Progress
-  const scrollProgressBar = useRef<HTMLDivElement>(null);
-
-  // Nav
+  // Nav refs
   const navGhost = useRef<HTMLButtonElement>(null);
   const vaultFloat = useRef<HTMLButtonElement>(null);
   const letsTalk = useRef<HTMLButtonElement>(null);
 
-  // Main panel (About, Journey, Craft, Works share it)
+  // Main panel & Section stage refs
   const mainPanel = useRef<HTMLDivElement>(null);
   const menu = useRef<HTMLUListElement>(null);
   const aboutRight = useRef<HTMLDivElement>(null);
@@ -270,24 +261,21 @@ export default function Experience() {
   const activeBeyondRef = useRef(0);
   const [copiedEmail, setCopiedEmail] = useState(false);
   const [hasInteracted, setHasInteracted] = useState(false);
+
   const [activeSection, setActiveSectionState] = useState<string>("hero");
   const activeSectionRef = useRef<string>("hero");
-  const setActiveSection = (s: string) => {
-    activeSectionRef.current = s;
-    setActiveSectionState(s);
-  };
+  const isTransitioningRef = useRef(false);
+
   const [isBeyondMultiLine, setIsBeyondMultiLine] = useState(false);
   const beyondResetTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const lockedSectionRef = useRef<"journey" | "skills" | "beyond" | null>(null);
-  const accumulatedDeltaRef = useRef(0);
-  const isProgrammaticScrollRef = useRef(false);
-  const rubberResetTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const flipRef = useRef({ sx: 0, sy: 0, ex: 0, ey: 0, es: 1 });
+  const finishIntroRef = useRef<() => void>(() => {});
   const switchJourneyChapterRef = useRef<((idx: number) => void) | null>(null);
   const switchBeyondChapterRef = useRef<((idx: number) => void) | null>(null);
   const playToolkitShowcaseRef = useRef<((force?: boolean) => void) | null>(null);
-  const ensureSectionLoadedRef = useRef<((key: string) => void) | null>(null);
-  const navTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const setRoomRef = useRef<((accent: readonly number[], lift: number, dur?: number) => void) | null>(null);
+  const setActiveMenuRef = useRef<((key: string, immediate?: boolean) => void) | null>(null);
 
   const mobileNavTriggerRef = useRef<HTMLButtonElement>(null);
   const lastActiveElementRef = useRef<HTMLElement | null>(null);
@@ -305,15 +293,11 @@ export default function Experience() {
     };
   }, []);
 
-
-
   useEffect(() => {
     if (isMobileNavOpen) {
       document.body.style.overflow = "hidden";
-      lenisRef.current?.stop();
     } else {
-      document.body.style.overflow = "auto";
-      lenisRef.current?.start();
+      document.body.style.overflow = "hidden";
     }
   }, [isMobileNavOpen]);
 
@@ -331,9 +315,6 @@ export default function Experience() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isMobileNavOpen]);
 
-  const measureRef = useRef<() => void>(() => { });
-  const finishIntroRef = useRef<() => void>(() => { });
-
   const handleCopyEmail = () => {
     soundFX.playSuccessChime();
     navigator.clipboard?.writeText("tharun@example.com");
@@ -341,117 +322,235 @@ export default function Experience() {
     setTimeout(() => setCopiedEmail(false), 2000);
   };
 
-  const handleMenuClick = useCallback((key: string) => {
-    if (navTimeoutRef.current) {
-      clearTimeout(navTimeoutRef.current);
-      navTimeoutRef.current = null;
-    }
+  const measure = useCallback(() => {
+    if (!heroVaultInline.current || !navGhost.current) return;
+    const from = heroVaultInline.current.getBoundingClientRect();
+    const to = navGhost.current.getBoundingClientRect();
+    if (!from.height || !to.height) return;
+    flipRef.current.sx = from.left;
+    flipRef.current.sy = from.top;
+    flipRef.current.ex = to.left;
+    flipRef.current.ey = to.top;
+    flipRef.current.es = to.height / from.height;
+  }, []);
+
+  const switchSectionTo = useCallback((key: string) => {
+    const canonical = key === "craft" ? "skills" : key;
+    if (activeSectionRef.current === canonical) return;
+
     soundFX.playMenuClick();
-    lockedSectionRef.current = null;
-    accumulatedDeltaRef.current = 0;
-    isProgrammaticScrollRef.current = true;
-    document.documentElement.classList.add("nav-animating");
+    const prevCanonical = activeSectionRef.current;
+    activeSectionRef.current = canonical;
+    setActiveSectionState(canonical);
 
-    // Immediately load target section content so clicking left menu headers never lands on white blank space
-    ensureSectionLoadedRef.current?.(key);
-
-    if (!lenisRef.current) {
-      isProgrammaticScrollRef.current = false;
-      document.documentElement.classList.remove("nav-animating");
-      return;
+    // Update room ambient lighting
+    if (canonical === "journey") {
+      setRoomRef.current?.(JOURNEY[activeChapterRef.current].accent, JOURNEY[activeChapterRef.current].lift, 0.45);
+    } else if (canonical === "beyond") {
+      setRoomRef.current?.(BEYOND[activeBeyondRef.current].accent, BEYOND[activeBeyondRef.current].lift, 0.45);
+    } else {
+      const r = ROOMS[canonical as keyof typeof ROOMS] || ROOMS.about;
+      setRoomRef.current?.(r.accent, r.lift, 0.45);
     }
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const isFromHero = activeSectionRef.current === "hero" || window.scrollY < window.innerHeight * 0.5;
-    const dur = reduced ? 0 : (isFromHero && key === "about" ? 2.8 : 0.6);
-    const finishNav = (after?: () => void) => {
-      navTimeoutRef.current = setTimeout(() => {
-        ensureSectionLoadedRef.current?.(key);
-        isProgrammaticScrollRef.current = false;
-        document.documentElement.classList.remove("nav-animating");
-        after?.();
-      }, 100);
+
+    // Animate accordion font sizes
+    setActiveMenuRef.current?.(canonical);
+
+    // Crossfade stage panels
+    const panels: Record<string, HTMLElement | null> = {
+      about: aboutRight.current,
+      journey: journeyRight.current,
+      skills: craftRight.current,
+      works: worksRight.current,
+      beyond: beyondRight.current,
+      talk: talkRight.current,
     };
-    switch (key) {
-      case "about":
-        lenisRef.current.scrollTo(window.innerHeight * 1.2, {
-          duration: dur,
-          easing: isFromHero
-            ? (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
-            : undefined,
-          onComplete: () => finishNav(),
-        });
-        break;
-      case "journey":
-        lenisRef.current.scrollTo(window.innerHeight * 2.0, {
-          duration: dur,
-          onComplete: () => finishNav(() => { lockedSectionRef.current = "journey"; }),
-        });
-        break;
-      case "skills":
-      case "craft":
-        lenisRef.current.scrollTo(window.innerHeight * 2.8, {
-          duration: dur,
-          onComplete: () =>
-            finishNav(() => {
-              lockedSectionRef.current = "skills";
-            }),
-        });
-        break;
-      case "works":
-        lenisRef.current.scrollTo(window.innerHeight * 4.6, {
-          duration: dur,
-          onComplete: () => finishNav(),
-        });
-        break;
-      case "beyond":
-        lenisRef.current.scrollTo(window.innerHeight * 5.8, {
-          duration: dur,
-          onComplete: () => finishNav(() => { lockedSectionRef.current = "beyond"; }),
-        });
-        break;
-      case "talk":
-        lenisRef.current.scrollTo(window.innerHeight * 6.8, {
-          duration: dur,
-          onComplete: () => finishNav(),
-        });
-        break;
+
+    const prevPanel = panels[prevCanonical];
+    const nextPanel = panels[canonical];
+
+    if (prevPanel && prevPanel !== nextPanel) {
+      gsap.to(prevPanel, {
+        autoAlpha: 0,
+        y: -14,
+        duration: 0.28,
+        ease: "power2.inOut",
+        overwrite: "auto",
+      });
+    }
+
+    if (nextPanel) {
+      gsap.fromTo(
+        nextPanel,
+        { autoAlpha: 0, y: 16 },
+        {
+          autoAlpha: 1,
+          y: 0,
+          duration: 0.38,
+          ease: "power3.out",
+          overwrite: "auto",
+        }
+      );
+    }
+
+    if (canonical === "skills") {
+      playToolkitShowcaseRef.current?.(false);
     }
   }, []);
 
   const proceedToFirstSection = useCallback(() => {
-    if (isProgrammaticScrollRef.current) return;
+    if (activeSectionRef.current !== "hero" || isTransitioningRef.current) return;
+    isTransitioningRef.current = true;
     soundFX.unlockAudio();
     soundFX.playCabinetUnlock();
     if (!hasInteracted) {
       setHasInteracted(true);
     }
-    handleMenuClick("about");
-  }, [hasInteracted, handleMenuClick]);
 
-  const handleHeroClick = () => {
-    if (isTouchSwipingRef.current) {
-      isTouchSwipingRef.current = false;
+    measure();
+    const flip = flipRef.current;
+    const dx = flip.ex - flip.sx;
+    const dy = flip.ey - flip.sy;
+    const scale = flip.es || 1;
+
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const dur = reduced ? 0 : 2.2;
+
+    if (reduced) {
+      if (mainPanel.current) gsap.set(mainPanel.current, { yPercent: 0 });
+      if (heroVaultInline.current) gsap.set(heroVaultInline.current, { opacity: 0 });
+      if (vaultFloat.current) gsap.set(vaultFloat.current, { opacity: 1, x: 0, y: 0 });
+      if (letsTalk.current) gsap.set(letsTalk.current, { opacity: 1, y: 0 });
+      isTransitioningRef.current = false;
+      setIsIntroComplete(true);
+      activeSectionRef.current = "about";
+      setActiveSectionState("about");
+      setActiveMenuRef.current?.("about", true);
+      setRoomRef.current?.(ROOMS.about.accent, ROOMS.about.lift, 0.8);
       return;
     }
-    if (!isIntroComplete) {
-      finishIntroRef.current?.();
+
+    const tl = gsap.timeline({
+      defaults: { ease: "power3.inOut" },
+      onComplete: () => {
+        isTransitioningRef.current = false;
+        setIsIntroComplete(true);
+        activeSectionRef.current = "about";
+        setActiveSectionState("about");
+        setActiveMenuRef.current?.("about", true);
+        setRoomRef.current?.(ROOMS.about.accent, ROOMS.about.lift, 0.8);
+      },
+    });
+
+    // 1. Dissolve hero prompt & subtitle
+    tl.to(scrollIndicator.current, { y: 28, scale: 0.94, opacity: 0, duration: 0.6, ease: "power2.in" }, 0)
+      .to(heroPre.current, { yPercent: -80, opacity: 0, duration: 0.65, ease: "power2.in" }, 0)
+      .to(heroBgRef.current, { opacity: 0, duration: 0.9 }, 0)
+      // 2. Flight of "Vault." inline wordmark to top left nav logo
+      .to(
+        heroVaultInline.current,
+        {
+          x: dx,
+          y: dy,
+          scale: scale,
+          duration: dur * 0.75,
+          ease: "power3.inOut",
+          onComplete: () => {
+            if (heroVaultInline.current) gsap.set(heroVaultInline.current, { opacity: 0 });
+            if (vaultFloat.current) gsap.set(vaultFloat.current, { opacity: 1, x: 0, y: 0 });
+          },
+        },
+        0.08
+      )
+      // 3. Main panel chamber rises
+      .to(
+        mainPanel.current,
+        {
+          yPercent: 0,
+          duration: dur,
+          ease: "power3.inOut",
+        },
+        0.15
+      )
+      // 4. Spring in top nav Connect button
+      .fromTo(
+        letsTalk.current,
+        { y: -24, opacity: 0, scale: 0.9 },
+        { y: 0, opacity: 1, scale: 1, duration: 0.6, ease: "back.out(1.8)" },
+        dur * 0.6
+      )
+      // 5. Cascade in sidebar menu items
+      .fromTo(
+        menu.current?.querySelectorAll("li") ?? [],
+        { x: -32, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.5, stagger: 0.055, ease: "back.out(1.6)" },
+        dur * 0.55
+      )
+      // 6. About portrait & bio spring in
+      .fromTo(profile.current, { scale: 0.85, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.55, ease: "back.out(1.6)" }, dur * 0.62)
+      .fromTo(aboutName.current, { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, dur * 0.68)
+      .fromTo(aboutPara.current, { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, dur * 0.72);
+  }, [hasInteracted, measure]);
+
+  const returnToHero = useCallback(() => {
+    if (activeSectionRef.current === "hero" || isTransitioningRef.current) return;
+    isTransitioningRef.current = true;
+    soundFX.playMenuClick();
+
+    measure();
+    const flip = flipRef.current;
+    const dx = flip.ex - flip.sx;
+    const dy = flip.ey - flip.sy;
+    const scale = flip.es || 1;
+
+    // Swap floating logo back to inline wordmark starting from nav position
+    if (vaultFloat.current) gsap.set(vaultFloat.current, { opacity: 0 });
+    if (heroVaultInline.current) gsap.set(heroVaultInline.current, { opacity: 1, x: dx, y: dy, scale: scale });
+
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduced) {
+      if (mainPanel.current) gsap.set(mainPanel.current, { yPercent: 100 });
+      if (heroVaultInline.current) gsap.set(heroVaultInline.current, { opacity: 1, x: 0, y: 0, scale: 1 });
+      if (heroPre.current) gsap.set(heroPre.current, { opacity: 1, yPercent: 0 });
+      if (scrollIndicator.current) gsap.set(scrollIndicator.current, { opacity: 1, y: 0, scale: 1 });
+      if (heroBgRef.current) gsap.set(heroBgRef.current, { opacity: 1 });
+      isTransitioningRef.current = false;
+      activeSectionRef.current = "hero";
+      setActiveSectionState("hero");
+      setRoomRef.current?.(ROOMS.welcome.accent, ROOMS.welcome.lift, 0.4);
+      return;
     }
-    proceedToFirstSection();
+
+    const tl = gsap.timeline({
+      defaults: { ease: "power3.inOut" },
+      onComplete: () => {
+        isTransitioningRef.current = false;
+        activeSectionRef.current = "hero";
+        setActiveSectionState("hero");
+        setRoomRef.current?.(ROOMS.welcome.accent, ROOMS.welcome.lift, 0.8);
+        if (heroVaultInline.current) gsap.set(heroVaultInline.current, { x: 0, y: 0, scale: 1 });
+      },
+    });
+
+    tl.to(mainPanel.current, { yPercent: 100, duration: 1.4 }, 0)
+      .to(heroVaultInline.current, { x: 0, y: 0, scale: 1, duration: 1.3 }, 0.08)
+      .to(heroPre.current, { yPercent: 0, opacity: 1, duration: 0.8, ease: "power2.out" }, 0.5)
+      .to(scrollIndicator.current, { y: 0, scale: 1, opacity: 1, duration: 0.8, ease: "power2.out" }, 0.55)
+      .to(heroBgRef.current, { opacity: 1, duration: 0.8 }, 0.3);
+  }, [measure]);
+
+  const handleHeroClick = () => {
+    if (activeSection === "hero") {
+      if (!isIntroComplete) {
+        finishIntroRef.current?.();
+      }
+      proceedToFirstSection();
+    }
   };
 
   useEffect(() => {
     const handleGlobalClick = (e: MouseEvent) => {
-      if (isTouchSwipingRef.current) {
-        isTouchSwipingRef.current = false;
-        return;
-      }
-      if (
-        activeSectionRef.current !== "hero" &&
-        activeSection !== "hero" &&
-        window.scrollY >= window.innerHeight * 0.5
-      ) {
-        return;
-      }
+      if (activeSectionRef.current !== "hero" && activeSection !== "hero") return;
       if (isMobileNavOpen) return;
 
       const target = e.target as HTMLElement | null;
@@ -471,29 +570,48 @@ export default function Experience() {
     };
 
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      // Don't intercept browser developer tools or system reload shortcuts
       if (e.metaKey || e.ctrlKey || e.key === "F5" || e.key === "F12") return;
-      if (
-        activeSectionRef.current !== "hero" &&
-        activeSection !== "hero" &&
-        window.scrollY >= window.innerHeight * 0.5
-      ) {
-        return;
-      }
-      if (isMobileNavOpen) return;
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
 
-      if (
-        e.target instanceof HTMLInputElement ||
-        e.target instanceof HTMLTextAreaElement
-      ) {
+      // On Hero: any key transitions to first section
+      if (activeSection === "hero") {
+        e.preventDefault();
+        if (!isIntroComplete) {
+          finishIntroRef.current?.();
+        }
+        proceedToFirstSection();
         return;
       }
 
-      e.preventDefault();
-      if (!isIntroComplete) {
-        finishIntroRef.current?.();
+      // If a modal is open, let the modal handle Escape and keys
+      const isModalOpen = document.body.style.overflow === "hidden" && !isMobileNavOpen;
+      if (isModalOpen) return;
+
+      // Number keys 1-6 jump directly to sections
+      const keyNum = parseInt(e.key, 10);
+      if (!isNaN(keyNum) && keyNum >= 1 && keyNum <= 6) {
+        e.preventDefault();
+        const targetMenu = MENU[keyNum - 1];
+        if (targetMenu) {
+          switchSectionTo(targetMenu.key);
+        }
+        return;
       }
-      proceedToFirstSection();
+
+      // Arrow keys or W/S to cycle through sections in sidebar
+      if (e.key === "ArrowDown" || e.key.toLowerCase() === "s") {
+        const currentIdx = MENU.findIndex((m) => m.key === activeSection);
+        if (currentIdx !== -1 && currentIdx < MENU.length - 1) {
+          e.preventDefault();
+          switchSectionTo(MENU[currentIdx + 1].key);
+        }
+      } else if (e.key === "ArrowUp" || e.key.toLowerCase() === "w") {
+        const currentIdx = MENU.findIndex((m) => m.key === activeSection);
+        if (currentIdx > 0) {
+          e.preventDefault();
+          switchSectionTo(MENU[currentIdx - 1].key);
+        }
+      }
     };
 
     window.addEventListener("click", handleGlobalClick);
@@ -502,7 +620,7 @@ export default function Experience() {
       window.removeEventListener("click", handleGlobalClick);
       window.removeEventListener("keydown", handleGlobalKeyDown);
     };
-  }, [isIntroComplete, activeSection, isMobileNavOpen, proceedToFirstSection]);
+  }, [isIntroComplete, activeSection, isMobileNavOpen, proceedToFirstSection, switchSectionTo]);
 
   const handleChapterClick = (index: number) => {
     switchJourneyChapterRef.current?.(index);
@@ -531,87 +649,18 @@ export default function Experience() {
     let cancelled = false;
     const isCancelled = () => cancelled;
 
-    // Pointer-parallax listener for the About room.
-    let pointerListener: (() => void) | null = null;
-    let cleanupWheelListeners: (() => void) | null = null;
-
-    const lenis = new Lenis({ duration: 1.15, smoothWheel: true });
-    lenisRef.current = lenis;
-    lenis.on("scroll", (e: { progress?: number }) => {
-      ScrollTrigger.update();
-      if (scrollProgressBar.current) {
-        const p =
-          typeof e?.progress === "number"
-            ? e.progress
-            : window.scrollY / (document.documentElement.scrollHeight - window.innerHeight);
-        scrollProgressBar.current.style.transform = `scaleX(${Math.min(Math.max(p, 0), 1)})`;
-      }
-    });
-    const tick = (time: number) => lenis.raf(time * 1000);
-    gsap.ticker.add(tick);
-    gsap.ticker.lagSmoothing(500, 33);
-
-    const blockEvent = (e: Event) => {
-      e.preventDefault();
-      e.stopImmediatePropagation();
-    };
-    const blockKeyScroll = (e: KeyboardEvent) => {
-      if (
-        ["Space", "ArrowDown", "ArrowUp", "PageDown", "PageUp", "Home", "End"].includes(e.code) ||
-        [" ", "ArrowDown", "ArrowUp", "PageDown", "PageUp", "Home", "End"].includes(e.key)
-      ) {
-        e.preventDefault();
-        e.stopImmediatePropagation();
-      }
-    };
-
-    let isIntroLocked = false;
-    const lockScroll = () => {
-      if (isIntroLocked) return;
-      isIntroLocked = true;
-      document.documentElement.classList.add("vault-locked");
-      lenis.stop();
-      window.addEventListener("wheel", blockEvent, { capture: true, passive: false });
-      window.addEventListener("touchmove", blockEvent, { capture: true, passive: false });
-      window.addEventListener("keydown", blockKeyScroll, { capture: true });
-    };
-    const unlockScroll = () => {
-      if (!isIntroLocked) return;
-      isIntroLocked = false;
-      document.documentElement.classList.remove("vault-locked");
-      lenis.start();
-      window.removeEventListener("wheel", blockEvent, { capture: true });
-      window.removeEventListener("touchmove", blockEvent, { capture: true });
-      window.removeEventListener("keydown", blockKeyScroll, { capture: true });
-    };
-
-    // Hero "Vault." → nav-logo flight measurement.
-    const flip = { sx: 0, sy: 0, ex: 0, ey: 0, es: 1 };
-    const measure = () => {
-      if (!heroVaultInline.current || !navGhost.current) return;
-      const from = heroVaultInline.current.getBoundingClientRect();
-      const to = navGhost.current.getBoundingClientRect();
-      if (!from.height || !to.height) return;
-      flip.sx = from.left;
-      flip.sy = from.top;
-      flip.ex = to.left;
-      flip.ey = to.top;
-      flip.es = to.height / from.height;
-    };
-    measureRef.current = measure;
+    measure();
 
     const ctx = gsap.context(() => {
       const q = gsap.utils.selector(root);
 
       const menuItems = menu.current?.querySelectorAll("li") ?? [];
-
       const jCards = q("[data-jcard]") as HTMLElement[];
       const jTabs = q("[data-jtab]") as HTMLElement[];
       const jCount = q("[data-jcount]")[0] ?? null;
-      const craftCount = (q("[data-craft-count]")[0] as HTMLElement | undefined) ?? null;
       const craftCards = q("[data-craft-card]") as HTMLElement[];
 
-      const setRoom = (accent: readonly number[], lift: number, dur = 0.9) =>
+      const setRoom = (accent: readonly number[], lift: number, dur = 0.6) => {
         gsap.to(root.current, {
           "--accent-rgb": accent.join(" "),
           "--accent-lift": lift,
@@ -619,8 +668,10 @@ export default function Experience() {
           ease: "power2.inOut",
           overwrite: "auto",
         });
+      };
+      setRoomRef.current = setRoom;
 
-      // -------- Starting states --------
+      // Starting states
       gsap.set(root.current, {
         "--accent-rgb": ROOMS.welcome.accent.join(" "),
         "--accent-lift": ROOMS.welcome.lift,
@@ -629,7 +680,7 @@ export default function Experience() {
       gsap.set(vaultFloat.current, { opacity: 0, transformOrigin: "left top" });
       gsap.set(heroBgRef.current, { opacity: 1, scale: 1 });
 
-      // Initialize all menu items consistently
+      // Initialize menu items consistently
       menuItems.forEach((li) => {
         const isAbout = li.getAttribute("data-key") === "about";
         gsap.set(li, {
@@ -638,13 +689,8 @@ export default function Experience() {
         });
       });
 
-      // Authoritative Left Accordion Menu Controller
-      let currentActiveKey = "about";
+      // Left Accordion Menu Controller
       const setActiveMenu = (key: string, immediate = false) => {
-        if (currentActiveKey === key && !immediate) return;
-        currentActiveKey = key;
-
-        // Manage multi-line layout for Beyond Work with seamless transition timing
         if (key === "beyond") {
           if (beyondResetTimerRef.current) {
             clearTimeout(beyondResetTimerRef.current);
@@ -659,7 +705,6 @@ export default function Experience() {
           if (immediate) {
             setIsBeyondMultiLine(false);
           } else {
-            // Keep multi-line layout during GSAP font-size shrink (380ms) to prevent card overlap
             beyondResetTimerRef.current = setTimeout(() => {
               setIsBeyondMultiLine(false);
               beyondResetTimerRef.current = null;
@@ -680,49 +725,17 @@ export default function Experience() {
           });
         });
       };
+      setActiveMenuRef.current = setActiveMenu;
 
-      const updateActiveMenuFromScroll = (immediate = false) => {
-        if (isProgrammaticScrollRef.current) return;
-        const scrollY = window.scrollY;
-        const h = window.innerHeight;
-        if (scrollY < h * 0.7) {
-          setActiveSection("hero");
-        } else if (scrollY < h * 1.6) {
-          setActiveMenu("about", immediate);
-          setActiveSection("about");
-        } else if (scrollY < h * 2.4) {
-          setActiveMenu("journey", immediate);
-          setActiveSection("journey");
-        } else if (scrollY < h * 4.0) {
-          setActiveMenu("skills", immediate);
-          setActiveSection("skills");
-        } else if (scrollY < h * 5.2) {
-          setActiveMenu("works", immediate);
-          setActiveSection("works");
-        } else if (scrollY < h * 6.4) {
-          setActiveMenu("beyond", immediate);
-          setActiveSection("beyond");
-        } else {
-          setActiveMenu("talk", immediate);
-          setActiveSection("talk");
-        }
-      };
+      // Initialize right stage panels
+      gsap.set(aboutRight.current, { autoAlpha: 1, y: 0 });
+      gsap.set(journeyRight.current, { autoAlpha: 0, y: 20 });
+      gsap.set(craftRight.current, { autoAlpha: 0, y: 20 });
+      gsap.set(worksRight.current, { autoAlpha: 0, y: 20 });
+      gsap.set(beyondRight.current, { autoAlpha: 0, y: 20 });
+      gsap.set(talkRight.current, { autoAlpha: 0, y: 20 });
 
-      ScrollTrigger.create({
-        trigger: root.current,
-        start: "top top",
-        end: "bottom bottom",
-        onUpdate: () => updateActiveMenuFromScroll(false),
-        onRefresh: () => updateActiveMenuFromScroll(true),
-      });
-
-      gsap.set(journeyRight.current, { autoAlpha: 0, y: 34 });
-      gsap.set(craftRight.current, { autoAlpha: 0, y: 34 });
-      gsap.set(worksRight.current, { autoAlpha: 0, y: 34 });
-      gsap.set(beyondRight.current, { autoAlpha: 0, y: 34 });
-      gsap.set(talkRight.current, { autoAlpha: 0, y: 34 });
-
-      // Journey cards starting states:
+      // Journey cards starting states
       jCards.forEach((card, i) => {
         gsap.set(card, {
           opacity: i === 0 ? 1 : 0,
@@ -731,7 +744,7 @@ export default function Experience() {
         });
       });
 
-      // Craft cards starting states (visible by default; automated showcase animates them sequentially when scrolled into)
+      // Craft cards starting states
       craftCards.forEach((card) => {
         gsap.set(card, { opacity: 1, y: 0 });
         const trace = card.querySelector("[data-craft-trace]");
@@ -744,7 +757,7 @@ export default function Experience() {
         if (names) gsap.set(names, { opacity: 1, x: 0 });
       });
 
-      // In-place Chapter & Category Transition Engines
+      // Journey Chapter Switcher
       let isJourneyCardAnimating = false;
       const switchJourneyChapter = (newIndex: number) => {
         const currentIndex = activeChapterRef.current;
@@ -755,7 +768,6 @@ export default function Experience() {
         setActiveChapterIndex(newIndex);
 
         const direction = newIndex > currentIndex ? 1 : -1;
-
         if (jCards[currentIndex]) {
           gsap.to(jCards[currentIndex], {
             opacity: 0,
@@ -766,7 +778,6 @@ export default function Experience() {
           });
           jCards[currentIndex].style.pointerEvents = "none";
         }
-
         if (jCards[newIndex]) {
           gsap.fromTo(
             jCards[newIndex],
@@ -806,6 +817,7 @@ export default function Experience() {
       };
       switchJourneyChapterRef.current = switchJourneyChapter;
 
+      // Beyond Chapter Switcher
       const switchBeyondChapter = (newIndex: number) => {
         const currentIndex = activeBeyondRef.current;
         if (currentIndex === newIndex) return;
@@ -816,412 +828,19 @@ export default function Experience() {
       };
       switchBeyondChapterRef.current = switchBeyondChapter;
 
-      // Magnetic Snap & Section Locking with Tactile Rubber-Band Friction
-      const FRICTION_THRESHOLD = 95;
-
-      const lockToSection = (section: "journey" | "skills" | "beyond", anchorMultiplier: number) => {
-        if (isProgrammaticScrollRef.current) return;
-        lockedSectionRef.current = section;
-        accumulatedDeltaRef.current = 0;
-        isProgrammaticScrollRef.current = true;
-        lenisRef.current?.scrollTo(window.innerHeight * anchorMultiplier, {
-          duration: 0.55,
-          onComplete: () => {
-            setTimeout(() => {
-              isProgrammaticScrollRef.current = false;
-              lockedSectionRef.current = section;
-            }, 80);
-          },
-        });
-      };
-
-      const releaseSection = (direction: "next" | "prev", locked: "journey" | "skills" | "beyond") => {
-        accumulatedDeltaRef.current = 0;
-        lockedSectionRef.current = null;
-        isProgrammaticScrollRef.current = true;
-
-        const targetContainer =
-          locked === "journey"
-            ? journeyRight.current
-            : locked === "skills"
-            ? craftRight.current
-            : beyondRight.current;
-        if (targetContainer) {
-          gsap.to(targetContainer, { y: 0, duration: 0.2 });
-        }
-
-        soundFX.playMenuClick();
-
-        let targetScroll = 0;
-        if (locked === "journey") {
-          targetScroll = direction === "next" ? window.innerHeight * 2.8 : window.innerHeight * 1.2;
-        } else if (locked === "skills") {
-          targetScroll = direction === "next" ? window.innerHeight * 4.6 : window.innerHeight * 2.0;
-        } else {
-          targetScroll = direction === "next" ? window.innerHeight * 6.8 : window.innerHeight * 4.6;
-        }
-
-        document.documentElement.classList.add("nav-animating");
-        lenisRef.current?.scrollTo(targetScroll, {
-          duration: 0.85,
-          onComplete: () => {
-            setTimeout(() => {
-              isProgrammaticScrollRef.current = false;
-              document.documentElement.classList.remove("nav-animating");
-            }, 180);
-          },
-        });
-      };
-
-      const onWheel = (e: WheelEvent) => {
-        if (isProgrammaticScrollRef.current) {
-          e.preventDefault();
-          return;
-        }
-        // Remove scroll feature from Hero: only tapping anywhere or pressing any key continues
-        if (window.scrollY < window.innerHeight * 0.5 || activeSectionRef.current === "hero") {
-          e.preventDefault();
-          return;
-        }
-        const locked = lockedSectionRef.current;
-        if (!locked) return;
-
-        e.preventDefault();
-        accumulatedDeltaRef.current += e.deltaY;
-
-        const targetContainer =
-          locked === "journey"
-            ? journeyRight.current
-            : locked === "skills"
-            ? craftRight.current
-            : beyondRight.current;
-        if (targetContainer) {
-          const rubberY = -Math.sign(accumulatedDeltaRef.current) * Math.min(Math.pow(Math.abs(accumulatedDeltaRef.current), 0.72) * 0.75, 14);
-          gsap.to(targetContainer, {
-            y: rubberY,
-            duration: 0.1,
-            overwrite: "auto",
-          });
-        }
-
-        if (rubberResetTimerRef.current) clearTimeout(rubberResetTimerRef.current);
-        rubberResetTimerRef.current = setTimeout(() => {
-          accumulatedDeltaRef.current = 0;
-          if (targetContainer) {
-            gsap.to(targetContainer, { y: 0, duration: 0.35, ease: "elastic.out(1, 0.4)" });
-          }
-        }, 160);
-
-        if (accumulatedDeltaRef.current >= FRICTION_THRESHOLD) {
-          releaseSection("next", locked);
-        } else if (accumulatedDeltaRef.current <= -FRICTION_THRESHOLD) {
-          releaseSection("prev", locked);
-        }
-      };
-
-      let touchStartY = 0;
-      let touchStartX = 0;
-
-      const onTouchStart = (e: TouchEvent) => {
-        touchStartY = e.touches[0].clientY;
-        touchStartX = e.touches[0].clientX;
-        isTouchSwipingRef.current = false;
-      };
-
-      const onTouchMove = (e: TouchEvent) => {
-        if (isProgrammaticScrollRef.current) {
-          e.preventDefault();
-          return;
-        }
-        // Completely disable swipe up / swipe scroll on Hero
-        if (window.scrollY < window.innerHeight * 0.5 || activeSectionRef.current === "hero") {
-          e.preventDefault();
-          const dY = Math.abs(e.touches[0].clientY - touchStartY);
-          const dX = Math.abs(e.touches[0].clientX - touchStartX);
-          if (dY > 8 || dX > 8) {
-            isTouchSwipingRef.current = true;
-          }
-          return;
-        }
-        const locked = lockedSectionRef.current;
-        if (!locked) return;
-
-        const deltaY = touchStartY - e.touches[0].clientY;
-        const deltaX = touchStartX - e.touches[0].clientX;
-
-        if (Math.abs(deltaX) > Math.abs(deltaY) * 1.5 && Math.abs(deltaX) > 40) {
-          if (deltaX > 0) {
-            if (locked === "journey") {
-              switchJourneyChapter(Math.min(JOURNEY.length - 1, activeChapterRef.current + 1));
-            } else {
-              switchBeyondChapter(Math.min(BEYOND.length - 1, activeBeyondRef.current + 1));
-            }
-          } else {
-            if (locked === "journey") {
-              switchJourneyChapter(Math.max(0, activeChapterRef.current - 1));
-            } else {
-              switchBeyondChapter(Math.max(0, activeBeyondRef.current - 1));
-            }
-          }
-          touchStartX = e.touches[0].clientX;
-          return;
-        }
-
-        e.preventDefault();
-        accumulatedDeltaRef.current += deltaY * 1.5;
-
-        const targetContainer =
-          locked === "journey"
-            ? journeyRight.current
-            : locked === "skills"
-            ? craftRight.current
-            : beyondRight.current;
-        if (targetContainer) {
-          const rubberY = -Math.sign(accumulatedDeltaRef.current) * Math.min(Math.abs(accumulatedDeltaRef.current) * 0.1, 14);
-          gsap.to(targetContainer, { y: rubberY, duration: 0.1, overwrite: "auto" });
-        }
-
-        if (accumulatedDeltaRef.current >= FRICTION_THRESHOLD) {
-          releaseSection("next", locked);
-        } else if (accumulatedDeltaRef.current <= -FRICTION_THRESHOLD) {
-          releaseSection("prev", locked);
-        }
-      };
-
-      const onTouchEnd = () => {
-        accumulatedDeltaRef.current = 0;
-        if (journeyRight.current) gsap.to(journeyRight.current, { y: 0, duration: 0.35, ease: "elastic.out(1, 0.4)" });
-        if (beyondRight.current) gsap.to(beyondRight.current, { y: 0, duration: 0.35, ease: "elastic.out(1, 0.4)" });
-      };
-
-      window.addEventListener("wheel", onWheel, { passive: false });
-      window.addEventListener("touchstart", onTouchStart, { passive: true });
-      window.addEventListener("touchmove", onTouchMove, { passive: false });
-      window.addEventListener("touchend", onTouchEnd, { passive: true });
-      cleanupWheelListeners = () => {
-        window.removeEventListener("wheel", onWheel);
-        window.removeEventListener("touchstart", onTouchStart);
-        window.removeEventListener("touchmove", onTouchMove);
-        window.removeEventListener("touchend", onTouchEnd);
-      };
-
-
-
-      // ---------------- About: an occupied room, not a still ----------------
-      const portrait = q("[data-portrait]")[0] ?? null;
-      const portraitGlow = q("[data-portrait-glow]")[0] ?? null;
-      const sheen = q("[data-sheen]")[0] ?? null;
-      const pPortrait = q('[data-parallax="portrait"]')[0] ?? null;
-      const pText = q('[data-parallax="text"]')[0] ?? null;
-
-      if (!reduced) {
-        gsap.to(portrait, {
-          y: -7,
-          duration: 4.2,
-          ease: "sine.inOut",
-          yoyo: true,
-          repeat: -1,
-        });
-        gsap.to(portraitGlow, {
-          opacity: 0.55,
-          scale: 1.06,
-          duration: 5.6,
-          ease: "sine.inOut",
-          yoyo: true,
-          repeat: -1,
-          transformOrigin: "50% 50%",
-        });
-        gsap
-          .timeline({ repeat: -1, repeatDelay: 6.5 })
-          .fromTo(
-            sheen,
-            { xPercent: 0, opacity: 0 },
-            { xPercent: 620, opacity: 0.32, duration: 1.7, ease: "power2.inOut" }
-          )
-          .to(sheen, { opacity: 0, duration: 0.5, ease: "power2.out" }, "-=0.5");
-
-        const setPX = gsap.quickTo(pPortrait, "x", { duration: 0.9, ease: "power3" });
-        const setPY = gsap.quickTo(pPortrait, "y", { duration: 0.9, ease: "power3" });
-        const setTX = gsap.quickTo(pText, "x", { duration: 1.1, ease: "power3" });
-        const setTY = gsap.quickTo(pText, "y", { duration: 1.1, ease: "power3" });
-
-        // Hero interactive background mouse hover / parallax animation
-        const setSpotX = gsap.quickTo(heroSpotlightRef.current, "x", { duration: 0.65, ease: "power2.out" });
-        const setSpotY = gsap.quickTo(heroSpotlightRef.current, "y", { duration: 0.65, ease: "power2.out" });
-        const setOuterX = gsap.quickTo(heroRingOuterRef.current, "x", { duration: 1.1, ease: "power3.out" });
-        const setOuterY = gsap.quickTo(heroRingOuterRef.current, "y", { duration: 1.1, ease: "power3.out" });
-        const setInnerX = gsap.quickTo(heroRingInnerRef.current, "x", { duration: 0.9, ease: "power3.out" });
-        const setInnerY = gsap.quickTo(heroRingInnerRef.current, "y", { duration: 0.9, ease: "power3.out" });
-        const setInnerRot = gsap.quickTo(heroRingInnerRef.current, "rotate", { duration: 1.2, ease: "power2.out" });
-        const setHeadX = gsap.quickTo([heroPre.current, heroVaultInline.current], "x", { duration: 0.8, ease: "power2.out" });
-        const setHeadY = gsap.quickTo([heroPre.current, heroVaultInline.current], "y", { duration: 0.8, ease: "power2.out" });
-
-        let hasMovedHeroMouse = false;
-        const onPointer = (e: PointerEvent) => {
-          const nx = e.clientX / window.innerWidth - 0.5;
-          const ny = e.clientY / window.innerHeight - 0.5;
-          setPX(nx * 26);
-          setPY(ny * 18);
-          setTX(nx * -10);
-          setTY(ny * -7);
-
-          if (activeSectionRef.current === "hero" || window.scrollY < window.innerHeight * 0.5) {
-            if (!hasMovedHeroMouse && heroSpotlightRef.current) {
-              hasMovedHeroMouse = true;
-              gsap.to(heroSpotlightRef.current, { opacity: 1, duration: 0.6, ease: "power2.out" });
-            }
-            setSpotX(e.clientX);
-            setSpotY(e.clientY);
-            setOuterX(nx * -32);
-            setOuterY(ny * -24);
-            setInnerX(nx * 20);
-            setInnerY(ny * 16);
-            setInnerRot(nx * 12);
-            setHeadX(nx * 10);
-            setHeadY(ny * 7);
-          }
-        };
-        window.addEventListener("pointermove", onPointer, { passive: true });
-        pointerListener = () => window.removeEventListener("pointermove", onPointer);
-      }
-
-      // ======== PHASE 1 — hero → About (scrubbed, playful cinematic vault opening) ========
-      const spatial = gsap.timeline({ defaults: { ease: "none" } });
-      spatial
-        // Background hover elements gracefully scale and dissolve as vault opens
-        .to(heroBgRef.current, { opacity: 0, scale: 1.1, duration: 0.45, ease: "power2.in" }, 0)
-        // Wordmark flight: smooth spatial glide with subtle playful rotation
-        .fromTo(
-          vaultFloat.current,
-          { x: () => flip.sx, y: () => flip.sy, scale: 1, rotate: 0 },
-          { x: () => flip.ex, y: () => flip.ey, scale: () => flip.es, rotate: -2, duration: 0.78, ease: "power2.inOut" },
-          0
-        )
-        // Hero subtitle sinks playfully with slight scale down
-        .to(scrollIndicator.current, { y: 36, scale: 0.92, opacity: 0, duration: 0.4, ease: "power2.in" }, 0)
-        // "Welcome to my" floats up with slight scale down
-        .to(heroPre.current, { yPercent: -90, scale: 0.94, opacity: 0, duration: 0.44, ease: "power2.in" }, 0)
-        // Main panel rises like a vault chamber door
-        .to(mainPanel.current, { yPercent: 0, duration: 0.76, ease: "power2.out" }, 0)
-        // Vault wordmark settles straight as it docks in nav
-        .to(vaultFloat.current, { rotate: 0, duration: 0.22, ease: "back.out(2)" }, 0.78)
-        // "Connect" pill button drops in with a springy pop
-        .fromTo(letsTalk.current, { y: -24, scale: 0.85, opacity: 0 }, { y: 0, scale: 1, opacity: 1, duration: 0.32, ease: "back.out(2)" }, 0.68)
-        // Left Accordion menu items cascade in like a domino deck from left with a playful bounce
-        .fromTo(menuItems, { x: -36, opacity: 0, scale: 0.92 }, { x: 0, opacity: 1, scale: 1, duration: 0.38, stagger: 0.055, ease: "back.out(1.6)" }, 0.7)
-        // Profile portrait springs up with a joyful slight tilt and settles
-        .fromTo(profile.current, { scale: 0.8, rotate: -4, opacity: 0 }, { scale: 1, rotate: 0, opacity: 1, duration: 0.42, ease: "back.out(1.8)" }, 0.72)
-        // "Tharun S" heading rises with spring
-        .fromTo(aboutName.current, { y: 30, opacity: 0, scale: 0.95 }, { y: 0, opacity: 1, scale: 1, duration: 0.36, ease: "back.out(1.5)" }, 0.78)
-        // Bio paragraph fades and settles into place
-        .fromTo(aboutPara.current, { y: 22, opacity: 0 }, { y: 0, opacity: 1, duration: 0.36, ease: "power3.out" }, 0.82);
-
-      const swapToFloat = () => {
-        gsap.set(heroVaultInline.current, { opacity: 0 });
-        gsap.set(vaultFloat.current, { opacity: 1 });
-      };
-      const swapToInline = () => {
-        gsap.set(vaultFloat.current, { opacity: 0 });
-        gsap.set(heroVaultInline.current, { opacity: 1 });
-      };
-
-      ScrollTrigger.create({
-        trigger: root.current,
-        start: "top top",
-        end: () => "+=" + window.innerHeight,
-        scrub: true,
-        invalidateOnRefresh: true,
-        animation: spatial,
-        onRefresh: measure,
-        onEnter: () => {
-          swapToFloat();
-          setActiveSection("about");
-          setRoom(ROOMS.about.accent, ROOMS.about.lift, 1.2);
-        },
-        onLeaveBack: () => {
-          swapToInline();
-          setActiveSection("hero");
-          setRoom(ROOMS.welcome.accent, ROOMS.welcome.lift, 1.2);
-        },
-      });
-
-      // ======== PHASE 2a — About → Journey (scrubbed) ========
-      const enterJourney = gsap.timeline({ defaults: { ease: "power2.inOut" } });
-      enterJourney
-        .to(aboutRight.current, { autoAlpha: 0, y: -28, duration: 0.4 }, 0)
-        .to(journeyRight.current, { autoAlpha: 1, y: 0, duration: 0.5 }, 0.25);
-
-      ScrollTrigger.create({
-        trigger: root.current,
-        start: () => "top+=" + window.innerHeight * 1.4 + " top",
-        end: () => "top+=" + window.innerHeight * 1.9 + " top",
-        scrub: true,
-        animation: enterJourney,
-        onEnter: () => setRoom(JOURNEY[activeChapterRef.current].accent, JOURNEY[activeChapterRef.current].lift, 0.8),
-        onLeaveBack: () => setRoom(ROOMS.about.accent, ROOMS.about.lift, 0.8),
-      });
-
-      // ======== PHASE 2b — Journey Magnetic Snap & Lock ========
-      ScrollTrigger.create({
-        trigger: root.current,
-        start: () => "top+=" + window.innerHeight * 1.85 + " top",
-        end: () => "top+=" + window.innerHeight * 2.15 + " top",
-        onEnter: () => {
-          if (!isProgrammaticScrollRef.current && lockedSectionRef.current !== "journey") {
-            lockToSection("journey", 2.0);
-          }
-        },
-        onEnterBack: () => {
-          if (!isProgrammaticScrollRef.current && lockedSectionRef.current !== "journey") {
-            lockToSection("journey", 2.0);
-          }
-        },
-        onLeave: () => {
-          if (lockedSectionRef.current === "journey" && !isProgrammaticScrollRef.current) {
-            lockedSectionRef.current = null;
-          }
-        },
-        onLeaveBack: () => {
-          if (lockedSectionRef.current === "journey" && !isProgrammaticScrollRef.current) {
-            lockedSectionRef.current = null;
-          }
-        },
-      });
-
-      // ======== PHASE 3a — Journey → Skills Panel Entrance ========
-      const craftTransition = gsap.timeline({ defaults: { ease: "power2.inOut" } });
-      craftTransition
-        .to(journeyRight.current, { autoAlpha: 0, y: -28, duration: 0.4 }, 0)
-        .to(craftRight.current, { autoAlpha: 1, y: 0, duration: 0.5 }, 0.25);
-
-      ScrollTrigger.create({
-        trigger: root.current,
-        start: () => "top+=" + window.innerHeight * 2.2 + " top",
-        end: () => "top+=" + window.innerHeight * 2.7 + " top",
-        scrub: true,
-        animation: craftTransition,
-        onEnter: () => setRoom(ROOMS.craft.accent, ROOMS.craft.lift, 0.8),
-        onLeaveBack: () => setRoom(JOURNEY[activeChapterRef.current].accent, JOURNEY[activeChapterRef.current].lift, 0.8),
-      });
-
-      // ======== PHASE 3b — Skills Video-Like Showcase (Section-Only Animation) ========
+      // Toolkit showcase
       let isToolkitAnimating = false;
       let hasToolkitPlayed = false;
       let currentToolkitTl: gsap.core.Timeline | null = null;
-
       const playToolkitShowcase = (force = false) => {
         if (isToolkitAnimating && !force) return;
         if (hasToolkitPlayed && !force) return;
-
         if (currentToolkitTl) {
           currentToolkitTl.kill();
           currentToolkitTl = null;
         }
-
-        const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
         const statusEl = craftRight.current?.querySelector("[data-toolkit-status]");
         const progressBar = craftRight.current?.querySelector("[data-toolkit-progress]");
-
         if (reduced) {
           hasToolkitPlayed = true;
           isToolkitAnimating = false;
@@ -1244,15 +863,12 @@ export default function Experience() {
         isToolkitAnimating = true;
         hasToolkitPlayed = true;
         soundFX.playCabinetUnlock();
-
         if (statusEl) statusEl.textContent = "Unlocking Capabilities...";
-
         if (progressBar) {
           gsap.killTweensOf(progressBar);
           gsap.set(progressBar, { scaleX: 0, opacity: 1 });
           gsap.to(progressBar, { scaleX: 1, duration: 2.6, ease: "power1.inOut" });
         }
-
         craftCards.forEach((card) => {
           gsap.killTweensOf(card);
           const trace = card.querySelector("[data-craft-trace]");
@@ -1263,7 +879,6 @@ export default function Experience() {
           if (head) gsap.killTweensOf(head);
           if (checks) gsap.killTweensOf(checks);
           if (names) gsap.killTweensOf(names);
-
           gsap.set(card, { opacity: 0, y: 14 });
           if (trace) gsap.set(trace, { strokeDashoffset: 100, strokeOpacity: 0.85 });
           if (head) gsap.set(head, { opacity: 0, y: 8 });
@@ -1281,269 +896,72 @@ export default function Experience() {
           },
         });
         currentToolkitTl = tl;
-
         craftCards.forEach((card, ci) => {
+          const cardDelay = ci * 0.55;
           const trace = card.querySelector("[data-craft-trace]");
           const head = card.querySelector("[data-craft-head]");
           const checks = card.querySelectorAll("[data-craft-check]");
           const names = card.querySelectorAll("[data-craft-name]");
-          const startTime = ci * 0.58;
-
-          tl.to(
-            card,
-            {
-              opacity: 1,
-              y: 0,
-              duration: 0.4,
-              onStart: () => {
-                soundFX.playHoverTick();
-              },
-            },
-            startTime
-          )
-            .to(trace, { strokeDashoffset: 0, duration: 0.55, ease: "power2.inOut" }, startTime + 0.04)
-            .to(head, { opacity: 1, y: 0, duration: 0.22 }, startTime + 0.12)
-            .to(
-              checks,
-              {
-                opacity: 1,
-                scale: 1,
-                duration: 0.25,
-                stagger: 0.06,
-                ease: "back.out(1.5)",
-              },
-              startTime + 0.18
-            )
-            .to(
-              names,
-              {
-                opacity: 1,
-                x: 0,
-                duration: 0.22,
-                stagger: 0.06,
-              },
-              startTime + 0.2
-            )
-            .to(trace, { strokeOpacity: 0.45, duration: 0.25 }, startTime + 0.52);
+          tl.to(card, { opacity: 1, y: 0, duration: 0.4 }, cardDelay);
+          if (trace) tl.to(trace, { strokeDashoffset: 0, strokeOpacity: 0.45, duration: 0.5 }, cardDelay);
+          if (head) tl.to(head, { opacity: 1, y: 0, duration: 0.35 }, cardDelay + 0.1);
+          checks.forEach((chk, ki) => {
+            tl.to(chk, { opacity: 1, scale: 1, duration: 0.25 }, cardDelay + 0.18 + ki * 0.08);
+          });
+          names.forEach((nm, ki) => {
+            tl.to(nm, { opacity: 1, x: 0, duration: 0.25 }, cardDelay + 0.2 + ki * 0.08);
+          });
         });
       };
       playToolkitShowcaseRef.current = playToolkitShowcase;
 
-      ScrollTrigger.create({
-        trigger: root.current,
-        start: () => "top+=" + window.innerHeight * 2.65 + " top",
-        end: () => "top+=" + window.innerHeight * 3.0 + " top",
-        onEnter: () => {
-          if (!isProgrammaticScrollRef.current && lockedSectionRef.current !== "skills") {
-            lockToSection("skills", 2.8);
-            if (!hasToolkitPlayed) {
-              playToolkitShowcase();
+      // Pointer parallax for About & mouse hover for Hero
+      if (!reduced) {
+        const setPX = gsap.quickTo(profile.current, "x", { duration: 0.7, ease: "power2.out" });
+        const setPY = gsap.quickTo(profile.current, "y", { duration: 0.7, ease: "power2.out" });
+        const setTX = gsap.quickTo([aboutName.current, aboutPara.current], "x", { duration: 0.9, ease: "power2.out" });
+        const setTY = gsap.quickTo([aboutName.current, aboutPara.current], "y", { duration: 0.9, ease: "power2.out" });
+
+        const setSpotX = gsap.quickTo(heroSpotlightRef.current, "x", { duration: 0.65, ease: "power2.out" });
+        const setSpotY = gsap.quickTo(heroSpotlightRef.current, "y", { duration: 0.65, ease: "power2.out" });
+        const setOuterX = gsap.quickTo(heroRingOuterRef.current, "x", { duration: 1.1, ease: "power3.out" });
+        const setOuterY = gsap.quickTo(heroRingOuterRef.current, "y", { duration: 1.1, ease: "power3.out" });
+        const setInnerX = gsap.quickTo(heroRingInnerRef.current, "x", { duration: 0.9, ease: "power3.out" });
+        const setInnerY = gsap.quickTo(heroRingInnerRef.current, "y", { duration: 0.9, ease: "power3.out" });
+        const setInnerRot = gsap.quickTo(heroRingInnerRef.current, "rotate", { duration: 1.2, ease: "power2.out" });
+        const setHeadX = gsap.quickTo([heroPre.current, heroVaultInline.current], "x", { duration: 0.8, ease: "power2.out" });
+        const setHeadY = gsap.quickTo([heroPre.current, heroVaultInline.current], "y", { duration: 0.8, ease: "power2.out" });
+
+        let hasMovedHeroMouse = false;
+        const onPointer = (e: PointerEvent) => {
+          const nx = e.clientX / window.innerWidth - 0.5;
+          const ny = e.clientY / window.innerHeight - 0.5;
+          setPX(nx * 26);
+          setPY(ny * 18);
+          setTX(nx * -10);
+          setTY(ny * -7);
+
+          if (activeSectionRef.current === "hero") {
+            if (!hasMovedHeroMouse && heroSpotlightRef.current) {
+              hasMovedHeroMouse = true;
+              gsap.to(heroSpotlightRef.current, { opacity: 1, duration: 0.6, ease: "power2.out" });
             }
+            setSpotX(e.clientX);
+            setSpotY(e.clientY);
+            setOuterX(nx * -32);
+            setOuterY(ny * -24);
+            setInnerX(nx * 20);
+            setInnerY(ny * 16);
+            setInnerRot(nx * 12);
+            setHeadX(nx * 10);
+            setHeadY(ny * 7);
           }
-        },
-        onEnterBack: () => {
-          if (!isProgrammaticScrollRef.current && lockedSectionRef.current !== "skills") {
-            lockToSection("skills", 2.8);
-          }
-        },
-        onLeave: () => {
-          if (lockedSectionRef.current === "skills" && !isProgrammaticScrollRef.current) {
-            lockedSectionRef.current = null;
-          }
-        },
-        onLeaveBack: () => {
-          if (lockedSectionRef.current === "skills" && !isProgrammaticScrollRef.current) {
-            lockedSectionRef.current = null;
-          }
-        },
-      });
-
-      // ======== PHASE 4 — Craft → Works ========
-      const worksTransition = gsap.timeline({ defaults: { ease: "power2.inOut" } });
-      worksTransition
-        .to(craftRight.current, { autoAlpha: 0, y: -28, duration: 0.4 }, 0)
-        .to(worksRight.current, { autoAlpha: 1, y: 0, duration: 0.5 }, 0.25);
-
-      ScrollTrigger.create({
-        trigger: root.current,
-        start: () => "top+=" + window.innerHeight * 3.6 + " top",
-        end: () => "top+=" + window.innerHeight * 4.3 + " top",
-        scrub: true,
-        animation: worksTransition,
-        onEnter: () => setRoom(ROOMS.works.accent, ROOMS.works.lift, 0.8),
-        onLeaveBack: () => setRoom(ROOMS.craft.accent, ROOMS.craft.lift, 0.8),
-      });
-
-      // Ensure Section Loaded Engine (Immediate visual loading on left menu header clicks)
-      const ensureSectionLoaded = (sectionKey: string) => {
-        const canonical = sectionKey === "craft" ? "skills" : sectionKey;
-        setActiveMenu(canonical, false);
-        setActiveSection(canonical);
-
-        const isInsideVault = window.scrollY >= window.innerHeight * 0.5;
-        if (isInsideVault) {
-          if (mainPanel.current) {
-            gsap.to(mainPanel.current, { yPercent: 0, duration: 0.25, ease: "power2.out", overwrite: "auto" });
-          }
-          if (heroVaultInline.current) gsap.to(heroVaultInline.current, { opacity: 0, duration: 0.2, overwrite: "auto" });
-          if (vaultFloat.current) gsap.to(vaultFloat.current, { opacity: 1, duration: 0.2, overwrite: "auto" });
-        }
-
-        const panels: Record<string, HTMLElement | null> = {
-          about: aboutRight.current,
-          journey: journeyRight.current,
-          skills: craftRight.current,
-          craft: craftRight.current,
-          works: worksRight.current,
-          beyond: beyondRight.current,
-          talk: talkRight.current,
         };
-
-        Object.entries(panels).forEach(([k, panel]) => {
-          if (!panel) return;
-          const isTarget = k === canonical || (canonical === "skills" && k === "craft");
-          if (isTarget) {
-            gsap.to(panel, { autoAlpha: 1, y: 0, duration: 0.3, ease: "power2.out", overwrite: "auto" });
-          } else if (k !== "craft") {
-            gsap.to(panel, { autoAlpha: 0, duration: 0.2, overwrite: "auto" });
-          }
-        });
-
-        if (canonical === "skills") {
-          hasToolkitPlayed = true;
-          isToolkitAnimating = false;
-          if (currentToolkitTl) {
-            currentToolkitTl.kill();
-            currentToolkitTl = null;
-          }
-          craftCards.forEach((card) => {
-            const trace = card.querySelector("[data-craft-trace]");
-            const head = card.querySelector("[data-craft-head]");
-            const checks = card.querySelectorAll("[data-craft-check]");
-            const names = card.querySelectorAll("[data-craft-name]");
-            gsap.to(card, { opacity: 1, y: 0, duration: 0.25, overwrite: "auto" });
-            if (trace) gsap.to(trace, { strokeDashoffset: 0, strokeOpacity: 0.45, duration: 0.25, overwrite: "auto" });
-            if (head) gsap.to(head, { opacity: 1, y: 0, duration: 0.25, overwrite: "auto" });
-            if (checks) gsap.to(checks, { opacity: 1, scale: 1, duration: 0.25, overwrite: "auto" });
-            if (names) gsap.to(names, { opacity: 1, x: 0, duration: 0.25, overwrite: "auto" });
-          });
-          const progressBar = craftRight.current?.querySelector("[data-toolkit-progress]");
-          if (progressBar) gsap.to(progressBar, { scaleX: 1, opacity: 0.35, duration: 0.25, overwrite: "auto" });
-          const statusEl = craftRight.current?.querySelector("[data-toolkit-status]");
-          if (statusEl) statusEl.textContent = "16 Capabilities Unlocked";
-          setRoom(ROOMS.craft.accent, ROOMS.craft.lift, 0.45);
-        } else if (canonical === "journey") {
-          jCards.forEach((card, i) => {
-            const isActive = i === activeChapterRef.current;
-            gsap.to(card, {
-              opacity: isActive ? 1 : 0,
-              y: isActive ? 0 : 20,
-              duration: 0.25,
-              overwrite: "auto",
-            });
-            card.style.pointerEvents = isActive ? "auto" : "none";
-          });
-          setRoom(JOURNEY[activeChapterRef.current].accent, JOURNEY[activeChapterRef.current].lift, 0.45);
-        } else if (canonical === "beyond") {
-          setRoom(BEYOND[activeBeyondRef.current].accent, BEYOND[activeBeyondRef.current].lift, 0.45);
-        } else if (canonical === "works") {
-          setRoom(ROOMS.works.accent, ROOMS.works.lift, 0.45);
-        } else if (canonical === "talk") {
-          setRoom(ROOMS.talk.accent, ROOMS.talk.lift, 0.45);
-        } else if (canonical === "about") {
-          setRoom(ROOMS.about.accent, ROOMS.about.lift, 0.45);
-        }
-      };
-      ensureSectionLoadedRef.current = ensureSectionLoaded;
-
-      // ======== PHASE 5a — Works → Beyond Work ========
-      const worksToBeyond = gsap.timeline({ defaults: { ease: "power2.inOut" } });
-      worksToBeyond
-        .to(worksRight.current, { autoAlpha: 0, y: -28, duration: 0.4 }, 0)
-        .to(beyondRight.current, { autoAlpha: 1, y: 0, duration: 0.5 }, 0.25);
-
-      ScrollTrigger.create({
-        trigger: root.current,
-        start: () => "top+=" + window.innerHeight * 5.1 + " top",
-        end: () => "top+=" + window.innerHeight * 5.7 + " top",
-        scrub: true,
-        animation: worksToBeyond,
-        onEnter: () => {
-          setRoom(BEYOND[activeBeyondRef.current].accent, BEYOND[activeBeyondRef.current].lift, 0.8);
-        },
-        onLeaveBack: () => setRoom(ROOMS.works.accent, ROOMS.works.lift, 0.8),
-      });
-
-      // ======== PHASE 5b — Beyond Work Magnetic Snap & Lock ========
-      ScrollTrigger.create({
-        trigger: root.current,
-        start: () => "top+=" + window.innerHeight * 5.65 + " top",
-        end: () => "top+=" + window.innerHeight * 5.95 + " top",
-        onEnter: () => {
-          if (!isProgrammaticScrollRef.current && lockedSectionRef.current !== "beyond") {
-            lockToSection("beyond", 5.8);
-          }
-        },
-        onEnterBack: () => {
-          if (!isProgrammaticScrollRef.current && lockedSectionRef.current !== "beyond") {
-            lockToSection("beyond", 5.8);
-          }
-        },
-        onLeave: () => {
-          if (lockedSectionRef.current === "beyond" && !isProgrammaticScrollRef.current) {
-            lockedSectionRef.current = null;
-          }
-        },
-        onLeaveBack: () => {
-          if (lockedSectionRef.current === "beyond" && !isProgrammaticScrollRef.current) {
-            lockedSectionRef.current = null;
-          }
-        },
-      });
-
-      // ======== PHASE 6 — Beyond Work → Let's Talk ========
-      const beyondToTalk = gsap.timeline({ defaults: { ease: "power2.inOut" } });
-      beyondToTalk
-        .to(beyondRight.current, { autoAlpha: 0, y: -28, duration: 0.4 }, 0)
-        .to(talkRight.current, { autoAlpha: 1, y: 0, duration: 0.5 }, 0.25);
-
-      ScrollTrigger.create({
-        trigger: root.current,
-        start: () => "top+=" + window.innerHeight * 6.0 + " top",
-        end: () => "top+=" + window.innerHeight * 6.6 + " top",
-        scrub: true,
-        animation: beyondToTalk,
-        onEnter: () => setRoom(ROOMS.talk.accent, ROOMS.talk.lift, 0.8),
-        onLeaveBack: () => setRoom(BEYOND[activeBeyondRef.current].accent, BEYOND[activeBeyondRef.current].lift, 0.8),
-      });
-
-      // -------- Reduced motion --------
-      if (reduced) {
-        if (heroPreInner.current) gsap.set(heroPreInner.current, { yPercent: 0, opacity: 1 });
-        if (heroVaultInner.current) gsap.set(heroVaultInner.current, { yPercent: 0, opacity: 1 });
-        if (heroSubInner.current) gsap.set(heroSubInner.current, { yPercent: 0, opacity: 1 });
-        gsap.set(craftCards, { opacity: 1, y: 0 });
-        craftCards.forEach((card) => {
-          const trace = card.querySelector("[data-craft-trace]");
-          const head = card.querySelector("[data-craft-head]");
-          const checks = card.querySelectorAll("[data-craft-check]");
-          const names = card.querySelectorAll("[data-craft-name]");
-          if (trace) gsap.set(trace, { strokeDashoffset: 0, strokeOpacity: 0.45 });
-          if (head) gsap.set(head, { opacity: 1, y: 0 });
-          if (checks) gsap.set(checks, { opacity: 1, scale: 1 });
-          if (names) gsap.set(names, { opacity: 1, x: 0 });
-        });
-        if (craftCount) craftCount.textContent = "16";
-        measure();
-        setIsIntroComplete(true);
-        unlockScroll();
-        ScrollTrigger.refresh();
-        return;
+        window.addEventListener("pointermove", onPointer, { passive: true });
+        return () => window.removeEventListener("pointermove", onPointer);
       }
 
-      // -------- Hero Slide Entrance --------
-      lockScroll();
-
+      // Hero Slide Entrance
       let introFinished = false;
       const finishIntro = () => {
         if (introFinished) return;
@@ -1553,17 +971,12 @@ export default function Experience() {
         if (heroVaultInner.current) gsap.set(heroVaultInner.current, { yPercent: 0, opacity: 1 });
         if (heroSubInner.current) gsap.set(heroSubInner.current, { yPercent: 0, opacity: 1 });
         measure();
-        unlockScroll();
-        ScrollTrigger.refresh();
       };
       finishIntroRef.current = finishIntro;
 
       const run = () => {
         measure();
-        if (isCancelled() || introFinished) {
-          unlockScroll();
-          return;
-        }
+        if (isCancelled() || introFinished) return;
 
         const heroTl = gsap.timeline({
           delay: 0.25,
@@ -1572,8 +985,6 @@ export default function Experience() {
             introFinished = true;
             setIsIntroComplete(true);
             measure();
-            unlockScroll();
-            ScrollTrigger.refresh();
           },
         });
 
@@ -1600,7 +1011,6 @@ export default function Experience() {
       (document.fonts?.ready ?? Promise.resolve()).then(() => {
         if (isCancelled()) return;
         measure();
-        ScrollTrigger.refresh();
         run();
       });
     }, root);
@@ -1611,24 +1021,10 @@ export default function Experience() {
         clearTimeout(beyondResetTimerRef.current);
         beyondResetTimerRef.current = null;
       }
-      if (rubberResetTimerRef.current) {
-        clearTimeout(rubberResetTimerRef.current);
-        rubberResetTimerRef.current = null;
-      }
-      cleanupWheelListeners?.();
-      unlockScroll();
-      ensureSectionLoadedRef.current = null;
       playToolkitShowcaseRef.current = null;
-      if (navTimeoutRef.current) {
-        clearTimeout(navTimeoutRef.current);
-        navTimeoutRef.current = null;
-      }
-      pointerListener?.();
-      gsap.ticker.remove(tick);
-      lenis.destroy();
       ctx.revert();
     };
-  }, []);
+  }, [measure]);
 
   const currentCanonicalKey = activeSection === "craft" ? "skills" : activeSection;
   const currentMenuItem = MENU.find((m) => m.key === currentCanonicalKey) ?? MENU[0];
@@ -1640,13 +1036,18 @@ export default function Experience() {
       : ROOMS[currentCanonicalKey as keyof typeof ROOMS]?.accent?.join(" ") || "10 10 10";
 
   return (
-    <main id="main-content" ref={root} className="relative h-[800vh] w-full">
-      {/* ---------------------------------- VIEWPORT SCROLL PROGRESS HAIRLINE */}
+    <main id="main-content" ref={root} className="relative h-screen h-[100dvh] w-full overflow-hidden select-none">
+      {/* ---------------------------------- VIEWPORT SECTION PROGRESS HAIRLINE */}
       <div
         aria-hidden
-        ref={scrollProgressBar}
-        className="fixed top-0 left-0 right-0 z-[100] h-[2.5px] bg-black/85 origin-left pointer-events-none shadow-[0_1px_4px_rgba(0,0,0,0.12)] will-change-transform"
-        style={{ transform: "scaleX(0)" }}
+        className="fixed top-0 left-0 right-0 z-[100] h-[2.5px] bg-black/85 origin-left pointer-events-none shadow-[0_1px_4px_rgba(0,0,0,0.12)] transition-transform duration-500 ease-out will-change-transform"
+        style={{
+          transform: `scaleX(${
+            activeSection === "hero"
+              ? 0
+              : (MENU.findIndex((m) => m.key === (activeSection === "craft" ? "skills" : activeSection)) + 1) / MENU.length
+          })`,
+        }}
       />
 
       {/* ------------------------------------------------------------ NAV */}
@@ -1657,10 +1058,9 @@ export default function Experience() {
             type="button"
             onClick={() => {
               soundFX.playMenuClick();
-              const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-              lenisRef.current?.scrollTo(0, { duration: reduced ? 0 : 1.2 });
+              returnToHero();
             }}
-            aria-label="Vault, return to top"
+            aria-label="Vault, return to welcome screen"
             className="font-excon font-bold leading-none opacity-0 select-none cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 rounded"
             style={{ fontSize: NAV_VAULT_SIZE }}
           >
@@ -1696,9 +1096,9 @@ export default function Experience() {
           <button
             ref={letsTalk}
             type="button"
-            onClick={() => handleMenuClick("talk")}
+            onClick={() => switchSectionTo("talk")}
             onMouseEnter={() => soundFX.playHoverTick()}
-            aria-label="Scroll to connect section"
+            aria-label="Go to connect section"
             className="group will-reveal relative overflow-hidden flex items-center gap-2 sm:gap-2.5 font-excon font-bold leading-none text-ink rounded-full border-2 border-ink px-4 py-2 sm:px-6 sm:py-3 text-xs sm:text-base transition-all duration-300 ease-out hover:scale-108 hover:-translate-y-0.5 hover:bg-ink hover:text-bg hover:shadow-[0_12px_28px_rgba(0,0,0,0.18)] active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
           >
             {/* Morphing Envelope Icon: Closed envelope by default, transforms into an open envelope with letter on hover */}
@@ -1747,8 +1147,7 @@ export default function Experience() {
           aria-hidden="true"
           onClick={() => {
             soundFX.playMenuClick();
-            const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-            lenisRef.current?.scrollTo(0, { duration: reduced ? 0 : 1.2 });
+            returnToHero();
           }}
           className="text-glow pointer-events-auto fixed left-0 top-0 font-excon font-bold leading-none text-ink cursor-pointer active:scale-95 transition-transform duration-150 border-0 bg-transparent p-0"
           style={{ fontSize: HEADING_SIZE, willChange: "transform" }}
@@ -1895,67 +1294,99 @@ export default function Experience() {
           </div>
           <div className="relative mx-auto flex h-full max-w-[1480px] items-center px-4 sm:px-6 lg:px-[5vw] lg:gap-[4%]">
             {/* Left: accordion chapter menu (desktop only) */}
-            <nav aria-label="Section navigation" className="hidden lg:flex w-[28%] shrink-0">
-              <ul
-                ref={menu}
-                className="w-full flex flex-col justify-center gap-[0.55rem] font-excon font-bold leading-[1.05]"
-              >
-                {MENU.map((item) => {
-                  const isActive = activeSection === item.key;
-                  const isMultiLine = item.key === "beyond" && isBeyondMultiLine;
-                  return (
-                    <li
-                      key={item.key}
-                      data-key={item.key}
-                      className="group will-reveal select-none"
-                      style={{
-                        fontSize: item.key === "about" ? MENU_ACTIVE : MENU_SMALL,
-                        color: item.key === "about" ? INK : INK_DIM,
-                      }}
-                    >
-                      <button
-                        type="button"
-                        onClick={() => handleMenuClick(item.key)}
-                        onMouseEnter={() => soundFX.playHoverTick()}
-                        aria-current={isActive ? "true" : undefined}
-                        className={`w-full text-left flex ${isMultiLine ? "items-start" : "items-center"
-                          } justify-between py-1 rounded-lg cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 active:scale-[0.98] transition-transform duration-150 border-0 bg-transparent p-0 text-inherit font-inherit`}
+            <nav aria-label="Section navigation" className="hidden lg:flex w-[28%] shrink-0 flex-col justify-between py-6">
+              <div>
+                {/* Section Guide / Instruction Pill */}
+                <div className="flex items-center gap-2 mb-4 px-3 py-1.5 rounded-full bg-black/[0.04] border border-black/8 w-fit text-[0.68rem] font-mono tracking-wider uppercase text-neutral-600 shadow-2xs">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600" />
+                  </span>
+                  <span className="font-semibold text-neutral-800">Index</span>
+                  <span className="text-black/25">·</span>
+                  <span className="text-neutral-500 font-sans normal-case">Use sidebar to explore</span>
+                </div>
+
+                <ul
+                  ref={menu}
+                  className="w-full flex flex-col justify-center gap-[0.55rem] font-excon font-bold leading-[1.05]"
+                >
+                  {MENU.map((item) => {
+                    const isActive = currentCanonicalKey === item.key;
+                    const isMultiLine = item.key === "beyond" && isBeyondMultiLine;
+                    return (
+                      <li
+                        key={item.key}
+                        data-key={item.key}
+                        className="group will-reveal select-none"
+                        style={{
+                          fontSize: item.key === "about" ? MENU_ACTIVE : MENU_SMALL,
+                          color: item.key === "about" ? INK : INK_DIM,
+                        }}
                       >
-                        <span
-                          className={`inline-flex ${isMultiLine ? "items-start" : "items-center"
-                            } gap-3 transition-transform duration-300 ease-out group-hover:translate-x-2.5 group-active:translate-x-1`}
+                        <button
+                          type="button"
+                          onClick={() => switchSectionTo(item.key)}
+                          onMouseEnter={() => soundFX.playHoverTick()}
+                          aria-current={isActive ? "true" : undefined}
+                          className={`w-full text-left flex ${isMultiLine ? "items-start" : "items-center"
+                            } justify-between py-1 rounded-lg cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 active:scale-[0.98] transition-transform duration-150 border-0 bg-transparent p-0 text-inherit font-inherit`}
                         >
                           <span
-                            className={`font-mono text-xs sm:text-sm tracking-wider transition-opacity duration-200 ${isMultiLine ? "mt-[0.22em]" : ""
-                              } ${isActive ? "opacity-100 font-bold" : "opacity-45"}`}
+                            className={`inline-flex ${isMultiLine ? "items-start" : "items-center"
+                              } gap-3 transition-transform duration-300 ease-out group-hover:translate-x-2.5 group-active:translate-x-1`}
                           >
-                            {item.numeral}
-                          </span>
-                          {"lines" in item && item.lines ? (
                             <span
-                              className={`inline-flex transition-all duration-300 ease-out ${isMultiLine
-                                ? "flex-col items-start leading-[0.92]"
-                                : "flex-row items-baseline gap-[0.28em] leading-normal"
-                                }`}
+                              className={`font-mono text-xs sm:text-sm tracking-wider transition-opacity duration-200 ${isMultiLine ? "mt-[0.22em]" : ""
+                                } ${isActive ? "opacity-100 font-bold" : "opacity-45"}`}
                             >
-                              <span className="transition-colors duration-200 group-hover:text-black">
-                                {item.lines[0]}
-                              </span>
-                              <span className="transition-colors duration-200 group-hover:text-black">
-                                {item.lines[1]}
-                              </span>
+                              {item.numeral}
                             </span>
-                          ) : (
-                            <span className="transition-colors duration-200 group-hover:text-black whitespace-nowrap">
-                              {item.label}
-                            </span>
+                            {"lines" in item && item.lines ? (
+                              <span
+                                className={`inline-flex transition-all duration-300 ease-out ${isMultiLine
+                                  ? "flex-col items-start leading-[0.92]"
+                                  : "flex-row items-baseline gap-[0.28em] leading-normal"
+                                  }`}
+                              >
+                                <span className="transition-colors duration-200 group-hover:text-black">
+                                  {item.lines[0]}
+                                </span>
+                                <span className="transition-colors duration-200 group-hover:text-black">
+                                  {item.lines[1]}
+                                </span>
+                              </span>
+                            ) : (
+                              <span className="transition-colors duration-200 group-hover:text-black whitespace-nowrap">
+                                {item.label}
+                              </span>
+                            )}
+                          </span>
+
+                          {/* Active Indicator Beacon */}
+                          {isActive && (
+                            <span className="w-2 h-2 rounded-full bg-neutral-900 animate-pulse ml-2" />
                           )}
-                        </span>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+
+                {/* Section Navigator Guide Legend */}
+                <div className="mt-8 pt-4 border-t border-black/8 flex flex-col gap-2 font-mono text-[0.68rem] text-neutral-500">
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-neutral-700">Section Navigator:</span>
+                    <div className="flex items-center gap-1 font-mono text-[0.65rem]">
+                      <kbd className="px-1.5 py-0.5 rounded border border-black/10 bg-neutral-100 font-mono text-neutral-700">1–6</kbd>
+                      <kbd className="px-1.5 py-0.5 rounded border border-black/10 bg-neutral-100 font-mono text-neutral-700">↑ / ↓</kbd>
+                    </div>
+                  </div>
+                  <p className="font-sans text-[0.72rem] text-neutral-500 leading-snug">
+                    Click any section or press keys 1–6 to explore. Zero scrolling required.
+                  </p>
+                </div>
+              </div>
             </nav>
 
             {/* Right: swappable content */}
@@ -1969,6 +1400,13 @@ export default function Experience() {
               >
                 <h2 className="sr-only">About Tharun S</h2>
                 <div className="flex w-full max-w-[440px] flex-col items-center text-center">
+                  <div className="mb-4 inline-flex items-center gap-2 px-3 py-1 rounded-full border border-black/8 bg-black/[0.03] text-[0.68rem] font-mono text-neutral-500">
+                    <span>Section 01 / 06</span>
+                    <span className="text-black/20">·</span>
+                    <span className="text-neutral-700 font-semibold">Intro</span>
+                    <span className="text-black/20">·</span>
+                    <span>Navigate via sidebar ←</span>
+                  </div>
                   <div ref={profile} className="will-reveal relative w-[clamp(160px,18vw,280px)]">
                     <div data-portrait-glow aria-hidden className="hidden" />
                     <div data-parallax="portrait">
@@ -2019,6 +1457,11 @@ export default function Experience() {
                       <span className="font-inter text-[0.68rem] sm:text-xs text-neutral-500 hidden sm:inline">
                         Every chapter added something to the person I am today.
                       </span>
+                    </div>
+                    <div className="hidden sm:flex items-center gap-1.5 font-mono text-[0.65rem] text-neutral-400">
+                      <span>Section 02 / 06</span>
+                      <span className="text-black/20">·</span>
+                      <span className="text-neutral-500">Navigate via sidebar ←</span>
                     </div>
                   </div>
 
@@ -2222,6 +1665,9 @@ export default function Experience() {
                     </div>
 
                     <div className="flex items-center gap-2 sm:gap-3">
+                      <span className="hidden xl:inline font-mono text-[0.65rem] text-neutral-400">
+                        Section 03 / 06 · Navigate via sidebar ←
+                      </span>
                       <span
                         data-toolkit-status
                         className="font-mono text-[0.68rem] sm:text-xs font-semibold text-neutral-400"
@@ -2381,21 +1827,15 @@ export default function Experience() {
                         Five core engineering systems engineered for depth and precision.
                       </span>
                     </div>
-                    <div className="hidden sm:flex items-center gap-1.5 font-mono text-[0.65rem] text-neutral-400">
+                    <div className="hidden sm:flex items-center gap-2 font-mono text-[0.65rem] text-neutral-400">
+                      <span className="hidden xl:inline">Section 04 / 06 · Use sidebar ←</span>
+                      <span className="hidden xl:inline text-black/20">·</span>
                       <span>Keys:</span>
                       <kbd className="px-1.5 py-0.5 rounded border border-black/10 bg-neutral-100 text-neutral-700 font-mono">1–5</kbd>
                       <kbd className="px-1.5 py-0.5 rounded border border-black/10 bg-neutral-100 text-neutral-700 font-mono">← / →</kbd>
                     </div>
                   </div>
-                  <WorksExpandable
-                    onModalChange={(isOpen: boolean) => {
-                      if (isOpen) {
-                        lenisRef.current?.stop();
-                      } else {
-                        lenisRef.current?.start();
-                      }
-                    }}
-                  />
+                  <WorksExpandable />
                 </div>
               </section>
 
@@ -2420,7 +1860,9 @@ export default function Experience() {
                         A little more about the person behind the pixels.
                       </span>
                     </div>
-                    <div className="hidden sm:flex items-center gap-1.5 font-mono text-[0.65rem] text-neutral-400">
+                    <div className="hidden sm:flex items-center gap-2 font-mono text-[0.65rem] text-neutral-400">
+                      <span className="hidden xl:inline">Section 05 / 06 · Use sidebar ←</span>
+                      <span className="hidden xl:inline text-black/20">·</span>
                       <span>Keys:</span>
                       <kbd className="px-1.5 py-0.5 rounded border border-black/10 bg-neutral-100 text-neutral-700 font-mono">1–4</kbd>
                       <kbd className="px-1.5 py-0.5 rounded border border-black/10 bg-neutral-100 text-neutral-700 font-mono">← / →</kbd>
@@ -2430,13 +1872,6 @@ export default function Experience() {
                   <OffScriptShowcase
                     activeIndex={activeBeyondIndex}
                     onSelectIndex={(idx) => handleBeyondChapterClick(idx)}
-                    onModalChange={(isOpen) => {
-                      if (isOpen) {
-                        lenisRef.current?.stop();
-                      } else {
-                        lenisRef.current?.start();
-                      }
-                    }}
                   />
                 </div>
               </section>
@@ -2455,6 +1890,9 @@ export default function Experience() {
                       <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-50 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-emerald-700">
                         <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
                         Available for opportunities
+                      </span>
+                      <span className="hidden sm:inline font-mono text-[0.68rem] text-neutral-400">
+                        Section 06 / 06 · Use sidebar ←
                       </span>
                     </div>
 
@@ -2549,7 +1987,7 @@ export default function Experience() {
               <button
                 key={item.key}
                 type="button"
-                onClick={() => handleMenuClick(item.key)}
+                onClick={() => switchSectionTo(item.key)}
                 onMouseEnter={() => soundFX.playHoverTick()}
                 aria-current={isActive ? "true" : undefined}
                 aria-label={`Go to section ${item.label}`}
@@ -2617,6 +2055,9 @@ export default function Experience() {
 
           {/* Center Accordion Menu — exact same design pattern as desktop */}
           <nav aria-label="Mobile sections list" className="relative z-10 my-auto flex flex-col justify-center gap-3 sm:gap-4 py-4">
+            <div className="text-[0.68rem] font-mono uppercase tracking-wider text-neutral-400 mb-1">
+              Select a section to explore:
+            </div>
             {MENU.map((item) => {
               const isActive = currentCanonicalKey === item.key;
               return (
@@ -2626,7 +2067,7 @@ export default function Experience() {
                   onClick={() => {
                     soundFX.playMenuClick();
                     setIsMobileNavOpen(false);
-                    handleMenuClick(item.key);
+                    switchSectionTo(item.key);
                   }}
                   onMouseEnter={() => soundFX.playHoverTick()}
                   aria-current={isActive ? "true" : undefined}
@@ -2675,7 +2116,7 @@ export default function Experience() {
               onClick={() => {
                 soundFX.playMenuClick();
                 setIsMobileNavOpen(false);
-                handleMenuClick("talk");
+                switchSectionTo("talk");
               }}
               className="text-black font-semibold hover:underline cursor-pointer"
             >
