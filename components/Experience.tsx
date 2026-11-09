@@ -1037,19 +1037,6 @@ export default function Experience() {
 
   return (
     <main id="main-content" ref={root} className="relative h-screen h-[100dvh] w-full overflow-hidden select-none">
-      {/* ---------------------------------- VIEWPORT SECTION PROGRESS HAIRLINE */}
-      <div
-        aria-hidden
-        className="fixed top-0 left-0 right-0 z-[100] h-[2.5px] bg-black/85 origin-left pointer-events-none shadow-[0_1px_4px_rgba(0,0,0,0.12)] transition-transform duration-500 ease-out will-change-transform"
-        style={{
-          transform: `scaleX(${
-            activeSection === "hero"
-              ? 0
-              : (MENU.findIndex((m) => m.key === (activeSection === "craft" ? "skills" : activeSection)) + 1) / MENU.length
-          })`,
-        }}
-      />
-
       {/* ------------------------------------------------------------ NAV */}
       <header className="fixed inset-x-0 top-0 z-50 flex items-center justify-between px-4 sm:px-[6vw] py-2.5 sm:py-[3.4vh]">
         <div className="relative">
@@ -1294,99 +1281,67 @@ export default function Experience() {
           </div>
           <div className="relative mx-auto flex h-full max-w-[1480px] items-center px-4 sm:px-6 lg:px-[5vw] lg:gap-[4%]">
             {/* Left: accordion chapter menu (desktop only) */}
-            <nav aria-label="Section navigation" className="hidden lg:flex w-[28%] shrink-0 flex-col justify-between py-6">
-              <div>
-                {/* Section Guide / Instruction Pill */}
-                <div className="flex items-center gap-2 mb-4 px-3 py-1.5 rounded-full bg-black/[0.04] border border-black/8 w-fit text-[0.68rem] font-mono tracking-wider uppercase text-neutral-600 shadow-2xs">
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600" />
-                  </span>
-                  <span className="font-semibold text-neutral-800">Index</span>
-                  <span className="text-black/25">·</span>
-                  <span className="text-neutral-500 font-sans normal-case">Use sidebar to explore</span>
-                </div>
-
-                <ul
-                  ref={menu}
-                  className="w-full flex flex-col justify-center gap-[0.55rem] font-excon font-bold leading-[1.05]"
-                >
-                  {MENU.map((item) => {
-                    const isActive = currentCanonicalKey === item.key;
-                    const isMultiLine = item.key === "beyond" && isBeyondMultiLine;
-                    return (
-                      <li
-                        key={item.key}
-                        data-key={item.key}
-                        className="group will-reveal select-none"
-                        style={{
-                          fontSize: item.key === "about" ? MENU_ACTIVE : MENU_SMALL,
-                          color: item.key === "about" ? INK : INK_DIM,
-                        }}
+            <nav aria-label="Section navigation" className="hidden lg:flex w-[28%] shrink-0">
+              <ul
+                ref={menu}
+                className="w-full flex flex-col justify-center gap-[0.55rem] font-excon font-bold leading-[1.05]"
+              >
+                {MENU.map((item) => {
+                  const isActive = currentCanonicalKey === item.key;
+                  const isMultiLine = item.key === "beyond" && isBeyondMultiLine;
+                  return (
+                    <li
+                      key={item.key}
+                      data-key={item.key}
+                      className="group will-reveal select-none"
+                      style={{
+                        fontSize: item.key === "about" ? MENU_ACTIVE : MENU_SMALL,
+                        color: item.key === "about" ? INK : INK_DIM,
+                      }}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => switchSectionTo(item.key)}
+                        onMouseEnter={() => soundFX.playHoverTick()}
+                        aria-current={isActive ? "true" : undefined}
+                        className={`w-full text-left flex ${isMultiLine ? "items-start" : "items-center"
+                          } justify-between py-1 rounded-lg cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 active:scale-[0.98] transition-transform duration-150 border-0 bg-transparent p-0 text-inherit font-inherit`}
                       >
-                        <button
-                          type="button"
-                          onClick={() => switchSectionTo(item.key)}
-                          onMouseEnter={() => soundFX.playHoverTick()}
-                          aria-current={isActive ? "true" : undefined}
-                          className={`w-full text-left flex ${isMultiLine ? "items-start" : "items-center"
-                            } justify-between py-1 rounded-lg cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 active:scale-[0.98] transition-transform duration-150 border-0 bg-transparent p-0 text-inherit font-inherit`}
+                        <span
+                          className={`inline-flex ${isMultiLine ? "items-start" : "items-center"
+                            } gap-3 transition-transform duration-300 ease-out group-hover:translate-x-2.5 group-active:translate-x-1`}
                         >
                           <span
-                            className={`inline-flex ${isMultiLine ? "items-start" : "items-center"
-                              } gap-3 transition-transform duration-300 ease-out group-hover:translate-x-2.5 group-active:translate-x-1`}
+                            className={`font-mono text-xs sm:text-sm tracking-wider transition-opacity duration-200 ${isMultiLine ? "mt-[0.22em]" : ""
+                              } ${isActive ? "opacity-100 font-bold" : "opacity-45"}`}
                           >
-                            <span
-                              className={`font-mono text-xs sm:text-sm tracking-wider transition-opacity duration-200 ${isMultiLine ? "mt-[0.22em]" : ""
-                                } ${isActive ? "opacity-100 font-bold" : "opacity-45"}`}
-                            >
-                              {item.numeral}
-                            </span>
-                            {"lines" in item && item.lines ? (
-                              <span
-                                className={`inline-flex transition-all duration-300 ease-out ${isMultiLine
-                                  ? "flex-col items-start leading-[0.92]"
-                                  : "flex-row items-baseline gap-[0.28em] leading-normal"
-                                  }`}
-                              >
-                                <span className="transition-colors duration-200 group-hover:text-black">
-                                  {item.lines[0]}
-                                </span>
-                                <span className="transition-colors duration-200 group-hover:text-black">
-                                  {item.lines[1]}
-                                </span>
-                              </span>
-                            ) : (
-                              <span className="transition-colors duration-200 group-hover:text-black whitespace-nowrap">
-                                {item.label}
-                              </span>
-                            )}
+                            {item.numeral}
                           </span>
-
-                          {/* Active Indicator Beacon */}
-                          {isActive && (
-                            <span className="w-2 h-2 rounded-full bg-neutral-900 animate-pulse ml-2" />
+                          {"lines" in item && item.lines ? (
+                            <span
+                              className={`inline-flex transition-all duration-300 ease-out ${isMultiLine
+                                ? "flex-col items-start leading-[0.92]"
+                                : "flex-row items-baseline gap-[0.28em] leading-normal"
+                                }`}
+                            >
+                              <span className="transition-colors duration-200 group-hover:text-black">
+                                {item.lines[0]}
+                              </span>
+                              <span className="transition-colors duration-200 group-hover:text-black">
+                                {item.lines[1]}
+                              </span>
+                            </span>
+                          ) : (
+                            <span className="transition-colors duration-200 group-hover:text-black whitespace-nowrap">
+                              {item.label}
+                            </span>
                           )}
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
-
-                {/* Section Navigator Guide Legend */}
-                <div className="mt-8 pt-4 border-t border-black/8 flex flex-col gap-2 font-mono text-[0.68rem] text-neutral-500">
-                  <div className="flex items-center justify-between">
-                    <span className="font-semibold text-neutral-700">Section Navigator:</span>
-                    <div className="flex items-center gap-1 font-mono text-[0.65rem]">
-                      <kbd className="px-1.5 py-0.5 rounded border border-black/10 bg-neutral-100 font-mono text-neutral-700">1–6</kbd>
-                      <kbd className="px-1.5 py-0.5 rounded border border-black/10 bg-neutral-100 font-mono text-neutral-700">↑ / ↓</kbd>
-                    </div>
-                  </div>
-                  <p className="font-sans text-[0.72rem] text-neutral-500 leading-snug">
-                    Click any section or press keys 1–6 to explore. Zero scrolling required.
-                  </p>
-                </div>
-              </div>
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
             </nav>
 
             {/* Right: swappable content */}
@@ -1400,13 +1355,6 @@ export default function Experience() {
               >
                 <h2 className="sr-only">About Tharun S</h2>
                 <div className="flex w-full max-w-[440px] flex-col items-center text-center">
-                  <div className="mb-4 inline-flex items-center gap-2 px-3 py-1 rounded-full border border-black/8 bg-black/[0.03] text-[0.68rem] font-mono text-neutral-500">
-                    <span>Section 01 / 06</span>
-                    <span className="text-black/20">·</span>
-                    <span className="text-neutral-700 font-semibold">Intro</span>
-                    <span className="text-black/20">·</span>
-                    <span>Navigate via sidebar ←</span>
-                  </div>
                   <div ref={profile} className="will-reveal relative w-[clamp(160px,18vw,280px)]">
                     <div data-portrait-glow aria-hidden className="hidden" />
                     <div data-parallax="portrait">
@@ -1457,11 +1405,6 @@ export default function Experience() {
                       <span className="font-inter text-[0.68rem] sm:text-xs text-neutral-500 hidden sm:inline">
                         Every chapter added something to the person I am today.
                       </span>
-                    </div>
-                    <div className="hidden sm:flex items-center gap-1.5 font-mono text-[0.65rem] text-neutral-400">
-                      <span>Section 02 / 06</span>
-                      <span className="text-black/20">·</span>
-                      <span className="text-neutral-500">Navigate via sidebar ←</span>
                     </div>
                   </div>
 
@@ -1665,9 +1608,6 @@ export default function Experience() {
                     </div>
 
                     <div className="flex items-center gap-2 sm:gap-3">
-                      <span className="hidden xl:inline font-mono text-[0.65rem] text-neutral-400">
-                        Section 03 / 06 · Navigate via sidebar ←
-                      </span>
                       <span
                         data-toolkit-status
                         className="font-mono text-[0.68rem] sm:text-xs font-semibold text-neutral-400"
@@ -1827,9 +1767,7 @@ export default function Experience() {
                         Five core engineering systems engineered for depth and precision.
                       </span>
                     </div>
-                    <div className="hidden sm:flex items-center gap-2 font-mono text-[0.65rem] text-neutral-400">
-                      <span className="hidden xl:inline">Section 04 / 06 · Use sidebar ←</span>
-                      <span className="hidden xl:inline text-black/20">·</span>
+                    <div className="hidden sm:flex items-center gap-1.5 font-mono text-[0.65rem] text-neutral-400">
                       <span>Keys:</span>
                       <kbd className="px-1.5 py-0.5 rounded border border-black/10 bg-neutral-100 text-neutral-700 font-mono">1–5</kbd>
                       <kbd className="px-1.5 py-0.5 rounded border border-black/10 bg-neutral-100 text-neutral-700 font-mono">← / →</kbd>
@@ -1860,9 +1798,7 @@ export default function Experience() {
                         A little more about the person behind the pixels.
                       </span>
                     </div>
-                    <div className="hidden sm:flex items-center gap-2 font-mono text-[0.65rem] text-neutral-400">
-                      <span className="hidden xl:inline">Section 05 / 06 · Use sidebar ←</span>
-                      <span className="hidden xl:inline text-black/20">·</span>
+                    <div className="hidden sm:flex items-center gap-1.5 font-mono text-[0.65rem] text-neutral-400">
                       <span>Keys:</span>
                       <kbd className="px-1.5 py-0.5 rounded border border-black/10 bg-neutral-100 text-neutral-700 font-mono">1–4</kbd>
                       <kbd className="px-1.5 py-0.5 rounded border border-black/10 bg-neutral-100 text-neutral-700 font-mono">← / →</kbd>
@@ -1886,13 +1822,10 @@ export default function Experience() {
                 <h2 className="sr-only">Connect</h2>
                 <div className="w-full max-w-[680px] rounded-[28px] sm:rounded-[36px] border border-black/10 bg-white p-6 sm:p-10 md:p-12 shadow-[0_20px_60px_rgba(0,0,0,0.06)] flex flex-col justify-between">
                   <div>
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center">
                       <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-50 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-emerald-700">
                         <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
                         Available for opportunities
-                      </span>
-                      <span className="hidden sm:inline font-mono text-[0.68rem] text-neutral-400">
-                        Section 06 / 06 · Use sidebar ←
                       </span>
                     </div>
 
@@ -2036,7 +1969,6 @@ export default function Experience() {
               <span className="font-excon font-bold text-xl sm:text-2xl text-ink">
                 Vault.
               </span>
-              <span className="font-mono text-xs text-neutral-400">/ Index</span>
             </div>
             <button
               type="button"
@@ -2055,9 +1987,6 @@ export default function Experience() {
 
           {/* Center Accordion Menu — exact same design pattern as desktop */}
           <nav aria-label="Mobile sections list" className="relative z-10 my-auto flex flex-col justify-center gap-3 sm:gap-4 py-4">
-            <div className="text-[0.68rem] font-mono uppercase tracking-wider text-neutral-400 mb-1">
-              Select a section to explore:
-            </div>
             {MENU.map((item) => {
               const isActive = currentCanonicalKey === item.key;
               return (
@@ -2089,20 +2018,6 @@ export default function Experience() {
                   >
                     {item.label}
                   </span>
-                  {isActive && (
-                    <span
-                      className="w-2 h-2 rounded-full mb-1 animate-pulse"
-                      style={{
-                        backgroundColor: `rgb(${
-                          item.key === "journey"
-                            ? JOURNEY[activeChapterIndex]?.accent.join(" ")
-                            : item.key === "beyond"
-                            ? BEYOND[activeBeyondIndex]?.accent.join(" ")
-                            : ROOMS[item.key as keyof typeof ROOMS]?.accent?.join(" ") || "10 10 10"
-                        })`,
-                      }}
-                    />
-                  )}
                 </button>
               );
             })}
