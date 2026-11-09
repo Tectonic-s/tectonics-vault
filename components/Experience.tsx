@@ -130,47 +130,43 @@ const ROOMS = {
 const BEYOND = [
   {
     title: "Move",
-    period: "Find Your Pace",
+    headline: "Find Your Pace",
+    primary: "Find Your Pace",
     accent: [235, 115, 60], // fiery terra / warm ember
     lift: 0.07,
-    primary: "Physical Grit & Long Runs",
-    secondary: "Running, functional fitness & endurance conditioning",
-    habits: ["10k Running", "Mental Resilience", "Pacing & Stamina", "Functional Fitness"],
     body:
-      "Physical training and long-distance running build resilience, patience, and the mental stamina needed to solve tough engineering challenges. Pushing past physical walls teaches you how to keep moving forward when the code or architecture gets complex.",
+      "Cricket, fitness, and the occasional attempt at picking up a new sport. I enjoy staying active and the process of getting a little better each time. It's less about chasing perfection and more about showing up.",
+    habits: ["Cricket", "Strength Training", "Fitness", "Boxing"],
   },
   {
     title: "Think",
-    period: "Curiosity Has No Off Switch",
+    headline: "Curiosity Has No Off Switch",
+    primary: "Curiosity Has No Off Switch",
     accent: [65, 120, 220], // sapphire / architectural blue
     lift: 0.065,
-    primary: "Books, Psychology & First Principles",
-    secondary: "Decision theory, distributed logic & human dynamics",
-    habits: ["First Principles", "Systems Thinking", "Mental Models", "Behavioral Psychology"],
     body:
-      "Deeply interested in how complex systems interact—from distributed software architecture to team dynamics, decision theory, and human psychology. Reading foundational texts across disciplines helps connect seemingly unrelated concepts into cohesive engineering solutions.",
+      "I'm fascinated by how things work — from human behaviour and psychology to decision-making and complex systems. I enjoy connecting ideas, questioning assumptions, and looking at everyday things from a different perspective.",
+    habits: ["Psychology", "Human Behaviour", "Systems Thinking", "Decision Theory"],
   },
   {
     title: "Create",
-    period: "Making Things Just Because",
+    headline: "Making Things Just Because",
+    primary: "Making Things Just Because",
     accent: [160, 95, 225], // deep electric violet
     lift: 0.08,
-    primary: "Generative UI, WebGL & Audio",
-    secondary: "Interactive physics, typography & audio synthesizers",
-    habits: ["Creative Coding", "WebGL & Three.js", "Sound Design", "Micro-Interactions"],
     body:
-      "Constantly exploring interactive web animations, generative UI, typography, and modern micro-interactions that elevate simple tools into memorable products. When software feels tactile and alive, engineering transcends into true product craft.",
+      "Photography is one of my favourite ways to slow down and notice the details. I enjoy playing with light, composition, and visual storytelling. Add a little music, cinema, and an ever-growing list of creative experiments, and there's always something to explore.",
+    habits: ["Photography", "Sony a6400", "Guitar", "Cinema", "Visual Storytelling"],
   },
   {
     title: "Explore",
-    period: "Perspective & Recharging",
+    headline: "Life Happens Outside the Screen",
+    primary: "Life Happens Outside the Screen",
     accent: [50, 165, 120], // evergreen / grounding sage
     lift: 0.06,
-    primary: "Life Happens Outside the Screen",
-    secondary: "Specialty brewing, road trips & intentional living",
-    habits: ["Motorcycles", "Road Trips", "Travel", "Anime", "Gaming", "Self-Reflection"],
     body:
       "Long rides, spontaneous plans, new places, and mornings by the beach. I'm drawn to experiences that break the routine. And when I'm indoors, there's usually a good film, anime, or game waiting.",
+    habits: ["Motorcycles", "Road Trips", "Travel", "Anime", "Gaming", "Movies"],
   },
 ];
 
@@ -1924,9 +1920,22 @@ export default function Experience() {
                 className="absolute inset-0 flex items-center justify-center will-change-[transform,opacity]"
               >
                 <h2 className="sr-only">Beyond Work</h2>
-                <div className="w-full max-w-[880px] 2xl:max-w-[960px] flex flex-col justify-center">
+                <div className="w-full max-w-[840px] 2xl:max-w-[900px] flex flex-col justify-center">
+                  {/* Editorial Intro */}
+                  <div className="mb-2.5 sm:mb-3.5">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="h-1.5 w-1.5 rounded-full bg-neutral-900" />
+                      <p className="font-mono text-[0.68rem] sm:text-xs uppercase tracking-wider font-semibold text-neutral-500">
+                        A little more about the person behind the pixels.
+                      </p>
+                    </div>
+                    <p className="font-inter text-xs sm:text-[0.84rem] text-neutral-600 leading-relaxed max-w-[70ch]">
+                      I&apos;m curious by default and rarely stick to just one thing. Some days you&apos;ll find me behind a camera, on a cricket field, exploring a new place, or getting lost in a film. I enjoy learning, making things, and finding inspiration in places that have nothing to do with work.
+                    </p>
+                  </div>
+
                   {/* Navigation Tabs Header */}
-                  <div className="flex items-center justify-between pb-2.5 sm:pb-3.5 border-b border-black/8 mb-3 sm:mb-5">
+                  <div className="flex items-center justify-between pb-2 sm:pb-3 border-b border-black/8 mb-3 sm:mb-4">
                     <div
                       role="tablist"
                       aria-label="Beyond Work Categories"
@@ -1945,7 +1954,7 @@ export default function Experience() {
                           onClick={() => handleBeyondChapterClick(i)}
                           onKeyDown={(e) => handleBeyondTabKeyDown(e, i)}
                           onMouseEnter={() => soundFX.playHoverTick()}
-                          className={`group relative flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-semibold tracking-wide transition-all duration-200 active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-black ${
+                          className={`group relative flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold tracking-wide transition-all duration-200 active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-black ${
                             i === activeBeyondIndex
                               ? "bg-black text-white shadow-sm"
                               : "bg-black/[0.04] text-black/60 hover:text-black hover:bg-black/[0.08]"
@@ -1992,7 +2001,7 @@ export default function Experience() {
                   </div>
 
                   {/* Stacked Minimalist Cards */}
-                  <div className="relative h-[400px] sm:h-[370px] md:h-[340px] w-full">
+                  <div className="relative h-[290px] sm:h-[260px] md:h-[240px] w-full">
                     {BEYOND.map((item, i) => {
                       const isCurrent = i === activeBeyondIndex;
                       return (
@@ -2003,41 +2012,34 @@ export default function Experience() {
                           aria-labelledby={`beyond-tab-${i}`}
                           tabIndex={0}
                           data-bcard={i}
-                          className="absolute inset-0 rounded-[22px] sm:rounded-[26px] bg-white p-5 sm:p-7 md:p-8 border shadow-[0_12px_36px_rgba(0,0,0,0.03)] flex flex-col justify-between overflow-y-auto sm:overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black will-change-[transform,opacity]"
+                          className="absolute inset-0 rounded-[20px] sm:rounded-[24px] bg-white p-5 sm:p-6 md:p-7 border shadow-[0_12px_36px_rgba(0,0,0,0.03)] flex flex-col justify-between overflow-y-auto sm:overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black will-change-[transform,opacity]"
                           style={{
                             borderColor: `rgb(${item.accent.join(" ")} / 0.35)`,
                           }}
                         >
                           <div className="flex flex-col">
-                            {/* Minimal Category Header & Tagline */}
-                            <div className="flex items-center justify-between gap-3 pb-3 border-b border-black/[0.05]">
-                              <div className="flex items-center gap-2">
-                                <span
-                                  aria-hidden="true"
-                                  className="w-2 h-2 rounded-full"
-                                  style={{
-                                    backgroundColor: `rgb(${item.accent.join(" ")})`,
-                                    boxShadow: `0 0 8px rgb(${item.accent.join(" ")} / 0.6)`,
-                                  }}
-                                />
-                                <span className="font-mono text-[0.72rem] sm:text-xs uppercase tracking-wider font-bold text-neutral-800">
-                                  0{i + 1} // {item.title}
-                                </span>
-                              </div>
-                              {item.period && (
-                                <span className="font-inter text-[0.72rem] sm:text-xs text-neutral-400 font-medium">
-                                  {item.period}
-                                </span>
-                              )}
+                            {/* Minimal Category Header */}
+                            <div className="flex items-center gap-2 pb-2.5 border-b border-black/[0.05]">
+                              <span
+                                aria-hidden="true"
+                                className="w-2 h-2 rounded-full"
+                                style={{
+                                  backgroundColor: `rgb(${item.accent.join(" ")})`,
+                                  boxShadow: `0 0 8px rgb(${item.accent.join(" ")} / 0.6)`,
+                                }}
+                              />
+                              <span className="font-mono text-[0.72rem] sm:text-xs uppercase tracking-wider font-bold text-neutral-800">
+                                0{i + 1} // {item.title}
+                              </span>
                             </div>
 
                             {/* Headline with EncryptedText Decryption */}
-                            <div className="mt-3.5 sm:mt-4">
-                              <h3 className="font-excon text-xl sm:text-2xl md:text-[1.85rem] font-bold tracking-tight text-ink leading-snug">
+                            <div className="mt-3">
+                              <h3 className="font-excon text-lg sm:text-xl md:text-2xl font-bold tracking-tight text-ink leading-snug">
                                 {isCurrent ? (
                                   <EncryptedText
                                     key={`beyond-headline-${i}-${activeBeyondIndex}`}
-                                    text={item.primary}
+                                    text={item.headline}
                                     revealDelayMs={26}
                                     flipDelayMs={35}
                                     startDelayMs={40}
@@ -2046,29 +2048,24 @@ export default function Experience() {
                                     revealedClassName="text-ink font-excon font-bold"
                                   />
                                 ) : (
-                                  item.primary
+                                  item.headline
                                 )}
                               </h3>
-                              {item.secondary && (
-                                <p className="mt-1 font-inter text-xs sm:text-sm text-neutral-500 font-normal">
-                                  {item.secondary}
-                                </p>
-                              )}
                             </div>
 
                             {/* Narrative Story */}
-                            <p className="mt-3 sm:mt-4 font-inter text-neutral-600 text-xs sm:text-sm md:text-[0.95rem] leading-relaxed max-w-[62ch]">
+                            <p className="mt-2.5 font-inter text-neutral-600 text-xs sm:text-sm md:text-[0.92rem] leading-relaxed max-w-[66ch]">
                               {item.body}
                             </p>
                           </div>
 
                           {/* Minimal Interest / Focus Tags */}
                           {item.habits && item.habits.length > 0 && (
-                            <div className="mt-4 pt-3.5 border-t border-black/[0.05] flex flex-wrap items-center gap-1.5 sm:gap-2">
+                            <div className="mt-3 pt-3 border-t border-black/[0.05] flex flex-wrap items-center gap-1.5 sm:gap-2">
                               {item.habits.map((habit) => (
                                 <span
                                   key={habit}
-                                  className="inline-flex items-center rounded-full bg-neutral-100/80 px-2.5 sm:px-3 py-0.5 sm:py-1 text-[0.68rem] sm:text-xs font-medium text-neutral-700 hover:bg-neutral-200/80 transition-colors cursor-default"
+                                  className="inline-flex items-center rounded-full bg-neutral-100/80 px-2.5 sm:px-3 py-0.5 text-[0.68rem] sm:text-xs font-medium text-neutral-700 hover:bg-neutral-200/80 transition-colors cursor-default"
                                 >
                                   {habit}
                                 </span>
@@ -2078,6 +2075,16 @@ export default function Experience() {
                         </div>
                       );
                     })}
+                  </div>
+
+                  {/* Closing Sign-Off Note */}
+                  <div className="mt-3 sm:mt-3.5 flex flex-col sm:flex-row sm:items-baseline justify-between gap-1.5 border-t border-black/[0.06] pt-2.5 sm:pt-3">
+                    <span className="font-mono text-[0.68rem] sm:text-xs font-bold uppercase tracking-wider text-neutral-800 shrink-0">
+                      Still figuring it out.
+                    </span>
+                    <p className="font-inter text-[0.68rem] sm:text-xs text-neutral-500 leading-normal">
+                      There&apos;s always something new to learn, somewhere new to go, or something new to make. I like keeping room for all of it.
+                    </p>
                   </div>
                 </div>
               </section>
