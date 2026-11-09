@@ -208,7 +208,10 @@ export default function Experience() {
 
   // Hero
   const heroPre = useRef<HTMLSpanElement>(null);
+  const heroPreInner = useRef<HTMLSpanElement>(null);
   const heroVaultInline = useRef<HTMLSpanElement>(null);
+  const heroVaultInner = useRef<HTMLSpanElement>(null);
+  const heroSubInner = useRef<HTMLParagraphElement>(null);
   const scrollIndicator = useRef<HTMLButtonElement>(null);
   const ulPath = useRef<SVGPathElement>(null);
   const arrowStem = useRef<SVGLineElement>(null);
@@ -683,6 +686,26 @@ export default function Experience() {
             { opacity: 1, y: 0, scale: 1, duration: 0.36, ease: "power2.out" }
           );
           bCards[newIndex].style.pointerEvents = "auto";
+
+          // Masked kinetic line reveal on the category headline:
+          const headline = bCards[newIndex].querySelector("[data-bhead]");
+          if (headline) {
+            gsap.fromTo(
+              headline,
+              { yPercent: 120, opacity: 0 },
+              { yPercent: 0, opacity: 1, duration: 0.65, ease: "power4.out", delay: 0.05 }
+            );
+          }
+
+          // Micro-stagger on the interest tags:
+          const pills = bCards[newIndex].querySelectorAll("[data-bpill]");
+          if (pills.length) {
+            gsap.fromTo(
+              pills,
+              { y: 8, opacity: 0 },
+              { y: 0, opacity: 1, duration: 0.32, stagger: 0.03, ease: "power3.out", delay: 0.12 }
+            );
+          }
         }
 
         bTabs.forEach((tab, i) => {
@@ -1091,7 +1114,20 @@ export default function Experience() {
         end: () => "top+=" + window.innerHeight * 5.7 + " top",
         scrub: true,
         animation: worksToBeyond,
-        onEnter: () => setRoom(BEYOND[activeBeyondRef.current].accent, BEYOND[activeBeyondRef.current].lift, 0.8),
+        onEnter: () => {
+          setRoom(BEYOND[activeBeyondRef.current].accent, BEYOND[activeBeyondRef.current].lift, 0.8);
+          const activeCard = bCards[activeBeyondRef.current];
+          if (activeCard) {
+            const headline = activeCard.querySelector("[data-bhead]");
+            if (headline) {
+              gsap.fromTo(
+                headline,
+                { yPercent: 120, opacity: 0 },
+                { yPercent: 0, opacity: 1, duration: 0.65, ease: "power4.out" }
+              );
+            }
+          }
+        },
         onLeaveBack: () => setRoom(ROOMS.works.accent, ROOMS.works.lift, 0.8),
       });
 
@@ -1140,6 +1176,9 @@ export default function Experience() {
 
       // -------- Reduced motion --------
       if (reduced) {
+        if (heroPreInner.current) gsap.set(heroPreInner.current, { yPercent: 0, opacity: 1 });
+        if (heroVaultInner.current) gsap.set(heroVaultInner.current, { yPercent: 0, opacity: 1 });
+        if (heroSubInner.current) gsap.set(heroSubInner.current, { yPercent: 0, opacity: 1 });
         if (ulPath.current) {
           const len = ulPath.current.getTotalLength();
           gsap.set(ulPath.current, { strokeDasharray: len, strokeDashoffset: 0 });
@@ -1170,22 +1209,29 @@ export default function Experience() {
         return;
       }
 
-      // -------- Hero intro setup --------
+      // -------- Masked Kinetic Line Slide Entrance for Hero --------
+      const len = ulPath.current?.getTotalLength() ?? 640;
+      if (ulPath.current) {
+        gsap.set(ulPath.current, { strokeDasharray: len, strokeDashoffset: len, opacity: 1 });
+      }
+      gsap.set([arrowStem.current, arrowHead.current], { opacity: 0 });
+
       let introFinished = false;
       const finishIntro = () => {
         if (introFinished) return;
         introFinished = true;
+        if (heroPreInner.current) gsap.set(heroPreInner.current, { yPercent: 0, opacity: 1 });
+        if (heroVaultInner.current) gsap.set(heroVaultInner.current, { yPercent: 0, opacity: 1 });
+        if (heroSubInner.current) gsap.set(heroSubInner.current, { yPercent: 0, opacity: 1 });
         if (ulPath.current) {
-          const len = ulPath.current.getTotalLength();
           gsap.set(ulPath.current, { strokeDasharray: len, strokeDashoffset: 0, opacity: 1 });
         }
-        gsap.set([arrowStem.current, arrowHead.current], { opacity: 1 });
+        gsap.set([arrowStem.current, arrowHead.current], { opacity: 1, scale: 1 });
         measure();
         unlockScroll();
         ScrollTrigger.refresh();
       };
       finishIntroRef.current = finishIntro;
-      finishIntro();
 
       const handleEarlyGesture = () => {
         finishIntro();
@@ -1199,40 +1245,58 @@ export default function Experience() {
         window.removeEventListener("touchstart", handleEarlyGesture);
       };
 
-      const run = async () => {
+      const run = () => {
         measure();
+        unlockScroll();
         if (isCancelled() || introFinished) return;
 
-        // Slow cinematic decryption sequence:
-        // 0.15s: "Welcome to my " decrypts character by character (~1.3s)
-        // 1.45s: "Vault." decrypts with resonant mechanical ticks (~0.7s)
-        // 2.20s: Subtitle "Scroll Down to explore" starts decrypting (~1.5s)
-        // 3.30s: SVG underline stroke traces in over 0.65s
-        // 3.90s: Bouncing arrow appears and scroll unlocks
-        await new Promise((res) => setTimeout(res, 3300));
-        if (isCancelled() || introFinished) return;
+        const heroTl = gsap.timeline({
+          delay: 0.1,
+          defaults: { ease: "power4.out" },
+          onComplete: () => {
+            measure();
+            ScrollTrigger.refresh();
+          },
+        });
 
-        if (ulPath.current) {
-          const len = ulPath.current.getTotalLength();
-          gsap.set(ulPath.current, { strokeDasharray: len, strokeDashoffset: len, opacity: 1 });
-          gsap.to(ulPath.current, { strokeDashoffset: 0, duration: 0.65, ease: "power2.inOut" });
-        }
+        heroTl
+          .fromTo(
+            heroPreInner.current,
+            { yPercent: 125, opacity: 0 },
+            { yPercent: 0, opacity: 1, duration: 0.85 }
+          )
+          .fromTo(
+            heroVaultInner.current,
+            { yPercent: 125, opacity: 0 },
+            { yPercent: 0, opacity: 1, duration: 0.9 },
+            "-=0.72"
+          )
+          .fromTo(
+            ulPath.current,
+            { strokeDashoffset: len },
+            { strokeDashoffset: 0, duration: 0.7, ease: "power3.inOut" },
+            "-=0.5"
+          )
+          .fromTo(
+            [arrowStem.current, arrowHead.current],
+            { opacity: 0, scale: 0.8 },
+            { opacity: 1, scale: 1, duration: 0.35, ease: "back.out(1.5)" },
+            "-=0.2"
+          )
+          .fromTo(
+            heroSubInner.current,
+            { yPercent: 125, opacity: 0 },
+            { yPercent: 0, opacity: 1, duration: 0.8 },
+            "-=0.35"
+          );
 
-        await new Promise((res) => setTimeout(res, 450));
-        if (isCancelled() || introFinished) return;
-
-        gsap.to([arrowStem.current, arrowHead.current], { opacity: 1, duration: 0.3, ease: "power2.out" });
-
+        // Continuous subtle arrow breathing loop
         gsap
-          .timeline({ repeat: -1, repeatDelay: 1.2 })
+          .timeline({ repeat: -1, repeatDelay: 1.2, delay: 1.2 })
           .to(arrowHead.current, { y: 6, duration: 0.5, ease: "sine.inOut" }, 0)
           .to(arrowStem.current, { attr: { y2: 68 }, duration: 0.5, ease: "sine.inOut" }, 0)
           .to(arrowHead.current, { y: 0, duration: 0.5, ease: "sine.inOut" }, 0.5)
           .to(arrowStem.current, { attr: { y2: 60 }, duration: 0.5, ease: "sine.inOut" }, 0.5);
-
-        // Unlock scroll once intro decryption resolves
-        await new Promise((res) => setTimeout(res, 400));
-        finishIntro();
       };
 
       (document.fonts?.ready ?? Promise.resolve()).then(() => {
@@ -1361,14 +1425,18 @@ export default function Experience() {
           className="absolute inset-0 z-10 flex flex-col items-center justify-center px-4 sm:px-6 text-center select-none"
         >
           <h1
-            className="text-glow font-excon font-bold leading-[1.08] sm:leading-[1.02] text-ink flex flex-col sm:inline-flex sm:flex-row items-center justify-center text-center gap-0 sm:gap-2"
+            className="text-glow font-excon font-bold leading-[1.08] sm:leading-[1.02] text-ink flex flex-col sm:inline-flex sm:flex-row items-center justify-center text-center gap-0 sm:gap-2 select-none"
             style={{ fontSize: HEADING_SIZE }}
           >
-            <span ref={heroPre} className="inline-block">
-              {HERO_PRE}
+            <span ref={heroPre} className="inline-block overflow-hidden py-1">
+              <span ref={heroPreInner} className="inline-block will-change-transform">
+                {HERO_PRE}
+              </span>
             </span>
-            <span ref={heroVaultInline} className="inline-block">
-              {HERO_VAULT}
+            <span ref={heroVaultInline} className="inline-block overflow-hidden py-1">
+              <span ref={heroVaultInner} className="inline-block will-change-transform">
+                {HERO_VAULT}
+              </span>
             </span>
           </h1>
 
@@ -1400,12 +1468,15 @@ export default function Experience() {
               <line ref={arrowStem} x1="622" y1="29" x2="622" y2="60" />
               <path ref={arrowHead} d="M611 49 L622 61 L633 49" />
             </svg>
-            <p
-              className="mt-[3vh] sm:mt-[4.5vh] text-center font-excon font-bold leading-none text-ink transition-transform duration-200 group-hover:-translate-y-0.5"
-              style={{ fontSize: "clamp(0.95rem, 2.3vw, 1.55rem)" }}
-            >
-              {SUBTITLE}
-            </p>
+            <div className="mt-[3vh] sm:mt-[4.5vh] overflow-hidden py-1">
+              <p
+                ref={heroSubInner}
+                className="text-center font-excon font-bold leading-none text-ink transition-transform duration-200 group-hover:-translate-y-0.5 will-change-transform"
+                style={{ fontSize: "clamp(0.95rem, 2.3vw, 1.55rem)" }}
+              >
+                {SUBTITLE}
+              </p>
+            </div>
           </button>
         </section>
 
@@ -1998,9 +2069,12 @@ export default function Experience() {
                               </span>
                             </div>
 
-                            {/* Headline */}
-                            <div className="mt-3">
-                              <h3 className="font-excon text-lg sm:text-xl md:text-2xl font-bold tracking-tight text-ink leading-snug">
+                            {/* Headline with Masked Kinetic Line Slide */}
+                            <div className="mt-3 overflow-hidden py-1">
+                              <h3
+                                data-bhead
+                                className="font-excon text-lg sm:text-xl md:text-2xl font-bold tracking-tight text-ink leading-snug will-change-transform"
+                              >
                                 {item.headline}
                               </h3>
                             </div>
@@ -2017,7 +2091,8 @@ export default function Experience() {
                               {item.habits.map((habit) => (
                                 <span
                                   key={habit}
-                                  className="inline-flex items-center rounded-full bg-neutral-100/80 px-2.5 sm:px-3 py-0.5 text-[0.68rem] sm:text-xs font-medium text-neutral-700 hover:bg-neutral-200/80 transition-colors cursor-default"
+                                  data-bpill
+                                  className="inline-flex items-center rounded-full bg-neutral-100/80 px-2.5 sm:px-3 py-0.5 text-[0.68rem] sm:text-xs font-medium text-neutral-700 hover:bg-neutral-200/80 transition-colors cursor-default will-change-transform"
                                 >
                                   {habit}
                                 </span>
