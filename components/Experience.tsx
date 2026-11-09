@@ -354,7 +354,8 @@ export default function Experience() {
       return;
     }
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const dur = reduced ? 0 : 0.6;
+    const isFromHero = activeSection === "hero" || window.scrollY < window.innerHeight * 0.5;
+    const dur = reduced ? 0 : (isFromHero && key === "about" ? 1.6 : 0.6);
     const finishNav = (after?: () => void) => {
       navTimeoutRef.current = setTimeout(() => {
         ensureSectionLoadedRef.current?.(key);
@@ -410,6 +411,7 @@ export default function Experience() {
   const proceedToFirstSection = () => {
     if (isProgrammaticScrollRef.current) return;
     soundFX.unlockAudio();
+    soundFX.playCabinetUnlock();
     if (!hasInteracted) {
       setHasInteracted(true);
       setDecryptKey((k) => k + 1);
@@ -1113,27 +1115,34 @@ export default function Experience() {
         pointerListener = () => window.removeEventListener("pointermove", onPointer);
       }
 
-      // ======== PHASE 1 — hero → About (scrubbed) ========
+      // ======== PHASE 1 — hero → About (scrubbed, playful cinematic vault opening) ========
       const spatial = gsap.timeline({ defaults: { ease: "none" } });
       spatial
+        // Wordmark flight: smooth spatial glide with subtle playful rotation
         .fromTo(
           vaultFloat.current,
-          { x: () => flip.sx, y: () => flip.sy, scale: 1 },
-          { x: () => flip.ex, y: () => flip.ey, scale: () => flip.es, duration: 0.7 },
+          { x: () => flip.sx, y: () => flip.sy, scale: 1, rotate: 0 },
+          { x: () => flip.ex, y: () => flip.ey, scale: () => flip.es, rotate: -2, duration: 0.78, ease: "power2.inOut" },
           0
         )
-        .to(heroPre.current, { yPercent: -60, opacity: 0, duration: 0.42 }, 0)
-        .to(scrollIndicator.current, { y: -30, opacity: 0, duration: 0.38 }, 0)
-        .to(mainPanel.current, { yPercent: 0, duration: 0.7 }, 0)
-        .fromTo(letsTalk.current, { y: -12, opacity: 0 }, { y: 0, opacity: 1, duration: 0.28, ease: "power3.out" }, 0.7)
-        .fromTo(menuItems, { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3, stagger: 0.05, ease: "power3.out" }, 0.72)
-        .fromTo(profile.current, { scale: 0.95, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.34, ease: "power3.out" }, 0.75)
-        .fromTo(
-          [aboutName.current, aboutPara.current],
-          { y: 18, opacity: 0 },
-          { y: 0, opacity: 1, duration: 0.34, stagger: 0.08, ease: "power3.out" },
-          0.8
-        );
+        // Hero subtitle and arrow sink playfully with slight scale down
+        .to(scrollIndicator.current, { y: 36, scale: 0.92, opacity: 0, duration: 0.4, ease: "power2.in" }, 0)
+        // "Welcome to my" floats up with slight scale down
+        .to(heroPre.current, { yPercent: -90, scale: 0.94, opacity: 0, duration: 0.44, ease: "power2.in" }, 0)
+        // Main panel rises like a vault chamber door
+        .to(mainPanel.current, { yPercent: 0, duration: 0.76, ease: "power2.out" }, 0)
+        // Vault wordmark settles straight as it docks in nav
+        .to(vaultFloat.current, { rotate: 0, duration: 0.22, ease: "back.out(2)" }, 0.78)
+        // "Connect" pill button drops in with a springy pop
+        .fromTo(letsTalk.current, { y: -24, scale: 0.85, opacity: 0 }, { y: 0, scale: 1, opacity: 1, duration: 0.32, ease: "back.out(2)" }, 0.68)
+        // Left Accordion menu items cascade in like a domino deck from left with a playful bounce
+        .fromTo(menuItems, { x: -36, opacity: 0, scale: 0.92 }, { x: 0, opacity: 1, scale: 1, duration: 0.38, stagger: 0.055, ease: "back.out(1.6)" }, 0.7)
+        // Profile portrait springs up with a joyful slight tilt and settles
+        .fromTo(profile.current, { scale: 0.8, rotate: -4, opacity: 0 }, { scale: 1, rotate: 0, opacity: 1, duration: 0.42, ease: "back.out(1.8)" }, 0.72)
+        // "Tharun S" heading rises with spring
+        .fromTo(aboutName.current, { y: 30, opacity: 0, scale: 0.95 }, { y: 0, opacity: 1, scale: 1, duration: 0.36, ease: "back.out(1.5)" }, 0.78)
+        // Bio paragraph fades and settles into place
+        .fromTo(aboutPara.current, { y: 22, opacity: 0 }, { y: 0, opacity: 1, duration: 0.36, ease: "power3.out" }, 0.82);
 
       const swapToFloat = () => {
         gsap.set(heroVaultInline.current, { opacity: 0 });
@@ -1399,11 +1408,14 @@ export default function Experience() {
         setActiveMenu(canonical, false);
         setActiveSection(canonical);
 
-        if (mainPanel.current) {
-          gsap.to(mainPanel.current, { yPercent: 0, duration: 0.25, ease: "power2.out", overwrite: "auto" });
+        const isInsideVault = window.scrollY >= window.innerHeight * 0.5;
+        if (isInsideVault) {
+          if (mainPanel.current) {
+            gsap.to(mainPanel.current, { yPercent: 0, duration: 0.25, ease: "power2.out", overwrite: "auto" });
+          }
+          if (heroVaultInline.current) gsap.to(heroVaultInline.current, { opacity: 0, duration: 0.2, overwrite: "auto" });
+          if (vaultFloat.current) gsap.to(vaultFloat.current, { opacity: 1, duration: 0.2, overwrite: "auto" });
         }
-        if (heroVaultInline.current) gsap.to(heroVaultInline.current, { opacity: 0, duration: 0.2, overwrite: "auto" });
-        if (vaultFloat.current) gsap.to(vaultFloat.current, { opacity: 1, duration: 0.2, overwrite: "auto" });
 
         const panels: Record<string, HTMLElement | null> = {
           about: aboutRight.current,
