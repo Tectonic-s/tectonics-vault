@@ -409,18 +409,21 @@ export default function Experience() {
 
     measure();
     const flip = flipRef.current;
-    const dx = flip.ex - flip.sx;
-    const dy = flip.ey - flip.sy;
-    const scale = flip.es || 1;
-
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const dur = reduced ? 0 : 2.2;
+    const dur = reduced ? 0 : 2.4;
 
     if (reduced) {
       if (mainPanel.current) gsap.set(mainPanel.current, { yPercent: 0 });
       if (heroVaultInline.current) gsap.set(heroVaultInline.current, { opacity: 0 });
-      if (navGhost.current) gsap.set(navGhost.current, { opacity: 1 });
-      if (vaultFloat.current) gsap.set(vaultFloat.current, { opacity: 0 });
+      if (vaultFloat.current) {
+        gsap.set(vaultFloat.current, {
+          opacity: 1,
+          x: flip.ex,
+          y: flip.ey,
+          scale: flip.es,
+          rotate: 0,
+        });
+      }
       if (letsTalk.current) gsap.set(letsTalk.current, { opacity: 1, y: 0 });
       isTransitioningRef.current = false;
       setIsIntroComplete(true);
@@ -430,6 +433,18 @@ export default function Experience() {
       setRoomRef.current?.(ROOMS.about.accent, ROOMS.about.lift, 0.8);
       return;
     }
+
+    // Seamless FLIP Swap:
+    // Instantly hide the inline wordmark and activate the fixed floating wordmark at exact same client coordinates
+    gsap.set(heroVaultInline.current, { opacity: 0 });
+    gsap.set(vaultFloat.current, {
+      opacity: 1,
+      x: flip.sx,
+      y: flip.sy,
+      scale: 1,
+      rotate: 0,
+      transformOrigin: "left top",
+    });
 
     const tl = gsap.timeline({
       defaults: { ease: "power3.inOut" },
@@ -444,27 +459,33 @@ export default function Experience() {
     });
 
     // 1. Dissolve hero prompt & subtitle
-    tl.to(scrollIndicator.current, { y: 28, scale: 0.94, opacity: 0, duration: 0.6, ease: "power2.in" }, 0)
-      .to(heroPre.current, { yPercent: -80, opacity: 0, duration: 0.65, ease: "power2.in" }, 0)
-      .to(heroBgRef.current, { opacity: 0, duration: 0.9 }, 0)
-      // 2. Flight of "Vault." inline wordmark to top left nav logo
+    tl.to(scrollIndicator.current, { y: 36, scale: 0.92, opacity: 0, duration: 0.7, ease: "power2.in" }, 0)
+      .to(heroPre.current, { yPercent: -90, scale: 0.94, opacity: 0, duration: 0.75, ease: "power2.in" }, 0)
+      .to(heroBgRef.current, { opacity: 0, duration: 1.0 }, 0)
+      // 2. Flight of "Vault." floating wordmark to top left nav logo (smooth spatial glide with subtle tilt)
       .to(
-        heroVaultInline.current,
+        vaultFloat.current,
         {
-          x: dx,
-          y: dy,
-          scale: scale,
-          duration: dur * 0.75,
-          ease: "power3.inOut",
-          onComplete: () => {
-            if (heroVaultInline.current) gsap.set(heroVaultInline.current, { opacity: 0 });
-            if (navGhost.current) gsap.set(navGhost.current, { opacity: 1 });
-            if (vaultFloat.current) gsap.set(vaultFloat.current, { opacity: 0 });
-          },
+          x: flip.ex,
+          y: flip.ey,
+          scale: flip.es,
+          rotate: -2,
+          duration: dur * 0.78,
+          ease: "power2.inOut",
         },
         0.08
       )
-      // 3. Main panel chamber rises
+      // Wordmark settles straight as it docks in nav
+      .to(
+        vaultFloat.current,
+        {
+          rotate: 0,
+          duration: 0.28,
+          ease: "back.out(2)",
+        },
+        dur * 0.78
+      )
+      // 3. Main panel chamber rises like a luxury vault door
       .to(
         mainPanel.current,
         {
@@ -472,26 +493,31 @@ export default function Experience() {
           duration: dur,
           ease: "power3.inOut",
         },
-        0.15
+        0.12
       )
       // 4. Spring in top nav Connect button
       .fromTo(
         letsTalk.current,
-        { y: -24, opacity: 0, scale: 0.9 },
-        { y: 0, opacity: 1, scale: 1, duration: 0.6, ease: "back.out(1.8)" },
-        dur * 0.6
+        { y: -24, opacity: 0, scale: 0.85 },
+        { y: 0, opacity: 1, scale: 1, duration: 0.65, ease: "back.out(2)" },
+        dur * 0.58
       )
-      // 5. Cascade in sidebar menu items
+      // 5. Cascade in sidebar menu items like cards
       .fromTo(
         menu.current?.querySelectorAll("li") ?? [],
-        { x: -32, opacity: 0 },
-        { x: 0, opacity: 1, duration: 0.5, stagger: 0.055, ease: "back.out(1.6)" },
-        dur * 0.55
+        { x: -36, opacity: 0, scale: 0.92 },
+        { x: 0, opacity: 1, scale: 1, duration: 0.55, stagger: 0.055, ease: "back.out(1.6)" },
+        dur * 0.54
       )
       // 6. About portrait & bio spring in
-      .fromTo(profile.current, { scale: 0.85, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.55, ease: "back.out(1.6)" }, dur * 0.62)
-      .fromTo(aboutName.current, { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, dur * 0.68)
-      .fromTo(aboutPara.current, { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, dur * 0.72);
+      .fromTo(
+        profile.current,
+        { scale: 0.8, rotate: -4, opacity: 0 },
+        { scale: 1, rotate: 0, opacity: 1, duration: 0.6, ease: "back.out(1.8)" },
+        dur * 0.6
+      )
+      .fromTo(aboutName.current, { y: 28, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, dur * 0.66)
+      .fromTo(aboutPara.current, { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, dur * 0.7);
   }, [hasInteracted, measure]);
 
   const returnToHero = useCallback(() => {
@@ -501,20 +527,13 @@ export default function Experience() {
 
     measure();
     const flip = flipRef.current;
-    const dx = flip.ex - flip.sx;
-    const dy = flip.ey - flip.sy;
-    const scale = flip.es || 1;
-
-    // Swap nav logo back to inline wordmark starting from nav position
-    if (navGhost.current) gsap.set(navGhost.current, { opacity: 0 });
-    if (vaultFloat.current) gsap.set(vaultFloat.current, { opacity: 0 });
-    if (heroVaultInline.current) gsap.set(heroVaultInline.current, { opacity: 1, x: dx, y: dy, scale: scale });
 
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduced) {
       if (mainPanel.current) gsap.set(mainPanel.current, { yPercent: 100 });
+      if (vaultFloat.current) gsap.set(vaultFloat.current, { opacity: 0 });
       if (heroVaultInline.current) gsap.set(heroVaultInline.current, { opacity: 1, x: 0, y: 0, scale: 1 });
-      if (heroPre.current) gsap.set(heroPre.current, { opacity: 1, yPercent: 0 });
+      if (heroPre.current) gsap.set(heroPre.current, { opacity: 1, yPercent: 0, scale: 1 });
       if (scrollIndicator.current) gsap.set(scrollIndicator.current, { opacity: 1, y: 0, scale: 1 });
       if (heroBgRef.current) gsap.set(heroBgRef.current, { opacity: 1 });
       isTransitioningRef.current = false;
@@ -524,22 +543,62 @@ export default function Experience() {
       return;
     }
 
+    // Ensure floating wordmark is visible at nav position before beginning flight back
+    gsap.set(heroVaultInline.current, { opacity: 0 });
+    gsap.set(vaultFloat.current, {
+      opacity: 1,
+      x: flip.ex,
+      y: flip.ey,
+      scale: flip.es,
+      rotate: 0,
+      transformOrigin: "left top",
+    });
+
+    const retDur = 2.4; // Luxurious, slow, playful return transition
+
     const tl = gsap.timeline({
       defaults: { ease: "power3.inOut" },
       onComplete: () => {
         isTransitioningRef.current = false;
         activeSectionRef.current = "hero";
         setActiveSectionState("hero");
+        // Swap back to inline wordmark on completion
+        gsap.set(vaultFloat.current, { opacity: 0 });
+        gsap.set(heroVaultInline.current, { opacity: 1, x: 0, y: 0, scale: 1 });
         setRoomRef.current?.(ROOMS.welcome.accent, ROOMS.welcome.lift, 0.8);
-        if (heroVaultInline.current) gsap.set(heroVaultInline.current, { x: 0, y: 0, scale: 1 });
       },
     });
 
-    tl.to(mainPanel.current, { yPercent: 100, duration: 1.4 }, 0)
-      .to(heroVaultInline.current, { x: 0, y: 0, scale: 1, duration: 1.3 }, 0.08)
-      .to(heroPre.current, { yPercent: 0, opacity: 1, duration: 0.8, ease: "power2.out" }, 0.5)
-      .to(scrollIndicator.current, { y: 0, scale: 1, opacity: 1, duration: 0.8, ease: "power2.out" }, 0.55)
-      .to(heroBgRef.current, { opacity: 1, duration: 0.8 }, 0.3);
+    // Vault wordmark glides back from nav to hero position with gentle playful rotation
+    tl.to(
+      vaultFloat.current,
+      {
+        x: flip.sx,
+        y: flip.sy,
+        scale: 1,
+        rotate: 2,
+        duration: retDur * 0.8,
+        ease: "power2.inOut",
+      },
+      0.05
+    )
+    .to(
+      vaultFloat.current,
+      {
+        rotate: 0,
+        duration: 0.35,
+        ease: "back.out(1.8)",
+      },
+      retDur * 0.8
+    )
+    // Main panel slides down
+    .to(mainPanel.current, { yPercent: 100, duration: retDur, ease: "power3.inOut" }, 0)
+    // Hero "Welcome to my" floats back down into place
+    .to(heroPre.current, { yPercent: 0, scale: 1, opacity: 1, duration: 1.0, ease: "power2.out" }, retDur * 0.4)
+    // Subtitle sinks back in
+    .to(scrollIndicator.current, { y: 0, scale: 1, opacity: 1, duration: 1.0, ease: "power2.out" }, retDur * 0.45)
+    // Hero background atmosphere reappears
+    .to(heroBgRef.current, { opacity: 1, duration: 1.1 }, retDur * 0.3);
   }, [measure]);
 
   const handleHeroClick = () => {
@@ -590,6 +649,16 @@ export default function Experience() {
       const isModalOpen = document.body.style.overflow === "hidden" && !isMobileNavOpen;
       if (isModalOpen) return;
 
+      // Return to hero shortcuts: Escape, Home, 0, or h
+      if (
+        activeSection !== "hero" &&
+        (e.key === "Escape" || e.key === "Home" || e.key === "0" || e.key.toLowerCase() === "h")
+      ) {
+        e.preventDefault();
+        returnToHero();
+        return;
+      }
+
       // Number keys 1-6 jump directly to sections
       const keyNum = parseInt(e.key, 10);
       if (!isNaN(keyNum) && keyNum >= 1 && keyNum <= 6) {
@@ -610,7 +679,11 @@ export default function Experience() {
         }
       } else if (e.key === "ArrowUp" || e.key.toLowerCase() === "w") {
         const currentIdx = MENU.findIndex((m) => m.key === activeSection);
-        if (currentIdx > 0) {
+        if (currentIdx === 0) {
+          // If at the first section and user presses ArrowUp or W, return to hero
+          e.preventDefault();
+          returnToHero();
+        } else if (currentIdx > 0) {
           e.preventDefault();
           switchSectionTo(MENU[currentIdx - 1].key);
         }
@@ -623,7 +696,7 @@ export default function Experience() {
       window.removeEventListener("click", handleGlobalClick);
       window.removeEventListener("keydown", handleGlobalKeyDown);
     };
-  }, [isIntroComplete, activeSection, isMobileNavOpen, proceedToFirstSection, switchSectionTo]);
+  }, [isIntroComplete, activeSection, isMobileNavOpen, proceedToFirstSection, switchSectionTo, returnToHero]);
 
   const handleChapterClick = (index: number) => {
     switchJourneyChapterRef.current?.(index);
@@ -973,6 +1046,8 @@ export default function Experience() {
         if (heroPreInner.current) gsap.set(heroPreInner.current, { yPercent: 0, opacity: 1 });
         if (heroVaultInner.current) gsap.set(heroVaultInner.current, { yPercent: 0, opacity: 1 });
         if (heroSubInner.current) gsap.set(heroSubInner.current, { yPercent: 0, opacity: 1 });
+        if (vaultFloat.current) gsap.set(vaultFloat.current, { opacity: 0, transformOrigin: "left top" });
+        if (heroVaultInline.current) gsap.set(heroVaultInline.current, { opacity: 1, x: 0, y: 0, scale: 1 });
         measure();
       };
       finishIntroRef.current = finishIntro;
@@ -1011,6 +1086,18 @@ export default function Experience() {
           );
       };
 
+      const handleResize = () => {
+        measure();
+        if (activeSectionRef.current !== "hero" && vaultFloat.current && !isTransitioningRef.current) {
+          gsap.set(vaultFloat.current, {
+            x: flipRef.current.ex,
+            y: flipRef.current.ey,
+            scale: flipRef.current.es,
+          });
+        }
+      };
+      window.addEventListener("resize", handleResize);
+
       (document.fonts?.ready ?? Promise.resolve()).then(() => {
         if (isCancelled()) return;
         measure();
@@ -1046,13 +1133,9 @@ export default function Experience() {
           <button
             ref={navGhost}
             type="button"
-            onClick={() => {
-              soundFX.playMenuClick();
-              returnToHero();
-            }}
-            onMouseEnter={() => soundFX.playHoverTick()}
-            aria-label="Vault, return to welcome screen"
-            className="font-excon font-bold leading-none opacity-0 select-none cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 rounded transition-transform duration-200 active:scale-95 hover:opacity-80"
+            tabIndex={-1}
+            aria-hidden="true"
+            className="font-excon font-bold leading-none opacity-0 pointer-events-none select-none rounded"
             style={{ fontSize: NAV_VAULT_SIZE }}
           >
             Vault.
@@ -1134,13 +1217,19 @@ export default function Experience() {
         <button
           ref={vaultFloat}
           type="button"
-          tabIndex={-1}
-          aria-hidden="true"
+          tabIndex={activeSection === "hero" ? -1 : 0}
+          aria-label="Vault, return to welcome screen"
           onClick={() => {
-            soundFX.playMenuClick();
-            returnToHero();
+            if (activeSectionRef.current !== "hero") {
+              returnToHero();
+            }
           }}
-          className="text-glow pointer-events-auto fixed left-0 top-0 font-excon font-bold leading-none text-ink cursor-pointer active:scale-95 transition-transform duration-150 border-0 bg-transparent p-0"
+          onMouseEnter={() => {
+            if (activeSectionRef.current !== "hero") {
+              soundFX.playHoverTick();
+            }
+          }}
+          className="text-glow pointer-events-auto fixed left-0 top-0 font-excon font-bold leading-none text-ink cursor-pointer active:scale-95 border-0 bg-transparent p-0 z-50 select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 rounded"
           style={{ fontSize: HEADING_SIZE, willChange: "transform" }}
         >
           Vault.
