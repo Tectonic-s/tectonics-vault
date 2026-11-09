@@ -941,6 +941,11 @@ export default function Experience() {
           e.preventDefault();
           return;
         }
+        // Remove scroll feature from Hero: only tapping anywhere or pressing any key continues
+        if (window.scrollY < window.innerHeight * 0.5) {
+          e.preventDefault();
+          return;
+        }
         const locked = lockedSectionRef.current;
         if (!locked) return;
 
@@ -987,6 +992,11 @@ export default function Experience() {
 
       const onTouchMove = (e: TouchEvent) => {
         if (isProgrammaticScrollRef.current) {
+          e.preventDefault();
+          return;
+        }
+        // Remove scroll feature from Hero: only tapping anywhere or pressing any key continues
+        if (window.scrollY < window.innerHeight * 0.5) {
           e.preventDefault();
           return;
         }
@@ -1875,10 +1885,9 @@ export default function Experience() {
               </p>
             </div>
             <div className="mt-2.5 flex items-center gap-2 text-neutral-400 font-mono text-[0.65rem] sm:text-xs tracking-wider transition-opacity duration-300">
-              <span className="hidden sm:inline border border-black/10 rounded px-1.5 py-0.5 bg-black/[0.03]">Press any key</span>
-              <span className="sm:hidden border border-black/10 rounded px-1.5 py-0.5 bg-black/[0.03]">Tap anywhere</span>
-              <span className="text-black/30">·</span>
-              <span>or scroll down</span>
+              <span className="hidden sm:inline border border-black/10 rounded px-2 py-0.5 bg-black/[0.03]">Press any key</span>
+              <span className="sm:hidden border border-black/10 rounded px-2 py-0.5 bg-black/[0.03]">Tap anywhere</span>
+              <span className="text-black/35">to enter</span>
             </div>
           </div>
         </section>
