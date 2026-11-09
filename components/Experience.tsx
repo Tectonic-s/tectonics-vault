@@ -33,7 +33,7 @@ const INK_DIM = "rgb(123 123 123)";
 
 const HERO_PRE = "Welcome to my ";
 const HERO_VAULT = "Vault.";
-const SUBTITLE = "Scroll Down to explore";
+const SUBTITLE = "Tap anywhere or press any key to continue";
 
 const MENU: { key: string; label: string; numeral: string; lines?: string[] }[] = [
   { key: "about", label: "Intro", numeral: "01" },
@@ -233,7 +233,7 @@ export default function Experience() {
   const heroVaultInline = useRef<HTMLSpanElement>(null);
   const heroVaultInner = useRef<HTMLSpanElement>(null);
   const heroSubInner = useRef<HTMLParagraphElement>(null);
-  const scrollIndicator = useRef<HTMLButtonElement>(null);
+  const scrollIndicator = useRef<HTMLDivElement>(null);
   const ulPath = useRef<SVGPathElement>(null);
   const arrowStem = useRef<SVGLineElement>(null);
   const arrowHead = useRef<SVGPathElement>(null);
@@ -260,6 +260,7 @@ export default function Experience() {
   const talkRight = useRef<HTMLDivElement>(null);
 
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+  const [isIntroComplete, setIsIntroComplete] = useState(false);
   const [activeChapterIndex, setActiveChapterIndex] = useState(0);
   const [activeBeyondIndex, setActiveBeyondIndex] = useState(0);
   const activeChapterRef = useRef(0);
@@ -297,13 +298,7 @@ export default function Experience() {
     };
   }, []);
 
-  const handleHeroClick = () => {
-    soundFX.unlockAudio();
-    if (!hasInteracted) {
-      setHasInteracted(true);
-      setDecryptKey((k) => k + 1);
-    }
-  };
+
 
   useEffect(() => {
     if (isMobileNavOpen) {
@@ -411,6 +406,68 @@ export default function Experience() {
         break;
     }
   };
+
+  const proceedToFirstSection = () => {
+    if (isProgrammaticScrollRef.current) return;
+    soundFX.unlockAudio();
+    if (!hasInteracted) {
+      setHasInteracted(true);
+      setDecryptKey((k) => k + 1);
+    }
+    handleMenuClick("about");
+  };
+
+  const handleHeroClick = () => {
+    if (!isIntroComplete) return;
+    proceedToFirstSection();
+  };
+
+  useEffect(() => {
+    const handleGlobalClick = (e: MouseEvent) => {
+      if (!isIntroComplete) return;
+      if (activeSection !== "hero" && window.scrollY >= window.innerHeight * 0.5) return;
+      if (isMobileNavOpen) return;
+
+      const target = e.target as HTMLElement | null;
+      if (
+        target?.closest("header") ||
+        target?.closest("nav") ||
+        target?.closest("#mobile-nav-drawer") ||
+        target?.closest("button")
+      ) {
+        return;
+      }
+
+      proceedToFirstSection();
+    };
+
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if (!isIntroComplete) return;
+      if (activeSection !== "hero" && window.scrollY >= window.innerHeight * 0.5) return;
+      if (isMobileNavOpen) return;
+
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement
+      ) {
+        return;
+      }
+
+      if (["Tab", "Shift", "Control", "Alt", "Meta", "CapsLock", "Escape"].includes(e.key)) {
+        return;
+      }
+
+      e.preventDefault();
+      proceedToFirstSection();
+    };
+
+    window.addEventListener("click", handleGlobalClick);
+    window.addEventListener("keydown", handleGlobalKeyDown);
+    return () => {
+      window.removeEventListener("click", handleGlobalClick);
+      window.removeEventListener("keydown", handleGlobalKeyDown);
+    };
+  }, [isIntroComplete, activeSection, isMobileNavOpen]);
 
   const handleChapterClick = (index: number) => {
     switchJourneyChapterRef.current?.(index);
@@ -1517,6 +1574,7 @@ export default function Experience() {
           });
         });
         measure();
+        setIsIntroComplete(true);
         unlockScroll();
         ScrollTrigger.refresh();
         return;
@@ -1534,6 +1592,7 @@ export default function Experience() {
       const finishIntro = () => {
         if (introFinished) return;
         introFinished = true;
+        setIsIntroComplete(true);
         if (heroPreInner.current) gsap.set(heroPreInner.current, { yPercent: 0, opacity: 1 });
         if (heroVaultInner.current) gsap.set(heroVaultInner.current, { yPercent: 0, opacity: 1 });
         if (heroSubInner.current) gsap.set(heroSubInner.current, { yPercent: 0, opacity: 1 });
@@ -1559,6 +1618,7 @@ export default function Experience() {
           defaults: { ease: "power3.out" },
           onComplete: () => {
             introFinished = true;
+            setIsIntroComplete(true);
             measure();
             unlockScroll();
             ScrollTrigger.refresh();
@@ -1749,10 +1809,12 @@ export default function Experience() {
           id="hero"
           aria-label="Introduction"
           onClick={handleHeroClick}
-          className="absolute inset-0 z-10 flex flex-col items-center justify-center px-4 sm:px-6 text-center select-none"
+          className={`absolute inset-0 z-10 flex flex-col items-center justify-center px-4 sm:px-6 text-center select-none ${
+            isIntroComplete ? "cursor-pointer" : "cursor-default"
+          }`}
         >
           <h1
-            className="text-glow font-excon font-bold leading-[1.08] sm:leading-[1.02] text-ink flex flex-col sm:inline-flex sm:flex-row items-center justify-center text-center gap-0 sm:gap-2 select-none"
+            className="text-glow font-excon font-bold leading-[1.08] sm:leading-[1.02] text-ink flex flex-col sm:inline-flex sm:flex-row items-center justify-center text-center gap-0 sm:gap-2 select-none pointer-events-none"
             style={{ fontSize: HEADING_SIZE }}
           >
             <span ref={heroPre} className="inline-block overflow-hidden py-1">
@@ -1767,17 +1829,25 @@ export default function Experience() {
             </span>
           </h1>
 
-          <button
-            type="button"
+          <div
             ref={scrollIndicator}
-            onClick={() => {
-              soundFX.playMenuClick();
-              const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-              lenisRef.current?.scrollTo(window.innerHeight * 1.15, { duration: reduced ? 0 : 1.0 });
+            onClick={(e) => {
+              e.stopPropagation();
+              if (isIntroComplete) {
+                proceedToFirstSection();
+              }
             }}
             onMouseEnter={() => soundFX.playHoverTick()}
-            aria-label="Scroll down to explore"
-            className="group mt-[3vh] sm:mt-[4.5vh] flex w-full flex-col items-center cursor-pointer transition-transform duration-300 hover:scale-[1.03] active:scale-95 focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-4 rounded-xl p-2 border-0 bg-transparent"
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                proceedToFirstSection();
+              }
+            }}
+            aria-label="Continue to intro section"
+            className="group mt-[3vh] sm:mt-[4.5vh] flex w-full flex-col items-center cursor-pointer transition-transform duration-300 hover:scale-[1.03] active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-4 rounded-xl p-2"
             style={{ maxWidth: "min(90vw, 560px)" }}
           >
             <svg
@@ -1795,16 +1865,22 @@ export default function Experience() {
               <line ref={arrowStem} x1="622" y1="29" x2="622" y2="60" />
               <path ref={arrowHead} d="M611 49 L622 61 L633 49" />
             </svg>
-            <div className="mt-[3vh] sm:mt-[4.5vh] overflow-hidden py-1">
+            <div className="mt-[2.5vh] sm:mt-[3.5vh] overflow-hidden py-1">
               <p
                 ref={heroSubInner}
-                className="text-center font-excon font-bold leading-none text-ink transition-transform duration-200 group-hover:-translate-y-0.5 will-change-transform"
-                style={{ fontSize: "clamp(0.95rem, 2.3vw, 1.55rem)" }}
+                className="text-center font-excon font-bold leading-none text-ink transition-transform duration-200 group-hover:-translate-y-0.5 will-change-transform flex items-center justify-center gap-2"
+                style={{ fontSize: "clamp(0.92rem, 2.1vw, 1.45rem)" }}
               >
-                {SUBTITLE}
+                <span>{SUBTITLE}</span>
               </p>
             </div>
-          </button>
+            <div className="mt-2.5 flex items-center gap-2 text-neutral-400 font-mono text-[0.65rem] sm:text-xs tracking-wider transition-opacity duration-300">
+              <span className="hidden sm:inline border border-black/10 rounded px-1.5 py-0.5 bg-black/[0.03]">Press any key</span>
+              <span className="sm:hidden border border-black/10 rounded px-1.5 py-0.5 bg-black/[0.03]">Tap anywhere</span>
+              <span className="text-black/30">·</span>
+              <span>or scroll down</span>
+            </div>
+          </div>
         </section>
 
         {/* ---------------------------------------- MAIN PANEL (About / Journey) */}
