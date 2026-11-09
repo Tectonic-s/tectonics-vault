@@ -1476,15 +1476,8 @@ export default function Experience() {
                         <span
                           className={`inline-flex ${
                             isMultiLine ? "items-start" : "items-center"
-                          } gap-3 transition-transform duration-300 ease-out group-hover:translate-x-2.5 group-active:translate-x-1`}
+                          } transition-transform duration-300 ease-out group-hover:translate-x-2.5 group-active:translate-x-1`}
                         >
-                          <span
-                            className={`font-mono text-xs sm:text-sm tracking-wider transition-opacity duration-200 ${
-                              isMultiLine ? "mt-[0.22em]" : ""
-                            } ${isActive ? "opacity-100 font-bold text-white" : "opacity-45 text-white/60"}`}
-                          >
-                            {item.numeral}
-                          </span>
                           {"lines" in item && item.lines ? (
                             <span
                               className={`inline-flex transition-all duration-300 ease-out ${
@@ -1528,7 +1521,7 @@ export default function Experience() {
                   <div className="flex items-center gap-2 mb-2">
                     <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                     <span className="font-mono text-xs sm:text-[0.78rem] uppercase font-bold tracking-widest text-emerald-300">
-                      01 // INTRODUCTION · SYSTEM OPERATOR
+                      INTRODUCTION · SYSTEM OPERATOR
                     </span>
                   </div>
 
@@ -2212,15 +2205,8 @@ export default function Experience() {
                   }}
                   onMouseEnter={() => soundFX.playHoverTick()}
                   aria-current={isActive ? "true" : undefined}
-                  className="group flex items-baseline gap-3.5 sm:gap-5 text-left transition-all duration-200 active:scale-[0.98] border-0 bg-transparent p-0 cursor-pointer"
+                  className="group flex items-baseline text-left transition-all duration-200 active:scale-[0.98] border-0 bg-transparent p-0 cursor-pointer"
                 >
-                  <span
-                    className={`font-mono text-xs sm:text-sm tracking-widest transition-opacity duration-200 ${
-                      isActive ? "text-white font-bold opacity-100" : "text-white/40 group-hover:text-white/70"
-                    }`}
-                  >
-                    {item.numeral}
-                  </span>
                   <span
                     className={`font-excon font-bold leading-none tracking-tight transition-all duration-200 ${
                       isActive
