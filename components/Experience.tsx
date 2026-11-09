@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { WorksExpandable } from "./WorksExpandable";
 import { OffScriptShowcase } from "./OffScriptShowcase";
+import { DotDistortionShader } from "./ui/dot-distortion-shader";
 import { soundFX } from "@/lib/audio";
 
 /* Type sizes shared between the hero "Vault." and the flying logo so they
@@ -1304,6 +1305,17 @@ export default function Experience() {
             className="pointer-events-none absolute inset-0 overflow-hidden select-none"
             aria-hidden="true"
           >
+            {/* Aceternity Dot Distortion Shader Background */}
+            <DotDistortionShader
+              dotGap={26}
+              dotSize={1.4}
+              mouseRadius={140}
+              distortionStrength={22}
+              returnSpeed={0.08}
+              friction={0.84}
+              dotColorRgb={[0, 0, 0]}
+            />
+
             {/* Cursor spotlight */}
             <div
               ref={heroSpotlightRef}
