@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import gsap from "gsap";
-import ProfileSilhouette from "./ProfileSilhouette";
 import { WorksExpandable } from "./WorksExpandable";
 import { OffScriptShowcase } from "./OffScriptShowcase";
 import { soundFX } from "@/lib/audio";
@@ -25,8 +24,35 @@ const getActiveMenuSize = () => {
    GSAP's colour regex matches that form only up to the first paren, fails to
    find any digits, and silently falls back to transparent black. Ink is
    static, so baking the value here is safe as well as necessary. */
-const INK = "rgb(0 0 0)";
-const INK_DIM = "rgb(123 123 123)";
+const INK_LIGHT = "rgb(255 255 255)";
+const INK_DIM_LIGHT = "rgba(255, 255, 255, 0.42)";
+
+/* Option 2: Full Chamber Shift Backgrounds */
+const JOURNEY_BG = [
+  "#140e08", // Chapter 0: Bronze Beginning
+  "#091612", // Chapter 1: Mint Foundation
+  "#0a1222", // Chapter 2: Sapphire Strategy
+  "#161108", // Chapter 3: Gold Leadership
+  "#081418", // Chapter 4: Slate Cyan Engineering
+];
+
+const BEYOND_BG = [
+  "#170b07", // Move: Fiery Terra / Ember
+  "#0a1122", // Think: Deep Sapphire
+  "#130922", // Create: Electric Amethyst
+  "#09160f", // Explore: Evergreen Sage
+];
+
+const getChamberBg = (section: string, journeyIdx: number, beyondIdx: number) => {
+  if (section === "hero") return "#f5f5f5";
+  if (section === "about") return "#0b1410";
+  if (section === "journey") return JOURNEY_BG[journeyIdx] ?? "#0c111c";
+  if (section === "skills" || section === "craft") return "#08111c";
+  if (section === "works") return "#0a0a0c";
+  if (section === "beyond") return BEYOND_BG[beyondIdx] ?? "#170b07";
+  if (section === "talk") return "#07120e";
+  return "#0b1410";
+};
 
 const HERO_PRE = "Welcome to my ";
 const HERO_VAULT = "Vault.";
@@ -761,7 +787,7 @@ export default function Experience() {
         const isAbout = li.getAttribute("data-key") === "about";
         gsap.set(li, {
           fontSize: isAbout ? getActiveMenuSize() : MENU_SMALL,
-          color: isAbout ? INK : INK_DIM,
+          color: isAbout ? INK_LIGHT : INK_DIM_LIGHT,
         });
       });
 
@@ -794,7 +820,7 @@ export default function Experience() {
           const isActive = itemKey === key;
           gsap.to(li, {
             fontSize: isActive ? targetSize : MENU_SMALL,
-            color: isActive ? INK : INK_DIM,
+            color: isActive ? INK_LIGHT : INK_DIM_LIGHT,
             duration: immediate ? 0 : 0.38,
             ease: "power2.out",
             overwrite: "auto",
@@ -876,13 +902,13 @@ export default function Experience() {
 
         jTabs.forEach((tab, i) => {
           if (i === newIndex) {
-            tab.classList.add("bg-black", "text-white", "shadow-sm");
-            tab.classList.remove("bg-black/[0.04]", "text-black/60");
+            tab.classList.add("bg-white", "text-black", "shadow-sm");
+            tab.classList.remove("bg-white/10", "text-white/70");
             tab.setAttribute("aria-selected", "true");
             tab.setAttribute("tabindex", "0");
           } else {
-            tab.classList.remove("bg-black", "text-white", "shadow-sm");
-            tab.classList.add("bg-black/[0.04]", "text-black/60");
+            tab.classList.remove("bg-white", "text-black", "shadow-sm");
+            tab.classList.add("bg-white/10", "text-white/70");
             tab.setAttribute("aria-selected", "false");
             tab.setAttribute("tabindex", "-1");
           }
@@ -1124,6 +1150,8 @@ export default function Experience() {
       : currentCanonicalKey === "beyond"
       ? BEYOND[activeBeyondIndex]?.accent.join(" ")
       : ROOMS[currentCanonicalKey as keyof typeof ROOMS]?.accent?.join(" ") || "10 10 10";
+  const currentChamberBg = getChamberBg(activeSection, activeChapterIndex, activeBeyondIndex);
+  const isChamberActive = activeSection !== "hero";
 
   return (
     <main id="main-content" ref={root} className="relative h-screen h-[100dvh] w-full overflow-hidden select-none">
@@ -1156,16 +1184,20 @@ export default function Experience() {
             aria-label="Open editorial section navigation"
             aria-expanded={isMobileNavOpen}
             aria-controls="mobile-nav-drawer"
-            className="lg:hidden text-xs font-mono font-medium text-neutral-800 hover:text-black border border-black/10 rounded-full px-3 py-1.5 bg-white/90 backdrop-blur-md active:scale-95 transition-all shadow-xs cursor-pointer flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-black"
+            className={`lg:hidden text-xs font-mono font-medium rounded-full px-3 py-1.5 backdrop-blur-md active:scale-95 transition-all shadow-xs cursor-pointer flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-white ${
+              isChamberActive
+                ? "text-white hover:text-white border border-white/15 bg-black/60"
+                : "text-neutral-800 hover:text-black border border-black/10 bg-white/90"
+            }`}
           >
             <span
               className="w-1.5 h-1.5 rounded-full transition-colors duration-300"
               style={{ backgroundColor: `rgb(${currentAccentColor})` }}
             />
-            <span className="font-semibold text-neutral-500">{currentMenuItem.numeral}</span>
-            <span className="text-black/20">/</span>
-            <span className="font-excon font-bold tracking-tight text-ink">{currentMenuItem.label}</span>
-            <span className="text-black/40 text-[0.65rem] ml-0.5">▾</span>
+            <span className={`font-semibold ${isChamberActive ? "text-neutral-300" : "text-neutral-500"}`}>{currentMenuItem.numeral}</span>
+            <span className={isChamberActive ? "text-white/30" : "text-black/20"}>/</span>
+            <span className={`font-excon font-bold tracking-tight ${isChamberActive ? "text-white" : "text-ink"}`}>{currentMenuItem.label}</span>
+            <span className={`${isChamberActive ? "text-white/50" : "text-black/40"} text-[0.65rem] ml-0.5`}>▾</span>
           </button>
           <button
             ref={letsTalk}
@@ -1173,7 +1205,11 @@ export default function Experience() {
             onClick={() => switchSectionTo("talk")}
             onMouseEnter={() => soundFX.playHoverTick()}
             aria-label="Go to connect section"
-            className="group will-reveal relative overflow-hidden flex items-center gap-2 sm:gap-2.5 font-excon font-bold leading-none text-ink rounded-full border-2 border-ink px-4 py-2 sm:px-6 sm:py-3 text-xs sm:text-base transition-all duration-300 ease-out hover:scale-108 hover:-translate-y-0.5 hover:bg-ink hover:text-bg hover:shadow-[0_12px_28px_rgba(0,0,0,0.18)] active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
+            className={`group will-reveal relative overflow-hidden flex items-center gap-2 sm:gap-2.5 font-excon font-bold leading-none rounded-full border-2 px-4 py-2 sm:px-6 sm:py-3 text-xs sm:text-base transition-all duration-300 ease-out hover:scale-108 hover:-translate-y-0.5 active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 ${
+              isChamberActive
+                ? "text-white border-white/35 hover:border-white hover:bg-white hover:text-black hover:shadow-[0_12px_28px_rgba(255,255,255,0.18)]"
+                : "text-ink border-ink hover:bg-ink hover:text-bg hover:shadow-[0_12px_28px_rgba(0,0,0,0.18)]"
+            }`}
           >
             {/* Morphing Envelope Icon: Closed envelope by default, transforms into an open envelope with letter on hover */}
             <span className="relative w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center shrink-0">
@@ -1229,7 +1265,9 @@ export default function Experience() {
               soundFX.playHoverTick();
             }
           }}
-          className="text-glow pointer-events-auto fixed left-0 top-0 font-excon font-bold leading-none text-ink cursor-pointer active:scale-95 border-0 bg-transparent p-0 z-50 select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 rounded"
+          className={`text-glow pointer-events-auto fixed left-0 top-0 font-excon font-bold leading-none cursor-pointer active:scale-95 border-0 bg-transparent p-0 z-50 select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 rounded transition-colors duration-500 ${
+            isChamberActive ? "text-white" : "text-ink"
+          }`}
           style={{ fontSize: HEADING_SIZE, willChange: "transform" }}
         >
           Vault.
@@ -1363,18 +1401,40 @@ export default function Experience() {
           </div>
         </section>
 
-        {/* ---------------------------------------- MAIN PANEL (About / Journey) */}
-        <div ref={mainPanel} className="absolute inset-0 z-20 bg-bg">
-          {/* Panel atmosphere — the panel is opaque (it occludes the hero as it
-              rolls up), so it carries its own lighting layers. */}
-          <div className="pointer-events-none absolute inset-0" aria-hidden>
-            <div className="vault-radial" />
-            <div className="vault-grain" />
-            <div className="vault-vignette" />
+        {/* ---------------------------------------- MAIN PANEL (Chamber) */}
+        <div
+          ref={mainPanel}
+          className="absolute inset-0 z-20 overflow-hidden"
+          style={{
+            backgroundColor: currentChamberBg,
+            transition: "background-color 0.8s cubic-bezier(0.16, 1, 0.3, 1)",
+          }}
+        >
+          {/* Full-bleed Landscape Portrait Billboard for Section 01 (Intro) */}
+          <div
+            className={`absolute inset-0 z-0 pointer-events-none transition-opacity duration-700 ease-in-out ${
+              currentCanonicalKey === "about" ? "opacity-100" : "opacity-0"
+            }`}
+            aria-hidden="true"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/profile.jpg"
+              alt="Tharun S"
+              className="w-full h-full object-cover object-center filter brightness-[0.88] contrast-[1.05]"
+            />
+            {/* Left-side scrim: ensures sidebar navigation is crystal clear */}
+            <div className="hidden lg:block absolute inset-y-0 left-0 w-[42%] bg-gradient-to-r from-black/85 via-black/45 to-transparent pointer-events-none" />
+            {/* Right-side scrim: ensures Tharun's name and editorial copy are razor sharp */}
+            <div className="absolute inset-y-0 right-0 w-full sm:w-[60%] lg:w-[50%] bg-gradient-to-l from-black/90 via-black/60 to-transparent pointer-events-none" />
+            {/* Top & Bottom subtle vignettes */}
+            <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/70 to-transparent pointer-events-none" />
+            <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/80 to-transparent pointer-events-none" />
           </div>
+
           <div className="relative mx-auto flex h-full max-w-[1480px] items-center px-4 sm:px-6 lg:px-[5vw] lg:gap-[4%]">
             {/* Left: accordion chapter menu (desktop only) */}
-            <nav aria-label="Section navigation" className="hidden lg:flex w-[28%] shrink-0">
+            <nav aria-label="Section navigation" className="hidden lg:flex w-[28%] shrink-0 relative z-10">
               <ul
                 ref={menu}
                 className="w-full flex flex-col justify-center gap-[0.55rem] font-excon font-bold leading-[1.05]"
@@ -1389,7 +1449,7 @@ export default function Experience() {
                       className="group will-reveal select-none"
                       style={{
                         fontSize: item.key === "about" ? MENU_ACTIVE : MENU_SMALL,
-                        color: item.key === "about" ? INK : INK_DIM,
+                        color: item.key === "about" ? INK_LIGHT : INK_DIM_LIGHT,
                       }}
                     >
                       <button
@@ -1397,35 +1457,39 @@ export default function Experience() {
                         onClick={() => switchSectionTo(item.key)}
                         onMouseEnter={() => soundFX.playHoverTick()}
                         aria-current={isActive ? "true" : undefined}
-                        className={`w-full text-left flex ${isMultiLine ? "items-start" : "items-center"
-                          } justify-between py-1 rounded-lg cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 active:scale-[0.98] transition-transform duration-150 border-0 bg-transparent p-0 text-inherit font-inherit`}
+                        className={`w-full text-left flex ${
+                          isMultiLine ? "items-start" : "items-center"
+                        } justify-between py-1 rounded-lg cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 active:scale-[0.98] transition-transform duration-150 border-0 bg-transparent p-0 text-inherit font-inherit`}
                       >
                         <span
-                          className={`inline-flex ${isMultiLine ? "items-start" : "items-center"
-                            } gap-3 transition-transform duration-300 ease-out group-hover:translate-x-2.5 group-active:translate-x-1`}
+                          className={`inline-flex ${
+                            isMultiLine ? "items-start" : "items-center"
+                          } gap-3 transition-transform duration-300 ease-out group-hover:translate-x-2.5 group-active:translate-x-1`}
                         >
                           <span
-                            className={`font-mono text-xs sm:text-sm tracking-wider transition-opacity duration-200 ${isMultiLine ? "mt-[0.22em]" : ""
-                              } ${isActive ? "opacity-100 font-bold" : "opacity-45"}`}
+                            className={`font-mono text-xs sm:text-sm tracking-wider transition-opacity duration-200 ${
+                              isMultiLine ? "mt-[0.22em]" : ""
+                            } ${isActive ? "opacity-100 font-bold text-white" : "opacity-45 text-white/60"}`}
                           >
                             {item.numeral}
                           </span>
                           {"lines" in item && item.lines ? (
                             <span
-                              className={`inline-flex transition-all duration-300 ease-out ${isMultiLine
-                                ? "flex-col items-start leading-[0.92]"
-                                : "flex-row items-baseline gap-[0.28em] leading-normal"
-                                }`}
+                              className={`inline-flex transition-all duration-300 ease-out ${
+                                isMultiLine
+                                  ? "flex-col items-start leading-[0.92]"
+                                  : "flex-row items-baseline gap-[0.28em] leading-normal"
+                              }`}
                             >
-                              <span className="transition-colors duration-200 group-hover:text-black">
+                              <span className="transition-colors duration-200 group-hover:text-white">
                                 {item.lines[0]}
                               </span>
-                              <span className="transition-colors duration-200 group-hover:text-black">
+                              <span className="transition-colors duration-200 group-hover:text-white">
                                 {item.lines[1]}
                               </span>
                             </span>
                           ) : (
-                            <span className="transition-colors duration-200 group-hover:text-black whitespace-nowrap">
+                            <span className="transition-colors duration-200 group-hover:text-white whitespace-nowrap">
                               {item.label}
                             </span>
                           )}
@@ -1439,41 +1503,91 @@ export default function Experience() {
 
             {/* Right: swappable content */}
             <div className="relative h-full flex-1 w-full pb-16 lg:pb-0">
-              {/* About */}
+              {/* About / Intro Section */}
               <section
                 id="about"
                 aria-label="About Tharun S"
                 ref={aboutRight}
-                className="absolute inset-0 flex items-center justify-center will-change-[transform,opacity]"
+                className="absolute inset-0 flex items-center justify-end will-change-[transform,opacity] px-2 sm:px-4 lg:pr-6 2xl:pr-10"
               >
                 <h2 className="sr-only">About Tharun S</h2>
-                <div className="flex w-full max-w-[440px] flex-col items-center text-center">
-                  <div ref={profile} className="will-reveal relative w-[clamp(160px,18vw,280px)]">
-                    <div data-portrait-glow aria-hidden className="hidden" />
-                    <div data-parallax="portrait">
-                      <div
-                        data-portrait
-                        className="aspect-square overflow-hidden rounded-[26px] sm:rounded-[36px] border-[10px] sm:border-[12px] md:border-[16px] border-black bg-white shadow-[0_16px_40px_rgba(0,0,0,0.06)] hover:shadow-[0_24px_50px_rgba(0,0,0,0.12)] hover:scale-[1.02] transition-all duration-500 ease-out cursor-default"
-                      >
-                        <ProfileSilhouette />
-                      </div>
-                    </div>
+                <div className="w-full max-w-[480px] lg:max-w-[500px] flex flex-col items-start text-left relative z-10">
+                  {/* Category / Location Eyebrow */}
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="font-mono text-xs sm:text-[0.78rem] uppercase font-bold tracking-widest text-emerald-300">
+                      01 // INTRODUCTION · SYSTEM OPERATOR
+                    </span>
                   </div>
-                  <div data-parallax="text" className="w-full mt-5 sm:mt-7 flex flex-col items-center text-center">
-                    <h3
-                      ref={aboutName}
-                      className="will-reveal font-excon font-bold leading-none text-ink text-2xl sm:text-3xl lg:text-4xl text-center"
+
+                  {/* Tharun S Name */}
+                  <h3
+                    ref={aboutName}
+                    className="will-reveal font-excon font-extrabold text-4xl sm:text-5xl lg:text-6xl tracking-tight text-white leading-[1.04] drop-shadow-[0_4px_16px_rgba(0,0,0,0.6)]"
+                  >
+                    Tharun S
+                  </h3>
+
+                  {/* Role Subhead */}
+                  <p className="mt-2 font-excon font-bold text-base sm:text-lg text-emerald-400 tracking-wide flex items-center gap-2 drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)]">
+                    Product Engineer &amp; Full-Stack Builder
+                  </p>
+
+                  {/* Narrative Bio */}
+                  <p
+                    ref={aboutPara}
+                    className="will-reveal mt-3 sm:mt-4 font-inter leading-relaxed text-neutral-200 text-xs sm:text-sm md:text-base drop-shadow-[0_2px_10px_rgba(0,0,0,0.7)]"
+                  >
+                    I enjoy building products where thoughtful design meets reliable engineering.
+                    Every project is an opportunity to create something intuitive, purposeful, and crafted
+                    with attention to detail.
+                  </p>
+
+                  {/* Key Provenance Chips */}
+                  <div
+                    ref={profile}
+                    className="mt-4 sm:mt-5 flex flex-wrap gap-2 text-xs font-medium"
+                  >
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/10 backdrop-blur-md px-3 py-1 text-white/90 shadow-sm">
+                      <span>📍</span>
+                      <span>Tamil Nadu, India</span>
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/10 backdrop-blur-md px-3 py-1 text-white/90 shadow-sm">
+                      <span>🎓</span>
+                      <span>MCA @ PSG Tech</span>
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/10 backdrop-blur-md px-3 py-1 text-white/90 shadow-sm">
+                      <span>💼</span>
+                      <span>Ex-Bajaj Finserv</span>
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/10 backdrop-blur-md px-3 py-1 text-white/90 shadow-sm">
+                      <span>📊</span>
+                      <span>B.Sc. Data Analytics</span>
+                    </span>
+                  </div>
+
+                  {/* Interactive Next Chapter Pill Button */}
+                  <div className="mt-6 flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => switchSectionTo("journey")}
+                      onMouseEnter={() => soundFX.playHoverTick()}
+                      aria-label="Continue to Journey section"
+                      className="group inline-flex items-center gap-2 rounded-full bg-white hover:bg-neutral-100 text-black px-5 py-2.5 font-inter text-xs sm:text-sm font-bold transition-all duration-300 hover:scale-105 active:scale-95 shadow-[0_8px_24px_rgba(0,0,0,0.4)] cursor-pointer"
                     >
-                      Tharun S
-                    </h3>
-                    <p
-                      ref={aboutPara}
-                      className="will-reveal mt-3 sm:mt-4 font-inter leading-relaxed text-ink/85 text-xs sm:text-sm md:text-base max-w-[42ch] text-center"
+                      <span>Explore Journey</span>
+                      <span className="font-mono transition-transform duration-300 group-hover:translate-x-1">→</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => switchSectionTo("works")}
+                      onMouseEnter={() => soundFX.playHoverTick()}
+                      aria-label="Jump directly to projects"
+                      className="inline-flex items-center gap-1.5 rounded-full border border-white/20 hover:border-white/40 bg-white/5 hover:bg-white/15 backdrop-blur-md px-4 py-2.5 text-xs sm:text-sm font-semibold text-white transition-all active:scale-95 cursor-pointer"
                     >
-                      I enjoy building products where thoughtful design meets reliable
-                      engineering. Every project is an opportunity to create something
-                      intuitive, purposeful, and crafted with attention to detail.
-                    </p>
+                      <span>Projects ↗</span>
+                    </button>
                   </div>
                 </div>
               </section>
@@ -1488,14 +1602,14 @@ export default function Experience() {
                 <h2 className="sr-only">Journey Chapters</h2>
                 <div className="w-full max-w-[820px] 2xl:max-w-[880px] flex flex-col gap-2.5 sm:gap-3.5">
                   {/* Section Context Header */}
-                  <div className="flex items-center justify-between border-b border-black/8 pb-2 sm:pb-2.5">
+                  <div className="flex items-center justify-between border-b border-white/10 pb-2 sm:pb-2.5">
                     <div className="flex items-center gap-1.5 sm:gap-2">
-                      <span className="h-2 w-2 rounded-full bg-neutral-900" />
-                      <span className="font-excon font-bold text-xs sm:text-sm uppercase tracking-wider text-black">
+                      <span className="h-2 w-2 rounded-full bg-white" />
+                      <span className="font-excon font-bold text-xs sm:text-sm uppercase tracking-wider text-white">
                         The Journey
                       </span>
-                      <span className="text-black/30 hidden sm:inline">·</span>
-                      <span className="font-inter text-[0.68rem] sm:text-xs text-neutral-500 hidden sm:inline">
+                      <span className="text-white/30 hidden sm:inline">·</span>
+                      <span className="font-inter text-[0.68rem] sm:text-xs text-neutral-400 hidden sm:inline">
                         Every chapter added something to the person I am today.
                       </span>
                     </div>
@@ -1522,9 +1636,9 @@ export default function Experience() {
                           onClick={() => handleChapterClick(i)}
                           onKeyDown={(e) => handleChapterKeyDown(e, i)}
                           onMouseEnter={() => soundFX.playHoverTick()}
-                          className={`group flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 hover:-translate-y-0.5 active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 ${i === activeChapterIndex
-                            ? "bg-black text-white shadow-sm"
-                            : "bg-black/[0.04] text-black/60 hover:text-black hover:bg-black/[0.08]"
+                          className={`group flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 hover:-translate-y-0.5 active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 ${i === activeChapterIndex
+                            ? "bg-white text-black shadow-sm"
+                            : "bg-white/10 text-white/70 hover:text-white hover:bg-white/20"
                             }`}
                         >
                           <span
@@ -1546,7 +1660,7 @@ export default function Experience() {
                         onClick={() => handleChapterClick(Math.max(0, activeChapterIndex - 1))}
                         disabled={activeChapterIndex === 0}
                         aria-label="Previous chapter"
-                        className="h-7 w-7 rounded-full border border-black/10 flex items-center justify-center text-xs font-mono text-neutral-600 hover:text-black hover:border-black/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-black"
+                        className="h-7 w-7 rounded-full border border-white/15 bg-white/5 hover:bg-white/15 flex items-center justify-center text-xs font-mono text-neutral-300 hover:text-white hover:border-white/40 disabled:opacity-20 disabled:cursor-not-allowed transition-all active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-white"
                       >
                         ←
                       </button>
@@ -1555,7 +1669,7 @@ export default function Experience() {
                         onClick={() => handleChapterClick(Math.min(JOURNEY.length - 1, activeChapterIndex + 1))}
                         disabled={activeChapterIndex === JOURNEY.length - 1}
                         aria-label="Next chapter"
-                        className="h-7 w-7 rounded-full border border-black/10 flex items-center justify-center text-xs font-mono text-neutral-600 hover:text-black hover:border-black/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-black"
+                        className="h-7 w-7 rounded-full border border-white/15 bg-white/5 hover:bg-white/15 flex items-center justify-center text-xs font-mono text-neutral-300 hover:text-white hover:border-white/40 disabled:opacity-20 disabled:cursor-not-allowed transition-all active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-white"
                       >
                         →
                       </button>
@@ -1572,7 +1686,7 @@ export default function Experience() {
                         aria-labelledby={`journey-tab-${i}`}
                         tabIndex={0}
                         data-jcard={i}
-                        className="absolute inset-0 rounded-[20px] sm:rounded-[24px] bg-white p-4 sm:p-6 md:p-7 border shadow-[0_12px_36px_rgba(0,0,0,0.04)] flex flex-col justify-between overflow-y-auto sm:overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black will-change-[transform,opacity]"
+                        className="absolute inset-0 rounded-[20px] sm:rounded-[24px] bg-neutral-900/90 sm:bg-neutral-900/80 backdrop-blur-xl p-4 sm:p-6 md:p-7 border shadow-[0_16px_48px_rgba(0,0,0,0.5)] flex flex-col justify-between overflow-y-auto sm:overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white will-change-[transform,opacity]"
                         style={{
                           borderColor: `rgb(${step.accent.join(" ")} / 0.45)`,
                         }}
@@ -1585,7 +1699,7 @@ export default function Experience() {
                                 <span
                                   className="inline-flex items-center gap-1 sm:gap-1.5 text-[0.65rem] sm:text-xs font-semibold uppercase tracking-wider px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md"
                                   style={{
-                                    backgroundColor: `rgb(${step.accent.join(" ")} / 0.12)`,
+                                    backgroundColor: `rgb(${step.accent.join(" ")} / 0.16)`,
                                     color: `rgb(${step.accent.join(" ")})`,
                                   }}
                                 >
@@ -1603,22 +1717,22 @@ export default function Experience() {
                                 )}
                               </div>
 
-                              <h3 className="mt-2 sm:mt-3 font-excon text-lg sm:text-2xl md:text-3xl font-bold tracking-tight text-ink break-words">
+                              <h3 className="mt-2 sm:mt-3 font-excon text-lg sm:text-2xl md:text-3xl font-bold tracking-tight text-white break-words">
                                 {step.primary}
                               </h3>
                               {step.secondary && (
-                                <p className="mt-0.5 sm:mt-1 font-inter text-xs sm:text-sm md:text-base text-neutral-500 font-medium">
+                                <p className="mt-0.5 sm:mt-1 font-inter text-xs sm:text-sm md:text-base text-neutral-300 font-medium">
                                   {step.secondary}
                                 </p>
                               )}
                             </div>
 
                             {step.metric && (
-                              <div className="flex flex-col items-start sm:items-end shrink-0 self-start rounded-xl sm:rounded-2xl bg-neutral-50 border border-black/6 px-2.5 py-1.5 sm:px-4 sm:py-2 transition-all duration-300 hover:scale-105 hover:bg-white hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] cursor-default">
-                                <div className="flex items-baseline font-excon font-bold text-lg sm:text-2xl md:text-3xl text-ink leading-none">
+                              <div className="flex flex-col items-start sm:items-end shrink-0 self-start rounded-xl sm:rounded-2xl bg-white/[0.05] border border-white/10 px-2.5 py-1.5 sm:px-4 sm:py-2 transition-all duration-300 hover:scale-105 hover:bg-white/10 hover:shadow-[0_8px_20px_rgba(0,0,0,0.3)] cursor-default">
+                                <div className="flex items-baseline font-excon font-bold text-lg sm:text-2xl md:text-3xl text-white leading-none">
                                   <span>{step.metric}</span>
                                   {step.metricUnit && (
-                                    <span className="text-xs sm:text-lg font-light ml-0.5 text-neutral-600">
+                                    <span className="text-xs sm:text-lg font-light ml-0.5 text-neutral-300">
                                       {step.metricUnit}
                                     </span>
                                   )}
@@ -1633,23 +1747,23 @@ export default function Experience() {
                           </div>
 
                           {/* Divider */}
-                          <div className="my-2 sm:my-3.5 h-px w-full bg-black/6" />
+                          <div className="my-2 sm:my-3.5 h-px w-full bg-white/10" />
 
                           {/* Narrative Story */}
-                          <p className="font-inter text-neutral-600 text-xs sm:text-sm md:text-[0.94rem] leading-relaxed max-w-[66ch]">
+                          <p className="font-inter text-neutral-200 text-xs sm:text-sm md:text-[0.94rem] leading-relaxed max-w-[66ch]">
                             {step.body}
                           </p>
                         </div>
 
                         {/* Bottom row: Acquired skills */}
-                        <div className="mt-2 sm:mt-3.5 pt-2 sm:pt-3 border-t border-black/5 flex flex-wrap items-center gap-1.5 sm:gap-2">
+                        <div className="mt-2 sm:mt-3.5 pt-2 sm:pt-3 border-t border-white/10 flex flex-wrap items-center gap-1.5 sm:gap-2">
                           <span className="text-[0.65rem] sm:text-[0.7rem] uppercase font-semibold tracking-wider text-neutral-400 mr-1">
                             Acquired:
                           </span>
                           {step.skills.map((skill) => (
                             <span
                               key={skill}
-                              className="group/pill inline-flex items-center gap-1 sm:gap-1.5 rounded-full border border-black/8 bg-neutral-50/70 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[0.68rem] sm:text-xs font-medium text-neutral-700 transition-all duration-200 hover:-translate-y-0.5 hover:border-black/20 hover:bg-white hover:shadow-sm cursor-default"
+                              className="group/pill inline-flex items-center gap-1 sm:gap-1.5 rounded-full border border-white/10 bg-white/[0.06] px-2.5 py-0.5 sm:px-3 sm:py-1 text-[0.68rem] sm:text-xs font-medium text-neutral-200 transition-all duration-200 hover:-translate-y-0.5 hover:border-white/30 hover:bg-white/15 hover:shadow-sm cursor-default"
                             >
                               <span
                                 aria-hidden="true"
@@ -1667,11 +1781,11 @@ export default function Experience() {
                   </div>
 
                   {/* Closing Sign-Off Note */}
-                  <div className="mt-2 sm:mt-2.5 flex flex-col sm:flex-row sm:items-baseline justify-between gap-1.5 border-t border-black/[0.06] pt-2 sm:pt-2.5">
-                    <span className="font-mono text-[0.68rem] sm:text-xs font-bold uppercase tracking-wider text-neutral-800 shrink-0">
+                  <div className="mt-2 sm:mt-2.5 flex flex-col sm:flex-row sm:items-baseline justify-between gap-1.5 border-t border-white/10 pt-2 sm:pt-2.5">
+                    <span className="font-mono text-[0.68rem] sm:text-xs font-bold uppercase tracking-wider text-white shrink-0">
                       The story continues.
                     </span>
-                    <p className="font-inter text-[0.68rem] sm:text-xs text-neutral-500 leading-normal">
+                    <p className="font-inter text-[0.68rem] sm:text-xs text-neutral-400 leading-normal">
                       I&apos;m still learning, experimenting, and figuring things out. Every chapter has given me a different perspective, and I&apos;m looking forward to seeing what I build with all of them.
                     </p>
                   </div>
@@ -1688,14 +1802,14 @@ export default function Experience() {
                 <h2 className="sr-only">Toolkit &amp; Capabilities</h2>
                 <div className="w-full max-w-[940px] 2xl:max-w-[1020px] flex flex-col gap-2.5 sm:gap-4">
                   {/* Context Header */}
-                  <div className="flex items-center justify-between border-b border-black/8 pb-2 sm:pb-2.5">
+                  <div className="flex items-center justify-between border-b border-white/10 pb-2 sm:pb-2.5">
                     <div className="flex items-center gap-1.5 sm:gap-2">
-                      <span className="h-2 w-2 rounded-full bg-neutral-900" />
-                      <span className="font-excon font-bold text-xs sm:text-sm uppercase tracking-wider text-black">
+                      <span className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse" />
+                      <span className="font-excon font-bold text-xs sm:text-sm uppercase tracking-wider text-white">
                         Toolkit
                       </span>
-                      <span className="text-black/30 hidden sm:inline">·</span>
-                      <span className="font-inter text-[0.68rem] sm:text-xs text-neutral-500 hidden sm:inline">
+                      <span className="text-white/30 hidden sm:inline">·</span>
+                      <span className="font-inter text-[0.68rem] sm:text-xs text-neutral-400 hidden sm:inline">
                         16 Capabilities accumulated across the journey
                       </span>
                     </div>
@@ -1716,7 +1830,7 @@ export default function Experience() {
                         }}
                         onMouseEnter={() => soundFX.playHoverTick()}
                         aria-label="Replay toolkit showcase animation"
-                        className="group flex items-center gap-1 rounded-full border border-black/10 px-2 sm:px-2.5 py-0.5 sm:py-1 text-[0.65rem] sm:text-xs font-mono font-medium text-neutral-600 transition-all hover:border-black/30 hover:text-black hover:bg-black/5 active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-black"
+                        className="group flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2 sm:px-2.5 py-0.5 sm:py-1 text-[0.65rem] sm:text-xs font-mono font-medium text-neutral-300 transition-all hover:border-white/35 hover:text-white hover:bg-white/10 active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-white"
                       >
                         <span className="transition-transform duration-300 group-hover:rotate-180">↺</span>
                         <span className="hidden sm:inline">Replay</span>
@@ -1725,10 +1839,10 @@ export default function Experience() {
                   </div>
 
                   {/* Video-style Progress Bar */}
-                  <div className="h-[2px] w-full bg-black/5 rounded-full overflow-hidden -mt-1 sm:-mt-2">
+                  <div className="h-[2px] w-full bg-white/10 rounded-full overflow-hidden -mt-1 sm:-mt-2">
                     <div
                       data-toolkit-progress
-                      className="h-full bg-black origin-left transition-opacity duration-300"
+                      className="h-full bg-cyan-400 origin-left transition-opacity duration-300"
                       style={{ transform: "scaleX(0)" }}
                     />
                   </div>
@@ -1748,7 +1862,7 @@ export default function Experience() {
                         <div
                           key={cat.name}
                           data-craft-card={ci}
-                          className="relative rounded-[16px] sm:rounded-[24px] p-3.5 sm:p-7 lg:p-8 transition-shadow duration-300 hover:shadow-[0_20px_48px_rgba(0,0,0,0.08)] bg-white shadow-[0_12px_36px_rgba(0,0,0,0.05)]"
+                          className="relative rounded-[16px] sm:rounded-[24px] p-3.5 sm:p-7 lg:p-8 transition-shadow duration-300 hover:shadow-[0_20px_48px_rgba(0,0,0,0.6)] bg-neutral-900/80 backdrop-blur-xl border border-white/10 shadow-[0_16px_40px_rgba(0,0,0,0.4)]"
                           style={
                             {
                               "--origin-rgb": JOURNEY[dominant].accent.join(" "),
@@ -1792,7 +1906,7 @@ export default function Experience() {
 
                           <h3
                             data-craft-head
-                            className="font-inter font-semibold uppercase text-black/50 text-[0.68rem] sm:text-xs tracking-wider"
+                            className="font-inter font-semibold uppercase text-white/60 text-[0.68rem] sm:text-xs tracking-wider"
                           >
                             {cat.name}
                           </h3>
@@ -1804,7 +1918,7 @@ export default function Experience() {
                                   key={s}
                                   data-craft-item
                                   onMouseEnter={() => soundFX.playHoverTick()}
-                                  className="group relative flex items-baseline gap-1.5 sm:gap-3 font-inter text-[#1a1a1a] text-xs sm:text-sm md:text-base transition-transform duration-200 ease-out hover:translate-x-1.5 cursor-default"
+                                  className="group relative flex items-baseline gap-1.5 sm:gap-3 font-inter text-neutral-200 text-xs sm:text-sm md:text-base transition-transform duration-200 ease-out hover:translate-x-1.5 hover:text-white cursor-default"
                                   style={
                                     {
                                       "--origin-rgb": JOURNEY[origin].accent.join(" "),
@@ -1822,7 +1936,7 @@ export default function Experience() {
                                   </span>
                                   <span
                                     aria-hidden
-                                    className="hidden sm:block pointer-events-none absolute right-0 top-1/2 z-10 -translate-y-1/2 translate-x-2 whitespace-nowrap rounded-md border border-black/10 px-2 py-1 font-inter uppercase text-black/75 opacity-0 transition-all duration-200 ease-out group-hover:translate-x-0 group-hover:opacity-100 text-[0.65rem] tracking-wider bg-white/95 shadow-md"
+                                    className="hidden sm:block pointer-events-none absolute right-0 top-1/2 z-10 -translate-y-1/2 translate-x-2 whitespace-nowrap rounded-md border border-white/15 px-2 py-1 font-inter uppercase text-white/85 opacity-0 transition-all duration-200 ease-out group-hover:translate-x-0 group-hover:opacity-100 text-[0.65rem] tracking-wider bg-neutral-800/95 shadow-md"
                                   >
                                     Earned during {JOURNEY[origin].title}
                                   </span>
@@ -1849,21 +1963,21 @@ export default function Experience() {
               >
                 <h2 className="sr-only">Selected Projects</h2>
                 <div className="w-full max-w-[880px] 2xl:max-w-[960px] flex flex-col gap-2 sm:gap-4">
-                  <div className="flex items-center justify-between border-b border-black/8 pb-2 sm:pb-2.5">
+                  <div className="flex items-center justify-between border-b border-white/10 pb-2 sm:pb-2.5">
                     <div className="flex items-center gap-1.5 sm:gap-2">
                       <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                      <span className="font-excon font-bold text-xs sm:text-sm uppercase tracking-wider text-black">
+                      <span className="font-excon font-bold text-xs sm:text-sm uppercase tracking-wider text-white">
                         Selected Projects
                       </span>
-                      <span className="text-black/30 hidden sm:inline">·</span>
-                      <span className="font-inter text-[0.68rem] sm:text-xs text-neutral-500 hidden sm:inline">
+                      <span className="text-white/30 hidden sm:inline">·</span>
+                      <span className="font-inter text-[0.68rem] sm:text-xs text-neutral-400 hidden sm:inline">
                         Five core engineering systems engineered for depth and precision.
                       </span>
                     </div>
                     <div className="hidden sm:flex items-center gap-1.5 font-mono text-[0.65rem] text-neutral-400">
                       <span>Keys:</span>
-                      <kbd className="px-1.5 py-0.5 rounded border border-black/10 bg-neutral-100 text-neutral-700 font-mono">1–5</kbd>
-                      <kbd className="px-1.5 py-0.5 rounded border border-black/10 bg-neutral-100 text-neutral-700 font-mono">← / →</kbd>
+                      <kbd className="px-1.5 py-0.5 rounded border border-white/15 bg-white/10 text-neutral-300 font-mono">1–5</kbd>
+                      <kbd className="px-1.5 py-0.5 rounded border border-white/15 bg-white/10 text-neutral-300 font-mono">← / →</kbd>
                     </div>
                   </div>
                   <WorksExpandable />
@@ -1880,21 +1994,21 @@ export default function Experience() {
                 <h2 className="sr-only">Off Script</h2>
                 <div className="w-full max-w-[880px] 2xl:max-w-[960px] flex flex-col gap-2 sm:gap-4">
                   {/* Context Header */}
-                  <div className="flex items-center justify-between border-b border-black/8 pb-2 sm:pb-2.5">
+                  <div className="flex items-center justify-between border-b border-white/10 pb-2 sm:pb-2.5">
                     <div className="flex items-center gap-1.5 sm:gap-2">
-                      <span className="h-2 w-2 rounded-full bg-neutral-900 animate-pulse" />
-                      <span className="font-excon font-bold text-xs sm:text-sm uppercase tracking-wider text-black">
+                      <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
+                      <span className="font-excon font-bold text-xs sm:text-sm uppercase tracking-wider text-white">
                         Off Script
                       </span>
-                      <span className="text-black/30 hidden sm:inline">·</span>
-                      <span className="font-inter text-[0.68rem] sm:text-xs text-neutral-500 hidden sm:inline">
+                      <span className="text-white/30 hidden sm:inline">·</span>
+                      <span className="font-inter text-[0.68rem] sm:text-xs text-neutral-400 hidden sm:inline">
                         A little more about the person behind the pixels.
                       </span>
                     </div>
                     <div className="hidden sm:flex items-center gap-1.5 font-mono text-[0.65rem] text-neutral-400">
                       <span>Keys:</span>
-                      <kbd className="px-1.5 py-0.5 rounded border border-black/10 bg-neutral-100 text-neutral-700 font-mono">1–4</kbd>
-                      <kbd className="px-1.5 py-0.5 rounded border border-black/10 bg-neutral-100 text-neutral-700 font-mono">← / →</kbd>
+                      <kbd className="px-1.5 py-0.5 rounded border border-white/15 bg-white/10 text-neutral-300 font-mono">1–4</kbd>
+                      <kbd className="px-1.5 py-0.5 rounded border border-white/15 bg-white/10 text-neutral-300 font-mono">← / →</kbd>
                     </div>
                   </div>
 
@@ -1913,32 +2027,32 @@ export default function Experience() {
                 className="absolute inset-0 flex items-center justify-center will-change-[transform,opacity]"
               >
                 <h2 className="sr-only">Connect</h2>
-                <div className="w-full max-w-[680px] rounded-[28px] sm:rounded-[36px] border border-black/10 bg-white p-6 sm:p-10 md:p-12 shadow-[0_20px_60px_rgba(0,0,0,0.06)] flex flex-col justify-between">
+                <div className="w-full max-w-[680px] rounded-[28px] sm:rounded-[36px] border border-white/10 bg-neutral-900/90 backdrop-blur-2xl p-6 sm:p-10 md:p-12 shadow-[0_20px_60px_rgba(0,0,0,0.5)] flex flex-col justify-between text-white">
                   <div>
                     <div className="flex items-center">
-                      <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-50 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-emerald-700">
-                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-950/60 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-emerald-400">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
                         Available for opportunities
                       </span>
                     </div>
 
-                    <h3 className="mt-4 sm:mt-5 font-excon text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-ink">
+                    <h3 className="mt-4 sm:mt-5 font-excon text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white">
                       Let’s build something exceptional.
                     </h3>
-                    <p className="mt-2 sm:mt-3 font-inter text-sm sm:text-base text-neutral-500 leading-relaxed max-w-[54ch]">
+                    <p className="mt-2 sm:mt-3 font-inter text-sm sm:text-base text-neutral-300 leading-relaxed max-w-[54ch]">
                       Have a product to build, an engineering opportunity, or just want to connect? Reach out directly or connect on social platforms.
                     </p>
                   </div>
 
                   <div className="mt-6 sm:mt-8 flex flex-col gap-3.5">
-                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 rounded-2xl border border-black/8 bg-neutral-50/80 p-4 sm:p-5">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4 sm:p-5 text-white">
                       <div>
                         <span className="block text-[0.7rem] uppercase font-semibold tracking-wider text-neutral-400">
                           Direct Communication
                         </span>
                         <a
                           href="mailto:tharun@example.com"
-                          className="font-inter text-base sm:text-lg font-bold text-neutral-900 hover:underline"
+                          className="font-inter text-base sm:text-lg font-bold text-white hover:text-emerald-400 transition-colors"
                         >
                           tharun@example.com
                         </a>
@@ -1947,16 +2061,16 @@ export default function Experience() {
                         <button
                           type="button"
                           onClick={handleCopyEmail}
-                          className={`flex-1 sm:flex-initial rounded-full px-5 py-2.5 text-xs font-semibold transition-all duration-200 active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-black ${copiedEmail
+                          className={`flex-1 sm:flex-initial rounded-full px-5 py-2.5 text-xs font-semibold transition-all duration-200 active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-white ${copiedEmail
                             ? "bg-emerald-600 text-white scale-105 shadow-md shadow-emerald-600/25"
-                            : "bg-black text-white hover:bg-neutral-800 hover:shadow-sm"
+                            : "bg-white text-black hover:bg-neutral-200 hover:shadow-sm"
                             }`}
                         >
                           {copiedEmail ? "Copied! ✓" : "Copy Email"}
                         </button>
                         <a
                           href="mailto:tharun@example.com"
-                          className="rounded-full border border-black/15 bg-white px-4 py-2.5 text-xs font-semibold text-black hover:bg-neutral-100 transition-all active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-black"
+                          className="rounded-full border border-white/20 bg-white/10 px-4 py-2.5 text-xs font-semibold text-white hover:bg-white/20 transition-all active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-white"
                         >
                           Send ↗
                         </a>
@@ -1969,7 +2083,7 @@ export default function Experience() {
                         target="_blank"
                         rel="noopener noreferrer"
                         onMouseEnter={() => soundFX.playHoverTick()}
-                        className="group flex items-center justify-center gap-2 rounded-2xl border border-black/8 bg-white py-3.5 text-xs sm:text-sm font-semibold text-neutral-800 transition-all duration-200 hover:-translate-y-0.5 hover:border-black/25 hover:bg-neutral-50 hover:shadow-sm active:scale-95 focus-visible:ring-2 focus-visible:ring-black"
+                        className="group flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.06] py-3.5 text-xs sm:text-sm font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:border-white/30 hover:bg-white/15 hover:shadow-sm active:scale-95 focus-visible:ring-2 focus-visible:ring-white"
                       >
                         <span>GitHub</span>
                         <span aria-hidden="true" className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 font-mono">
@@ -1981,7 +2095,7 @@ export default function Experience() {
                         target="_blank"
                         rel="noopener noreferrer"
                         onMouseEnter={() => soundFX.playHoverTick()}
-                        className="group flex items-center justify-center gap-2 rounded-2xl border border-black/8 bg-white py-3.5 text-xs sm:text-sm font-semibold text-neutral-800 transition-all duration-200 hover:-translate-y-0.5 hover:border-black/25 hover:bg-neutral-50 hover:shadow-sm active:scale-95 focus-visible:ring-2 focus-visible:ring-black"
+                        className="group flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.06] py-3.5 text-xs sm:text-sm font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:border-white/30 hover:bg-white/15 hover:shadow-sm active:scale-95 focus-visible:ring-2 focus-visible:ring-white"
                       >
                         <span>LinkedIn</span>
                         <span aria-hidden="true" className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 font-mono">
@@ -2006,7 +2120,7 @@ export default function Experience() {
             : "opacity-100 translate-y-0"
         }`}
       >
-        <div className="flex items-center gap-0.5 p-1 rounded-full bg-white/90 backdrop-blur-xl border border-black/10 shadow-[0_12px_36px_rgba(0,0,0,0.12)]">
+        <div className="flex items-center gap-0.5 p-1 rounded-full bg-neutral-900/90 backdrop-blur-xl border border-white/15 shadow-[0_12px_36px_rgba(0,0,0,0.5)]">
           {MENU.map((item) => {
             const isActive = currentCanonicalKey === item.key;
             return (
@@ -2019,17 +2133,17 @@ export default function Experience() {
                 aria-label={`Go to section ${item.label}`}
                 className={`flex items-center justify-center transition-all duration-300 ease-out active:scale-95 cursor-pointer rounded-full font-mono ${
                   isActive
-                    ? "bg-black text-white px-3 py-1.5 gap-1.5 shadow-sm"
-                    : "text-black/50 hover:text-black hover:bg-black/5 px-2 py-1.5 text-xs font-medium"
+                    ? "bg-white text-black px-3 py-1.5 gap-1.5 shadow-sm"
+                    : "text-white/60 hover:text-white hover:bg-white/10 px-2 py-1.5 text-xs font-medium"
                 }`}
               >
-                <span className={`text-[0.68rem] ${isActive ? "text-white/70 font-semibold" : "text-black/60 font-mono"}`}>
+                <span className={`text-[0.68rem] ${isActive ? "text-black/80 font-semibold" : "text-white/60 font-mono"}`}>
                   {item.numeral}
                 </span>
                 {isActive && (
                   <>
-                    <span className="w-1 h-1 rounded-full bg-white/40" />
-                    <span className="font-excon font-bold text-xs tracking-tight whitespace-nowrap text-white">
+                    <span className="w-1 h-1 rounded-full bg-black/40" />
+                    <span className="font-excon font-bold text-xs tracking-tight whitespace-nowrap text-black">
                       {item.label}
                     </span>
                   </>
@@ -2047,19 +2161,12 @@ export default function Experience() {
           role="dialog"
           aria-modal="true"
           aria-label="Section navigation"
-          className="fixed inset-0 z-50 flex flex-col justify-between bg-bg p-6 sm:p-10 select-none animate-in fade-in duration-200"
+          className="fixed inset-0 z-50 flex flex-col justify-between bg-neutral-950 text-white p-6 sm:p-10 select-none animate-in fade-in duration-200"
         >
-          {/* Atmosphere layers matching vault */}
-          <div className="pointer-events-none absolute inset-0" aria-hidden>
-            <div className="vault-radial" />
-            <div className="vault-grain" />
-            <div className="vault-vignette" />
-          </div>
-
           {/* Top Bar inside modal */}
-          <div className="relative z-10 flex items-center justify-between pb-4 border-b border-black/8">
+          <div className="relative z-10 flex items-center justify-between pb-4 border-b border-white/10">
             <div className="flex items-center gap-2">
-              <span className="font-excon font-bold text-xl sm:text-2xl text-ink">
+              <span className="font-excon font-bold text-xl sm:text-2xl text-white">
                 Vault.
               </span>
             </div>
@@ -2071,7 +2178,7 @@ export default function Experience() {
                 lastActiveElementRef.current?.focus();
               }}
               onMouseEnter={() => soundFX.playHoverTick()}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-black/10 text-neutral-500 hover:text-black hover:border-black/30 hover:bg-black/5 transition-all active:scale-90 cursor-pointer focus-visible:ring-2 focus-visible:ring-black"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-neutral-300 hover:text-white hover:border-white/35 hover:bg-white/10 transition-all active:scale-90 cursor-pointer focus-visible:ring-2 focus-visible:ring-white"
               aria-label="Close navigation"
             >
               <span className="font-mono text-base">✕</span>
@@ -2097,7 +2204,7 @@ export default function Experience() {
                 >
                   <span
                     className={`font-mono text-xs sm:text-sm tracking-widest transition-opacity duration-200 ${
-                      isActive ? "text-ink font-bold opacity-100" : "text-ink/35 group-hover:text-ink/60"
+                      isActive ? "text-white font-bold opacity-100" : "text-white/40 group-hover:text-white/70"
                     }`}
                   >
                     {item.numeral}
@@ -2105,8 +2212,8 @@ export default function Experience() {
                   <span
                     className={`font-excon font-bold leading-none tracking-tight transition-all duration-200 ${
                       isActive
-                        ? "text-3xl sm:text-4xl text-ink"
-                        : "text-xl sm:text-2xl text-ink/40 group-hover:text-ink/80 group-hover:translate-x-1.5"
+                        ? "text-3xl sm:text-4xl text-white"
+                        : "text-xl sm:text-2xl text-white/40 group-hover:text-white/80 group-hover:translate-x-1.5"
                     }`}
                   >
                     {item.label}
@@ -2117,7 +2224,7 @@ export default function Experience() {
           </nav>
 
           {/* Bottom quick contact footer inside modal */}
-          <div className="relative z-10 flex items-center justify-between pt-4 border-t border-black/8 text-xs text-neutral-500 font-mono">
+          <div className="relative z-10 flex items-center justify-between pt-4 border-t border-white/10 text-xs text-neutral-400 font-mono">
             <span>Tharun S · Portfolio</span>
             <button
               type="button"
@@ -2126,7 +2233,7 @@ export default function Experience() {
                 setIsMobileNavOpen(false);
                 switchSectionTo("talk");
               }}
-              className="text-black font-semibold hover:underline cursor-pointer"
+              className="text-white font-semibold hover:underline cursor-pointer"
             >
               Get in touch →
             </button>

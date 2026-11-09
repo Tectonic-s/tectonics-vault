@@ -471,7 +471,7 @@ export function WorksExpandable({
       {/* TOP INTERACTIVE INDEX RAIL                                         */}
       {/* ------------------------------------------------------------------ */}
       <div className="flex items-center justify-between gap-2 overflow-x-auto pb-1 sm:pb-1.5 scrollbar-none">
-        <div className="flex items-center gap-1 sm:gap-1.5 p-1 rounded-full bg-black/[0.03] border border-black/8 w-full sm:w-auto">
+        <div className="flex items-center gap-1 sm:gap-1.5 p-1 rounded-full bg-white/[0.06] border border-white/10 w-full sm:w-auto">
           {projects.map((proj, idx) => {
             const isCurrent = idx === selectedIndex;
             return (
@@ -482,14 +482,14 @@ export function WorksExpandable({
                 onMouseEnter={() => soundFX.playHoverTick()}
                 aria-label={`Select project ${proj.numeral} ${proj.title}`}
                 className={`relative px-2.5 sm:px-3.5 py-1.5 rounded-full font-excon text-xs sm:text-sm font-bold tracking-tight transition-all duration-200 cursor-pointer flex items-center gap-1.5 shrink-0 ${
-                  isCurrent ? "text-white" : "text-neutral-500 hover:text-black hover:bg-black/[0.04]"
+                  isCurrent ? "text-black" : "text-neutral-400 hover:text-white hover:bg-white/10"
                 }`}
               >
                 {isCurrent && (
                   <motion.div
                     layoutId="activeProjectPill"
                     transition={{ type: "spring", stiffness: 450, damping: 35 }}
-                    className="absolute inset-0 bg-neutral-900 rounded-full shadow-sm"
+                    className="absolute inset-0 bg-white rounded-full shadow-sm"
                   />
                 )}
                 <span className="relative z-10 font-mono text-[0.65rem] sm:text-[0.72rem] opacity-75">
@@ -515,7 +515,7 @@ export function WorksExpandable({
             onClick={handlePrev}
             onMouseEnter={() => soundFX.playHoverTick()}
             aria-label="Previous project"
-            className="h-8 w-8 rounded-full border border-black/10 bg-white hover:bg-neutral-100 flex items-center justify-center font-mono text-xs transition-all active:scale-95 cursor-pointer"
+            className="h-8 w-8 rounded-full border border-white/15 bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-mono text-xs transition-all active:scale-95 cursor-pointer"
           >
             ←
           </button>
@@ -527,7 +527,7 @@ export function WorksExpandable({
             onClick={handleNext}
             onMouseEnter={() => soundFX.playHoverTick()}
             aria-label="Next project"
-            className="h-8 w-8 rounded-full border border-black/10 bg-white hover:bg-neutral-100 flex items-center justify-center font-mono text-xs transition-all active:scale-95 cursor-pointer"
+            className="h-8 w-8 rounded-full border border-white/15 bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-mono text-xs transition-all active:scale-95 cursor-pointer"
           >
             →
           </button>
@@ -544,7 +544,7 @@ export function WorksExpandable({
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
           transition={{ duration: 0.28, ease: "easeOut" }}
-          className="relative w-full rounded-[22px] sm:rounded-[26px] border border-black/10 bg-white p-4 sm:p-6 lg:p-7 shadow-[0_8px_30px_rgba(0,0,0,0.03)] grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 lg:gap-8 items-center"
+          className="relative w-full rounded-[22px] sm:rounded-[26px] border border-white/10 bg-neutral-900/90 backdrop-blur-xl p-4 sm:p-6 lg:p-7 shadow-[0_16px_48px_rgba(0,0,0,0.5)] grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 lg:gap-8 items-center"
         >
           {/* Left Column (7 cols): Editorial Typography & Architecture */}
           <div className="lg:col-span-7 flex flex-col justify-between space-y-3.5 sm:space-y-4">
@@ -557,8 +557,8 @@ export function WorksExpandable({
                 <span
                   className={`inline-flex items-center gap-1 font-mono text-[0.62rem] sm:text-[0.68rem] font-medium px-2.5 py-0.5 rounded-full border ${
                     selectedProject.status.includes("Completed")
-                      ? "border-emerald-500/20 bg-emerald-50 text-emerald-800"
-                      : "border-amber-500/20 bg-amber-50 text-amber-800"
+                      ? "border-emerald-500/30 bg-emerald-950/60 text-emerald-400"
+                      : "border-amber-500/30 bg-amber-950/60 text-amber-400"
                   }`}
                 >
                   <span
@@ -571,53 +571,53 @@ export function WorksExpandable({
               </div>
 
               {/* Title & Tagline */}
-              <h3 className="font-excon text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-ink">
+              <h3 className="font-excon text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-white">
                 {selectedProject.title}
               </h3>
-              <p className="mt-1 font-inter text-xs sm:text-sm font-medium text-neutral-600 leading-snug">
+              <p className="mt-1 font-inter text-xs sm:text-sm font-medium text-neutral-300 leading-snug">
                 {selectedProject.tagline}
               </p>
             </div>
 
             {/* Standout Metric / Maker's Mark Highlight */}
             {selectedProject.isSpecialSignature ? (
-              <div className="rounded-2xl border-2 border-dashed border-neutral-900/15 bg-neutral-50/90 p-3.5 sm:p-4 relative">
+              <div className="rounded-2xl border-2 border-dashed border-amber-400/30 bg-amber-950/20 p-3.5 sm:p-4 relative">
                 <div className="flex items-center justify-between gap-2 mb-1">
-                  <span className="font-mono text-[0.65rem] uppercase font-bold tracking-widest text-neutral-400">
+                  <span className="font-mono text-[0.65rem] uppercase font-bold tracking-widest text-amber-300">
                     Artisan Signature
                   </span>
-                  <span className="rounded-full border border-neutral-900 bg-neutral-900 text-white px-2.5 py-0.5 font-mono text-[0.68rem] font-bold tracking-wider flex items-center gap-1 shadow-xs">
+                  <span className="rounded-full border border-amber-400/40 bg-amber-400/10 text-amber-300 px-2.5 py-0.5 font-mono text-[0.68rem] font-bold tracking-wider flex items-center gap-1 shadow-xs">
                     <span className="text-amber-400">✦</span> 100% Tharun
                   </span>
                 </div>
-                <p className="font-excon font-bold text-sm text-neutral-900">
+                <p className="font-excon font-bold text-sm text-white">
                   {selectedProject.metricLabel}
                 </p>
-                <p className="font-inter text-xs text-neutral-600 mt-0.5 leading-relaxed">
+                <p className="font-inter text-xs text-neutral-300 mt-0.5 leading-relaxed">
                   {selectedProject.metricDetail}
                 </p>
               </div>
             ) : (
-              <div className="rounded-2xl border border-black/8 bg-neutral-50/90 p-3.5 sm:p-4">
+              <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-3.5 sm:p-4">
                 <div className="flex items-center justify-between gap-2 mb-1">
                   <span className="font-mono text-[0.65rem] uppercase font-bold tracking-widest text-neutral-400">
                     Standout Metric
                   </span>
-                  <span className="font-excon font-bold text-base sm:text-lg text-emerald-800">
+                  <span className="font-excon font-bold text-base sm:text-lg text-emerald-400">
                     {selectedProject.metrics}
                   </span>
                 </div>
-                <p className="font-inter font-semibold text-xs text-neutral-900">
+                <p className="font-inter font-semibold text-xs text-white">
                   {selectedProject.metricLabel}
                 </p>
-                <p className="font-inter text-xs text-neutral-600 mt-0.5 leading-relaxed">
+                <p className="font-inter text-xs text-neutral-300 mt-0.5 leading-relaxed">
                   {selectedProject.metricDetail}
                 </p>
               </div>
             )}
 
             {/* Short Technical Description */}
-            <p className="font-inter text-xs sm:text-[0.84rem] text-neutral-600 leading-relaxed line-clamp-2 sm:line-clamp-3">
+            <p className="font-inter text-xs sm:text-[0.84rem] text-neutral-300 leading-relaxed line-clamp-2 sm:line-clamp-3">
               {selectedProject.description}
             </p>
 
@@ -626,13 +626,13 @@ export function WorksExpandable({
               {selectedProject.tags.slice(0, 4).map((tag) => (
                 <span
                   key={tag}
-                  className="rounded-full border border-black/8 bg-neutral-100/70 px-2.5 py-0.5 font-inter text-[0.66rem] sm:text-[0.7rem] font-medium text-neutral-700"
+                  className="rounded-full border border-white/10 bg-white/[0.06] px-2.5 py-0.5 font-inter text-[0.66rem] sm:text-[0.7rem] font-medium text-neutral-200"
                 >
                   {tag}
                 </span>
               ))}
               {selectedProject.tags.length > 4 && (
-                <span className="rounded-full border border-black/8 bg-neutral-50 px-2 py-0.5 font-mono text-[0.66rem] font-medium text-neutral-500">
+                <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 font-mono text-[0.66rem] font-medium text-neutral-400">
                   +{selectedProject.tags.length - 4} more
                 </span>
               )}
@@ -644,7 +644,7 @@ export function WorksExpandable({
                 type="button"
                 onClick={(e) => openModal(selectedProject, e.currentTarget)}
                 onMouseEnter={() => soundFX.playHoverTick()}
-                className="rounded-full bg-black hover:bg-neutral-800 text-white px-4 py-2 sm:px-5 sm:py-2.5 font-inter text-xs sm:text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:scale-95 cursor-pointer flex items-center gap-1.5"
+                className="rounded-full bg-white hover:bg-neutral-200 text-black px-4 py-2 sm:px-5 sm:py-2.5 font-inter text-xs sm:text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:scale-95 cursor-pointer flex items-center gap-1.5"
               >
                 <span>Inspect Architecture</span>
                 <span className="font-mono text-xs">↗</span>
@@ -655,7 +655,7 @@ export function WorksExpandable({
                   href={selectedProject.ctaLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="rounded-full border border-black/15 bg-white hover:bg-neutral-50 text-neutral-800 px-3.5 py-2 sm:px-4 sm:py-2.5 font-inter text-xs sm:text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 active:scale-95 flex items-center gap-1.5"
+                  className="rounded-full border border-white/20 bg-white/10 hover:bg-white/20 text-white px-3.5 py-2 sm:px-4 sm:py-2.5 font-inter text-xs sm:text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 active:scale-95 flex items-center gap-1.5"
                 >
                   <span>{selectedProject.ctaText}</span>
                 </a>
@@ -688,7 +688,7 @@ export function WorksExpandable({
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.2, ease: "easeOut" }}
-                  className="fixed inset-0 bg-white/80 backdrop-blur-md"
+                  className="fixed inset-0 bg-black/80 backdrop-blur-md"
                   onClick={closeModal}
                 />
 
@@ -705,11 +705,11 @@ export function WorksExpandable({
                     duration: 0.22,
                     ease: [0.16, 1, 0.3, 1],
                   }}
-                  className="relative w-full max-w-[660px] max-h-[88vh] flex flex-col bg-white rounded-[24px] sm:rounded-[28px] border border-black/10 shadow-[0_24px_64px_rgba(0,0,0,0.14)] overflow-hidden z-10"
+                  className="relative w-full max-w-[660px] max-h-[88vh] flex flex-col bg-neutral-950 rounded-[24px] sm:rounded-[28px] border border-white/10 shadow-[0_24px_64px_rgba(0,0,0,0.6)] text-white overflow-hidden z-10"
                 >
                   {/* Close Button with ESC hint */}
                   <button
-                    className="group absolute top-3.5 sm:top-4 right-3.5 sm:right-4 z-30 flex items-center gap-1.5 h-8 px-2.5 rounded-full bg-black/80 text-white backdrop-blur-md hover:bg-black transition-all hover:scale-105 active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-white"
+                    className="group absolute top-3.5 sm:top-4 right-3.5 sm:right-4 z-30 flex items-center gap-1.5 h-8 px-2.5 rounded-full bg-white/15 text-white backdrop-blur-md hover:bg-white hover:text-black transition-all hover:scale-105 active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-white"
                     onClick={closeModal}
                     onMouseEnter={() => soundFX.playHoverTick()}
                     aria-label="Close dialog"
@@ -730,26 +730,26 @@ export function WorksExpandable({
                   {/* Modal Body */}
                   <div className="flex flex-col flex-1 overflow-y-auto p-5 sm:p-7 md:p-8 space-y-5">
                     {/* Header: Title, Category & Direct CTA */}
-                    <div className="flex items-start justify-between gap-3 pb-4 border-b border-black/6">
+                    <div className="flex items-start justify-between gap-3 pb-4 border-b border-white/10">
                       <div className="min-w-0">
                         <span className="font-mono text-[0.68rem] sm:text-xs font-semibold uppercase tracking-wider text-neutral-400">
                           {`${activeModalProject.numeral} // ${activeModalProject.category}`}
                         </span>
                         <div className="flex items-center gap-2 mt-1">
-                          <h3 id="works-modal-title" className="font-excon text-2xl sm:text-3xl font-bold tracking-tight text-ink">
+                          <h3 id="works-modal-title" className="font-excon text-2xl sm:text-3xl font-bold tracking-tight text-white">
                             {activeModalProject.title}
                           </h3>
                           <span
                             className={`rounded-full px-2.5 py-0.5 font-mono text-[0.65rem] sm:text-[0.7rem] font-medium border ${
                               activeModalProject.status.includes("Completed")
-                                ? "border-emerald-500/20 bg-emerald-50 text-emerald-800"
-                                : "border-amber-500/20 bg-amber-50 text-amber-800"
+                                ? "border-emerald-500/30 bg-emerald-950/60 text-emerald-400"
+                                : "border-amber-500/30 bg-amber-950/60 text-amber-400"
                             }`}
                           >
                             {activeModalProject.status}
                           </span>
                         </div>
-                        <p className="mt-1 font-inter text-xs sm:text-sm font-medium text-neutral-600 leading-snug">
+                        <p className="mt-1 font-inter text-xs sm:text-sm font-medium text-neutral-300 leading-snug">
                           {activeModalProject.tagline}
                         </p>
                       </div>
@@ -759,12 +759,12 @@ export function WorksExpandable({
                           href={activeModalProject.ctaLink}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="shrink-0 rounded-full bg-black px-4 py-2 sm:px-4.5 sm:py-2.5 font-inter text-xs font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:scale-95"
+                          className="shrink-0 rounded-full bg-white px-4 py-2 sm:px-4.5 sm:py-2.5 font-inter text-xs font-semibold text-black transition-all duration-200 hover:-translate-y-0.5 hover:bg-neutral-200 hover:shadow-lg active:scale-95"
                         >
                           {activeModalProject.ctaText}
                         </a>
                       ) : (
-                        <span className="shrink-0 rounded-full bg-neutral-100 border border-black/10 px-3.5 py-2 font-inter text-xs font-semibold text-neutral-600">
+                        <span className="shrink-0 rounded-full bg-white/10 border border-white/15 px-3.5 py-2 font-inter text-xs font-semibold text-neutral-400">
                           {activeModalProject.ctaText}
                         </span>
                       )}
@@ -772,36 +772,36 @@ export function WorksExpandable({
 
                     {/* Standout Metric / Maker's Mark Box */}
                     {activeModalProject.isSpecialSignature ? (
-                      <div className="rounded-2xl border-2 border-dashed border-neutral-900/15 bg-neutral-50/90 p-4 sm:p-5 relative">
+                      <div className="rounded-2xl border-2 border-dashed border-amber-400/30 bg-amber-950/20 p-4 sm:p-5 relative">
                         <div className="flex items-center justify-between gap-3 mb-1.5">
-                          <span className="font-mono text-[0.68rem] uppercase font-bold tracking-widest text-neutral-400">
+                          <span className="font-mono text-[0.68rem] uppercase font-bold tracking-widest text-amber-300">
                             Creator Signature
                           </span>
-                          <span className="rounded-full border border-black bg-black text-white px-2.5 py-0.5 font-mono text-[0.68rem] font-bold tracking-wider flex items-center gap-1 shadow-sm">
+                          <span className="rounded-full border border-amber-400/40 bg-amber-400/10 text-amber-300 px-2.5 py-0.5 font-mono text-[0.68rem] font-bold tracking-wider flex items-center gap-1 shadow-sm">
                             <span className="text-amber-400">✦</span> 100% Tharun
                           </span>
                         </div>
-                        <p className="font-excon font-bold text-sm sm:text-base text-neutral-900">
+                        <p className="font-excon font-bold text-sm sm:text-base text-white">
                           {activeModalProject.metricLabel}
                         </p>
-                        <p className="mt-1 font-inter text-xs text-neutral-600 leading-relaxed">
+                        <p className="mt-1 font-inter text-xs text-neutral-300 leading-relaxed">
                           {activeModalProject.metricDetail}
                         </p>
                       </div>
                     ) : (
-                      <div className="rounded-2xl border border-black/8 bg-neutral-50/90 p-4 sm:p-5">
+                      <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 sm:p-5">
                         <div className="flex items-center justify-between gap-3 mb-1">
                           <span className="font-mono text-[0.68rem] uppercase font-bold tracking-widest text-neutral-400">
                             Standout Metric
                           </span>
-                          <span className="font-excon font-bold text-base sm:text-lg text-emerald-700">
+                          <span className="font-excon font-bold text-base sm:text-lg text-emerald-400">
                             {activeModalProject.metrics}
                           </span>
                         </div>
-                        <p className="font-inter font-semibold text-xs sm:text-sm text-neutral-900">
+                        <p className="font-inter font-semibold text-xs sm:text-sm text-white">
                           {activeModalProject.metricLabel}
                         </p>
-                        <p className="mt-1 font-inter text-xs text-neutral-600 leading-relaxed">
+                        <p className="mt-1 font-inter text-xs text-neutral-300 leading-relaxed">
                           {activeModalProject.metricDetail}
                         </p>
                       </div>
@@ -812,29 +812,29 @@ export function WorksExpandable({
                       <span className="block font-mono text-[0.68rem] uppercase font-bold tracking-widest text-neutral-400">
                         Project Overview
                       </span>
-                      <p className="font-inter text-xs sm:text-sm text-neutral-700 leading-relaxed">
+                      <p className="font-inter text-xs sm:text-sm text-neutral-300 leading-relaxed">
                         {activeModalProject.overview}
                       </p>
                     </div>
 
                     {/* Feature Highlight Callout */}
-                    <div className="rounded-2xl border border-black/8 bg-white p-4 sm:p-5 shadow-sm space-y-2">
+                    <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 sm:p-5 shadow-sm space-y-2">
                       <div className="flex items-center gap-2">
-                        <span className="h-2 w-2 rounded-full bg-ink" />
-                        <span className="font-mono text-[0.68rem] uppercase font-bold tracking-widest text-neutral-500">
+                        <span className="h-2 w-2 rounded-full bg-white" />
+                        <span className="font-mono text-[0.68rem] uppercase font-bold tracking-widest text-neutral-400">
                           Feature Highlight
                         </span>
                       </div>
-                      <h4 className="font-excon font-bold text-sm sm:text-base text-ink">
+                      <h4 className="font-excon font-bold text-sm sm:text-base text-white">
                         {activeModalProject.featureHeading}
                       </h4>
-                      <p className="font-inter text-xs sm:text-sm text-neutral-600 leading-relaxed">
+                      <p className="font-inter text-xs sm:text-sm text-neutral-300 leading-relaxed">
                         {activeModalProject.featureDescription}
                       </p>
                     </div>
 
                     {/* Tech Stack Pills */}
-                    <div className="space-y-2 pt-2 border-t border-black/6">
+                    <div className="space-y-2 pt-2 border-t border-white/10">
                       <span className="block font-mono text-[0.68rem] uppercase font-bold tracking-widest text-neutral-400">
                         Technology Stack
                       </span>
@@ -842,7 +842,7 @@ export function WorksExpandable({
                         {activeModalProject.tags.map((tag) => (
                           <span
                             key={tag}
-                            className="rounded-full border border-black/8 bg-neutral-50 px-2.5 py-0.5 font-inter text-[0.7rem] font-medium text-neutral-700"
+                            className="rounded-full border border-white/10 bg-white/[0.06] px-2.5 py-0.5 font-inter text-[0.7rem] font-medium text-neutral-200"
                           >
                             {tag}
                           </span>
@@ -852,7 +852,7 @@ export function WorksExpandable({
 
                     {/* Links & Resources */}
                     {activeModalProject.resources && activeModalProject.resources.length > 0 && (
-                      <div className="space-y-2 pt-2 border-t border-black/6">
+                      <div className="space-y-2 pt-2 border-t border-white/10">
                         <span className="block font-mono text-[0.68rem] uppercase font-bold tracking-widest text-neutral-400">
                           Links & Documentation
                         </span>
@@ -860,20 +860,20 @@ export function WorksExpandable({
                           {activeModalProject.resources.map((res) => (
                             <div
                               key={res.label}
-                              className="inline-flex items-center gap-1.5 rounded-lg border border-black/8 bg-neutral-50 px-2.5 py-1 text-xs font-inter text-neutral-700"
+                              className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1 text-xs font-inter text-neutral-200"
                             >
-                              <span className="font-semibold text-neutral-900">{res.label}:</span>
+                              <span className="font-semibold text-white">{res.label}:</span>
                               {res.url ? (
                                 <a
                                   href={res.url}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="text-black underline underline-offset-2 hover:text-emerald-700 font-mono text-[0.7rem]"
+                                  className="text-emerald-400 underline underline-offset-2 hover:text-emerald-300 font-mono text-[0.7rem]"
                                 >
                                   View ↗
                                 </a>
                               ) : (
-                                <span className="font-mono text-[0.7rem] text-neutral-500">{res.note}</span>
+                                <span className="font-mono text-[0.7rem] text-neutral-400">{res.note}</span>
                               )}
                             </div>
                           ))}

@@ -343,7 +343,7 @@ export function OffScriptShowcase({
       {/* TOP INTERACTIVE INDEX RAIL                                         */}
       {/* ------------------------------------------------------------------ */}
       <div className="flex items-center justify-between gap-2 overflow-x-auto pb-1 sm:pb-1.5 scrollbar-none">
-        <div className="flex items-center gap-1 sm:gap-1.5 p-1 rounded-full bg-black/[0.03] border border-black/8 w-full sm:w-auto">
+        <div className="flex items-center gap-1 sm:gap-1.5 p-1 rounded-full bg-white/[0.06] border border-white/10 w-full sm:w-auto">
           {OFF_SCRIPT_CHAPTERS.map((item, idx) => {
             const isCurrent = idx === activeIndex;
             return (
@@ -357,14 +357,14 @@ export function OffScriptShowcase({
                 onMouseEnter={() => soundFX.playHoverTick()}
                 aria-label={`Select chapter ${item.numeral} ${item.title}`}
                 className={`group relative px-3 sm:px-4 py-1.5 rounded-full font-excon text-xs sm:text-sm font-bold tracking-tight transition-all duration-200 cursor-pointer flex items-center gap-1.5 shrink-0 ${
-                  isCurrent ? "text-white" : "text-neutral-500 hover:text-black hover:bg-black/[0.04]"
+                  isCurrent ? "text-black" : "text-neutral-400 hover:text-white hover:bg-white/10"
                 }`}
               >
                 {isCurrent && (
                   <motion.div
                     layoutId="activeBeyondRailPill"
                     transition={{ type: "spring", stiffness: 450, damping: 35 }}
-                    className="absolute inset-0 bg-neutral-900 rounded-full shadow-sm"
+                    className="absolute inset-0 bg-white rounded-full shadow-sm"
                   />
                 )}
                 <span className="relative z-10 font-mono text-[0.65rem] sm:text-[0.72rem] opacity-75">
@@ -387,7 +387,7 @@ export function OffScriptShowcase({
             onClick={handlePrev}
             onMouseEnter={() => soundFX.playHoverTick()}
             aria-label="Previous chapter"
-            className="h-8 w-8 rounded-full border border-black/10 bg-white hover:bg-neutral-100 flex items-center justify-center font-mono text-xs transition-all active:scale-95 cursor-pointer"
+            className="h-8 w-8 rounded-full border border-white/15 bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-mono text-xs transition-all active:scale-95 cursor-pointer"
           >
             ←
           </button>
@@ -399,7 +399,7 @@ export function OffScriptShowcase({
             onClick={handleNext}
             onMouseEnter={() => soundFX.playHoverTick()}
             aria-label="Next chapter"
-            className="h-8 w-8 rounded-full border border-black/10 bg-white hover:bg-neutral-100 flex items-center justify-center font-mono text-xs transition-all active:scale-95 cursor-pointer"
+            className="h-8 w-8 rounded-full border border-white/15 bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-mono text-xs transition-all active:scale-95 cursor-pointer"
           >
             →
           </button>
@@ -416,7 +416,7 @@ export function OffScriptShowcase({
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
           transition={{ duration: 0.28, ease: "easeOut" }}
-          className="relative w-full rounded-[22px] sm:rounded-[26px] border border-black/10 bg-white p-4 sm:p-6 lg:p-7 shadow-[0_8px_30px_rgba(0,0,0,0.03)] grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 lg:gap-8 items-center"
+          className="relative w-full rounded-[22px] sm:rounded-[26px] border border-white/10 bg-neutral-900/90 backdrop-blur-xl p-4 sm:p-6 lg:p-7 shadow-[0_16px_48px_rgba(0,0,0,0.5)] grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 lg:gap-8 items-center"
         >
           {/* Left Column (7 cols): Editorial Story & Disciplines */}
           <div className="lg:col-span-7 flex flex-col justify-between space-y-3.5 sm:space-y-4">
@@ -429,8 +429,8 @@ export function OffScriptShowcase({
                 <span
                   className="inline-flex items-center gap-1.5 font-mono text-[0.62rem] sm:text-[0.68rem] font-medium px-2.5 py-0.5 rounded-full border"
                   style={{
-                    backgroundColor: `rgb(${selectedChapter.accent.join(" ")} / 0.08)`,
-                    borderColor: `rgb(${selectedChapter.accent.join(" ")} / 0.25)`,
+                    backgroundColor: `rgb(${selectedChapter.accent.join(" ")} / 0.12)`,
+                    borderColor: `rgb(${selectedChapter.accent.join(" ")} / 0.3)`,
                     color: `rgb(${selectedChapter.accent.join(" ")})`,
                   }}
                 >
@@ -443,10 +443,10 @@ export function OffScriptShowcase({
               </div>
 
               {/* Title & Tagline */}
-              <h3 className="font-excon text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-ink">
+              <h3 className="font-excon text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-white">
                 {selectedChapter.headline}
               </h3>
-              <p className="mt-1 font-inter text-xs sm:text-sm font-medium text-neutral-600 leading-snug">
+              <p className="mt-1 font-inter text-xs sm:text-sm font-medium text-neutral-300 leading-snug">
                 {selectedChapter.tagline}
               </p>
             </div>
@@ -455,8 +455,8 @@ export function OffScriptShowcase({
             <div
               className="rounded-2xl border p-3.5 sm:p-4 transition-colors"
               style={{
-                backgroundColor: `rgb(${selectedChapter.accent.join(" ")} / 0.04)`,
-                borderColor: `rgb(${selectedChapter.accent.join(" ")} / 0.18)`,
+                backgroundColor: `rgb(${selectedChapter.accent.join(" ")} / 0.08)`,
+                borderColor: `rgb(${selectedChapter.accent.join(" ")} / 0.25)`,
               }}
             >
               <div className="flex items-center justify-between gap-2 mb-1">
@@ -470,13 +470,13 @@ export function OffScriptShowcase({
                   {selectedChapter.mindset}
                 </span>
               </div>
-              <p className="font-inter text-xs text-neutral-600 leading-relaxed">
+              <p className="font-inter text-xs text-neutral-300 leading-relaxed">
                 {selectedChapter.mindsetSub}
               </p>
             </div>
 
             {/* Narrative Story Excerpt */}
-            <p className="font-inter text-xs sm:text-[0.84rem] text-neutral-600 leading-relaxed line-clamp-3">
+            <p className="font-inter text-xs sm:text-[0.84rem] text-neutral-300 leading-relaxed line-clamp-3">
               {selectedChapter.body}
             </p>
 
@@ -485,7 +485,7 @@ export function OffScriptShowcase({
               {selectedChapter.habits.map((habit) => (
                 <span
                   key={habit}
-                  className="rounded-full border border-black/8 bg-neutral-100/70 px-2.5 py-0.5 font-inter text-[0.66rem] sm:text-[0.7rem] font-medium text-neutral-700"
+                  className="rounded-full border border-white/10 bg-white/[0.06] px-2.5 py-0.5 font-inter text-[0.66rem] sm:text-[0.7rem] font-medium text-neutral-200"
                 >
                   {habit}
                 </span>
@@ -498,7 +498,7 @@ export function OffScriptShowcase({
                 type="button"
                 onClick={(e) => openModal(selectedChapter, e.currentTarget)}
                 onMouseEnter={() => soundFX.playHoverTick()}
-                className="rounded-full bg-black hover:bg-neutral-800 text-white px-4 py-2 sm:px-5 sm:py-2.5 font-inter text-xs sm:text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:scale-95 cursor-pointer flex items-center gap-1.5"
+                className="rounded-full bg-white hover:bg-neutral-200 text-black px-4 py-2 sm:px-5 sm:py-2.5 font-inter text-xs sm:text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:scale-95 cursor-pointer flex items-center gap-1.5"
               >
                 <span>Read Story & Reflections</span>
                 <span className="font-mono text-xs">↗</span>
@@ -531,7 +531,7 @@ export function OffScriptShowcase({
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.2, ease: "easeOut" }}
-                  className="fixed inset-0 bg-white/80 backdrop-blur-md"
+                  className="fixed inset-0 bg-black/80 backdrop-blur-md"
                   onClick={closeModal}
                 />
 
@@ -548,11 +548,11 @@ export function OffScriptShowcase({
                     duration: 0.22,
                     ease: [0.16, 1, 0.3, 1],
                   }}
-                  className="relative w-full max-w-[640px] max-h-[88vh] flex flex-col bg-white rounded-[24px] sm:rounded-[28px] border border-black/10 shadow-[0_24px_64px_rgba(0,0,0,0.14)] overflow-hidden z-10"
+                  className="relative w-full max-w-[640px] max-h-[88vh] flex flex-col bg-neutral-950 rounded-[24px] sm:rounded-[28px] border border-white/10 shadow-[0_24px_64px_rgba(0,0,0,0.6)] text-white overflow-hidden z-10"
                 >
                   {/* Close Button with ESC hint */}
                   <button
-                    className="group absolute top-3.5 sm:top-4 right-3.5 sm:right-4 z-30 flex items-center gap-1.5 h-8 px-2.5 rounded-full bg-black/80 text-white backdrop-blur-md hover:bg-black transition-all hover:scale-105 active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-white"
+                    className="group absolute top-3.5 sm:top-4 right-3.5 sm:right-4 z-30 flex items-center gap-1.5 h-8 px-2.5 rounded-full bg-white/15 text-white backdrop-blur-md hover:bg-white hover:text-black transition-all hover:scale-105 active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-white"
                     onClick={closeModal}
                     onMouseEnter={() => soundFX.playHoverTick()}
                     aria-label="Close dialog"
@@ -573,17 +573,17 @@ export function OffScriptShowcase({
                   {/* Modal Body */}
                   <div className="flex flex-col flex-1 overflow-y-auto p-5 sm:p-7 md:p-8 space-y-5">
                     {/* Header */}
-                    <div className="pb-4 border-b border-black/6">
+                    <div className="pb-4 border-b border-white/10">
                       <span className="font-mono text-[0.68rem] sm:text-xs font-semibold uppercase tracking-wider text-neutral-400">
                         {`${activeModalChapter.numeral} // ${activeModalChapter.category}`}
                       </span>
                       <h3
                         id="offscript-modal-title"
-                        className="mt-1 font-excon text-2xl sm:text-3xl font-bold tracking-tight text-ink"
+                        className="mt-1 font-excon text-2xl sm:text-3xl font-bold tracking-tight text-white"
                       >
                         {activeModalChapter.headline}
                       </h3>
-                      <p className="mt-1 font-inter text-xs sm:text-sm font-medium text-neutral-600">
+                      <p className="mt-1 font-inter text-xs sm:text-sm font-medium text-neutral-300">
                         {activeModalChapter.tagline}
                       </p>
                     </div>
@@ -592,8 +592,8 @@ export function OffScriptShowcase({
                     <div
                       className="rounded-2xl border p-4 sm:p-4.5"
                       style={{
-                        backgroundColor: `rgb(${activeModalChapter.accent.join(" ")} / 0.05)`,
-                        borderColor: `rgb(${activeModalChapter.accent.join(" ")} / 0.2)`,
+                        backgroundColor: `rgb(${activeModalChapter.accent.join(" ")} / 0.08)`,
+                        borderColor: `rgb(${activeModalChapter.accent.join(" ")} / 0.25)`,
                       }}
                     >
                       <div className="flex items-center justify-between gap-2 mb-1">
@@ -607,7 +607,7 @@ export function OffScriptShowcase({
                           {activeModalChapter.mindset}
                         </span>
                       </div>
-                      <p className="font-inter text-xs sm:text-sm text-neutral-700 leading-relaxed">
+                      <p className="font-inter text-xs sm:text-sm text-neutral-300 leading-relaxed">
                         {activeModalChapter.mindsetSub}
                       </p>
                     </div>
@@ -617,26 +617,26 @@ export function OffScriptShowcase({
                       <span className="block font-mono text-[0.68rem] uppercase font-bold tracking-widest text-neutral-400">
                         The Story
                       </span>
-                      <p className="font-inter text-xs sm:text-sm text-neutral-700 leading-relaxed">
+                      <p className="font-inter text-xs sm:text-sm text-neutral-300 leading-relaxed">
                         {activeModalChapter.body}
                       </p>
                     </div>
 
                     {/* Philosophical Takeaway Callout */}
-                    <div className="rounded-2xl border border-black/8 bg-neutral-50/90 p-4 sm:p-4.5 space-y-1.5 shadow-xs">
+                    <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 sm:p-4.5 space-y-1.5 shadow-xs">
                       <div className="flex items-center gap-2">
-                        <span className="h-2 w-2 rounded-full bg-ink" />
-                        <span className="font-mono text-[0.68rem] uppercase font-bold tracking-widest text-neutral-500">
+                        <span className="h-2 w-2 rounded-full bg-white" />
+                        <span className="font-mono text-[0.68rem] uppercase font-bold tracking-widest text-neutral-400">
                           Engineering Parallel
                         </span>
                       </div>
-                      <p className="font-inter text-xs sm:text-sm text-neutral-700 leading-relaxed italic">
+                      <p className="font-inter text-xs sm:text-sm text-neutral-300 leading-relaxed italic">
                         &ldquo;{activeModalChapter.takeaway}&rdquo;
                       </p>
                     </div>
 
                     {/* Disciplines & Focus Pills */}
-                    <div className="space-y-2 pt-2 border-t border-black/6">
+                    <div className="space-y-2 pt-2 border-t border-white/10">
                       <span className="block font-mono text-[0.68rem] uppercase font-bold tracking-widest text-neutral-400">
                         Core Disciplines & Pursuits
                       </span>
@@ -644,7 +644,7 @@ export function OffScriptShowcase({
                         {activeModalChapter.habits.map((habit) => (
                           <span
                             key={habit}
-                            className="rounded-full border border-black/8 bg-neutral-50 px-2.5 py-0.5 font-inter text-[0.7rem] font-medium text-neutral-700"
+                            className="rounded-full border border-white/10 bg-white/[0.06] px-2.5 py-0.5 font-inter text-[0.7rem] font-medium text-neutral-200"
                           >
                             {habit}
                           </span>
