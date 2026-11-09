@@ -2465,16 +2465,21 @@ export default function Experience() {
               >
                 <h2 className="sr-only">Selected Projects</h2>
                 <div className="w-full max-w-[880px] 2xl:max-w-[960px] flex flex-col gap-2 sm:gap-4">
-                  <div className="flex items-center justify-between border-b border-black/8 pb-2 sm:pb-3">
+                  <div className="flex items-center justify-between border-b border-black/8 pb-2 sm:pb-2.5">
                     <div className="flex items-center gap-1.5 sm:gap-2">
                       <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
                       <span className="font-excon font-bold text-xs sm:text-sm uppercase tracking-wider text-black">
                         Selected Projects
                       </span>
-                      <span className="text-black/30">·</span>
-                      <span className="font-inter text-[0.68rem] sm:text-xs text-neutral-500">
-                        Click card to inspect
+                      <span className="text-black/30 hidden sm:inline">·</span>
+                      <span className="font-inter text-[0.68rem] sm:text-xs text-neutral-500 hidden sm:inline">
+                        Five core engineering systems engineered for depth and precision.
                       </span>
+                    </div>
+                    <div className="hidden sm:flex items-center gap-1.5 font-mono text-[0.65rem] text-neutral-400">
+                      <span>Keys:</span>
+                      <kbd className="px-1.5 py-0.5 rounded border border-black/10 bg-neutral-100 text-neutral-700 font-mono">1–5</kbd>
+                      <kbd className="px-1.5 py-0.5 rounded border border-black/10 bg-neutral-100 text-neutral-700 font-mono">← / →</kbd>
                     </div>
                   </div>
                   <WorksExpandable
