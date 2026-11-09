@@ -178,14 +178,11 @@ body {
 /* Scroll & interaction lock during intro & active transitions ------- */
 html.vault-locked,
 html.vault-locked body {
-  overflow: hidden !important;
-  height: 100% !important;
   touch-action: none !important;
   overscroll-behavior: none !important;
 }
 
 html.vault-locked {
-  pointer-events: none !important;
   user-select: none !important;
 }
 

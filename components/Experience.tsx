@@ -1156,13 +1156,19 @@ export default function Experience() {
         onLeaveBack: () => setRoom(JOURNEY[activeChapterRef.current].accent, JOURNEY[activeChapterRef.current].lift, 0.8),
       });
 
-      // ======== PHASE 3b — Skills Video-Like Showcase with Magnetic Snap & Lock ========
+      // ======== PHASE 3b — Skills Video-Like Showcase (Section-Only Animation) ========
       let isToolkitAnimating = false;
       let hasToolkitPlayed = false;
+      let currentToolkitTl: gsap.core.Timeline | null = null;
 
       const playToolkitShowcase = (force = false) => {
-        if (isToolkitAnimating) return;
+        if (isToolkitAnimating && !force) return;
         if (hasToolkitPlayed && !force) return;
+
+        if (currentToolkitTl) {
+          currentToolkitTl.kill();
+          currentToolkitTl = null;
+        }
 
         const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
         const statusEl = craftRight.current?.querySelector("[data-toolkit-status]");
@@ -1170,6 +1176,7 @@ export default function Experience() {
 
         if (reduced) {
           hasToolkitPlayed = true;
+          isToolkitAnimating = false;
           craftCards.forEach((card) => {
             const trace = card.querySelector("[data-craft-trace]");
             const head = card.querySelector("[data-craft-head]");
@@ -1188,25 +1195,31 @@ export default function Experience() {
 
         isToolkitAnimating = true;
         hasToolkitPlayed = true;
-        lockScroll();
         soundFX.playCabinetUnlock();
 
         if (statusEl) statusEl.textContent = "Unlocking Capabilities...";
 
         if (progressBar) {
+          gsap.killTweensOf(progressBar);
           gsap.set(progressBar, { scaleX: 0, opacity: 1 });
-          gsap.to(progressBar, { scaleX: 1, duration: 3.2, ease: "none" });
+          gsap.to(progressBar, { scaleX: 1, duration: 2.6, ease: "power1.inOut" });
         }
 
         craftCards.forEach((card) => {
+          gsap.killTweensOf(card);
           const trace = card.querySelector("[data-craft-trace]");
           const head = card.querySelector("[data-craft-head]");
           const checks = card.querySelectorAll("[data-craft-check]");
           const names = card.querySelectorAll("[data-craft-name]");
-          gsap.set(card, { opacity: 0, y: 16 });
-          if (trace) gsap.set(trace, { strokeDashoffset: 100, strokeOpacity: 0.8 });
+          if (trace) gsap.killTweensOf(trace);
+          if (head) gsap.killTweensOf(head);
+          if (checks) gsap.killTweensOf(checks);
+          if (names) gsap.killTweensOf(names);
+
+          gsap.set(card, { opacity: 0, y: 14 });
+          if (trace) gsap.set(trace, { strokeDashoffset: 100, strokeOpacity: 0.85 });
           if (head) gsap.set(head, { opacity: 0, y: 8 });
-          if (checks) gsap.set(checks, { opacity: 0, scale: 0 });
+          if (checks) gsap.set(checks, { opacity: 0, scale: 0.3 });
           if (names) gsap.set(names, { opacity: 0, x: -8 });
         });
 
@@ -1214,56 +1227,56 @@ export default function Experience() {
           defaults: { ease: "power2.out" },
           onComplete: () => {
             isToolkitAnimating = false;
+            currentToolkitTl = null;
             if (statusEl) statusEl.textContent = "16 Capabilities Unlocked";
             if (progressBar) gsap.to(progressBar, { opacity: 0.35, duration: 0.4 });
-            unlockScroll();
-            ScrollTrigger.refresh();
           },
         });
+        currentToolkitTl = tl;
 
         craftCards.forEach((card, ci) => {
           const trace = card.querySelector("[data-craft-trace]");
           const head = card.querySelector("[data-craft-head]");
           const checks = card.querySelectorAll("[data-craft-check]");
           const names = card.querySelectorAll("[data-craft-name]");
-          const startTime = ci * 0.72;
+          const startTime = ci * 0.58;
 
           tl.to(
             card,
             {
               opacity: 1,
               y: 0,
-              duration: 0.45,
+              duration: 0.4,
               onStart: () => {
                 soundFX.playHoverTick();
               },
             },
             startTime
           )
-            .to(trace, { strokeDashoffset: 0, duration: 0.65, ease: "power2.inOut" }, startTime + 0.05)
-            .to(head, { opacity: 1, y: 0, duration: 0.25 }, startTime + 0.15)
+            .to(trace, { strokeDashoffset: 0, duration: 0.55, ease: "power2.inOut" }, startTime + 0.04)
+            .to(head, { opacity: 1, y: 0, duration: 0.22 }, startTime + 0.12)
             .to(
               checks,
               {
                 opacity: 1,
                 scale: 1,
-                duration: 0.3,
-                stagger: 0.07,
-                ease: "back.out(1.6)",
+                duration: 0.25,
+                stagger: 0.06,
+                ease: "back.out(1.5)",
               },
-              startTime + 0.22
+              startTime + 0.18
             )
             .to(
               names,
               {
                 opacity: 1,
                 x: 0,
-                duration: 0.25,
-                stagger: 0.07,
+                duration: 0.22,
+                stagger: 0.06,
               },
-              startTime + 0.24
+              startTime + 0.2
             )
-            .to(trace, { strokeOpacity: 0.45, duration: 0.3 }, startTime + 0.6);
+            .to(trace, { strokeOpacity: 0.45, duration: 0.25 }, startTime + 0.52);
         });
       };
       playToolkitShowcaseRef.current = playToolkitShowcase;
@@ -1348,6 +1361,10 @@ export default function Experience() {
         if (canonical === "skills") {
           hasToolkitPlayed = true;
           isToolkitAnimating = false;
+          if (currentToolkitTl) {
+            currentToolkitTl.kill();
+            currentToolkitTl = null;
+          }
           craftCards.forEach((card) => {
             const trace = card.querySelector("[data-craft-trace]");
             const head = card.querySelector("[data-craft-head]");
@@ -2120,7 +2137,11 @@ export default function Experience() {
                       </span>
                       <button
                         type="button"
-                        onClick={() => playToolkitShowcaseRef.current?.(true)}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          playToolkitShowcaseRef.current?.(true);
+                        }}
                         onMouseEnter={() => soundFX.playHoverTick()}
                         aria-label="Replay toolkit showcase animation"
                         className="group flex items-center gap-1 rounded-full border border-black/10 px-2 sm:px-2.5 py-0.5 sm:py-1 text-[0.65rem] sm:text-xs font-mono font-medium text-neutral-600 transition-all hover:border-black/30 hover:text-black hover:bg-black/5 active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-black"
