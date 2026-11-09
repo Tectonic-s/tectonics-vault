@@ -423,7 +423,7 @@ export default function Experience() {
     });
     const tick = (time: number) => lenis.raf(time * 1000);
     gsap.ticker.add(tick);
-    gsap.ticker.lagSmoothing(0);
+    gsap.ticker.lagSmoothing(500, 33);
 
     const lockScroll = () => {
       document.documentElement.classList.add("vault-locked");
@@ -594,27 +594,7 @@ export default function Experience() {
       gsap.set(q("[data-craft-trace]"), { strokeDashoffset: 100, strokeOpacity: 1 });
       gsap.set(q("[data-craft-head]"), { opacity: 0, y: 12 });
       gsap.set(q("[data-craft-check]"), { opacity: 0, scale: 0.4 });
-      gsap.set(q("[data-craft-name]"), { opacity: 0, x: -10, filter: "blur(6px)" });
-
-      // Ambient light drift — almost subconscious. Skipped for reduced motion.
-      if (!reduced) {
-        gsap.to(blobs[0] ?? null, {
-          x: "9vw",
-          y: "7vh",
-          duration: 26,
-          ease: "sine.inOut",
-          yoyo: true,
-          repeat: -1,
-        });
-        gsap.to(blobs[1] ?? null, {
-          x: "-8vw",
-          y: "-9vh",
-          duration: 34,
-          ease: "sine.inOut",
-          yoyo: true,
-          repeat: -1,
-        });
-      }
+      gsap.set(q("[data-craft-name]"), { opacity: 0, x: -10 });
 
       // ---------------- About: an occupied room, not a still ----------------
       const portrait = q("[data-portrait]")[0] ?? null;
@@ -813,7 +793,7 @@ export default function Experience() {
           .to(trace, { strokeDashoffset: 0, duration: 0.55 }, start)
           .to(head, { opacity: 1, y: 0, duration: 0.3 }, start + 0.15)
           .to(checks, { opacity: 1, scale: 1, duration: 0.3, stagger: 0.06 }, start + 0.15)
-          .to(names, { opacity: 1, x: 0, filter: "blur(0px)", duration: 0.3, stagger: 0.06 }, start + 0.18)
+          .to(names, { opacity: 1, x: 0, duration: 0.28, stagger: 0.05 }, start + 0.18)
           .to(trace, { strokeOpacity: 0.45, duration: 0.3 }, start + 0.35);
       });
       craftTl.to({}, { duration: 0.3 });
@@ -945,7 +925,7 @@ export default function Experience() {
           if (trace) gsap.set(trace, { strokeDashoffset: 0, strokeOpacity: 0.45 });
           if (head) gsap.set(head, { opacity: 1, y: 0 });
           if (checks) gsap.set(checks, { opacity: 1, scale: 1 });
-          if (names) gsap.set(names, { opacity: 1, x: 0, filter: "none" });
+          if (names) gsap.set(names, { opacity: 1, x: 0 });
         });
         if (craftCount) craftCount.textContent = "16";
         bCards.forEach((c, i) => {
@@ -1047,7 +1027,7 @@ export default function Experience() {
       <div
         aria-hidden
         ref={scrollProgressBar}
-        className="fixed top-0 left-0 right-0 z-[100] h-[2.5px] bg-black/85 origin-left pointer-events-none transition-transform duration-75 ease-out shadow-[0_1px_4px_rgba(0,0,0,0.12)]"
+        className="fixed top-0 left-0 right-0 z-[100] h-[2.5px] bg-black/85 origin-left pointer-events-none shadow-[0_1px_4px_rgba(0,0,0,0.12)] will-change-transform"
         style={{ transform: "scaleX(0)" }}
       />
 
@@ -1304,7 +1284,7 @@ export default function Experience() {
                 id="about"
                 aria-label="About Tharun S"
                 ref={aboutRight}
-                className="absolute inset-0 flex items-center justify-center"
+                className="absolute inset-0 flex items-center justify-center will-change-[transform,opacity]"
               >
                 <h2 className="sr-only">About Tharun S</h2>
                 <div className="flex w-full max-w-[440px] flex-col items-center text-center">
@@ -1343,7 +1323,7 @@ export default function Experience() {
                 id="journey"
                 aria-label="Journey timeline"
                 ref={journeyRight}
-                className="absolute inset-0 flex items-center justify-center"
+                className="absolute inset-0 flex items-center justify-center will-change-[transform,opacity]"
               >
                 <h2 className="sr-only">Journey Chapters</h2>
                 <div className="w-full max-w-[820px] 2xl:max-w-[880px] flex flex-col gap-3 sm:gap-5">
@@ -1424,7 +1404,7 @@ export default function Experience() {
                         aria-labelledby={`journey-tab-${i}`}
                         tabIndex={0}
                         data-jcard={i}
-                        className="absolute inset-0 rounded-[20px] sm:rounded-[24px] bg-white p-4 sm:p-7 md:p-8 border shadow-[0_12px_36px_rgba(0,0,0,0.04)] flex flex-col justify-between overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
+                        className="absolute inset-0 rounded-[20px] sm:rounded-[24px] bg-white p-4 sm:p-7 md:p-8 border shadow-[0_12px_36px_rgba(0,0,0,0.04)] flex flex-col justify-between overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black will-change-[transform,opacity]"
                         style={{
                           borderColor: `rgb(${step.accent.join(" ")} / 0.45)`,
                         }}
@@ -1525,7 +1505,7 @@ export default function Experience() {
                 id="skills"
                 aria-label="Skills & Capabilities"
                 ref={craftRight}
-                className="absolute inset-0 flex items-center justify-center"
+                className="absolute inset-0 flex items-center justify-center will-change-[transform,opacity]"
               >
                 <h2 className="sr-only">Skills &amp; Capabilities</h2>
                 <div className="grid w-full max-w-[940px] 2xl:max-w-[1020px] grid-cols-2 gap-2.5 sm:gap-6 lg:gap-8">
@@ -1639,7 +1619,7 @@ export default function Experience() {
                 id="works"
                 aria-label="Selected Works"
                 ref={worksRight}
-                className="absolute inset-0 flex items-center justify-center"
+                className="absolute inset-0 flex items-center justify-center will-change-[transform,opacity]"
               >
                 <h2 className="sr-only">Selected Works</h2>
                 <div className="w-full max-w-[880px] 2xl:max-w-[960px] flex flex-col gap-2 sm:gap-4">
@@ -1673,7 +1653,7 @@ export default function Experience() {
                 id="beyond"
                 aria-label="Beyond Work"
                 ref={beyondRight}
-                className="absolute inset-0 flex items-center justify-center"
+                className="absolute inset-0 flex items-center justify-center will-change-[transform,opacity]"
               >
                 <h2 className="sr-only">Beyond Work</h2>
                 <div className="w-full max-w-[880px] 2xl:max-w-[960px] flex flex-col justify-center">
@@ -1753,7 +1733,7 @@ export default function Experience() {
                         aria-labelledby={`beyond-tab-${i}`}
                         tabIndex={0}
                         data-bcard={i}
-                        className="absolute inset-0 rounded-[20px] sm:rounded-[24px] bg-white p-4 sm:p-7 md:p-8 border shadow-[0_12px_36px_rgba(0,0,0,0.04)] flex flex-col justify-between overflow-y-auto sm:overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
+                        className="absolute inset-0 rounded-[20px] sm:rounded-[24px] bg-white p-4 sm:p-7 md:p-8 border shadow-[0_12px_36px_rgba(0,0,0,0.04)] flex flex-col justify-between overflow-y-auto sm:overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black will-change-[transform,opacity]"
                         style={{
                           borderColor: `rgb(${item.accent.join(" ")} / 0.45)`,
                         }}
@@ -1854,7 +1834,7 @@ export default function Experience() {
                 id="talk"
                 aria-label="Let’s Talk"
                 ref={talkRight}
-                className="absolute inset-0 flex items-center justify-center"
+                className="absolute inset-0 flex items-center justify-center will-change-[transform,opacity]"
               >
                 <h2 className="sr-only">Let’s Talk</h2>
                 <div className="w-full max-w-[680px] rounded-[28px] sm:rounded-[36px] border border-black/10 bg-white p-6 sm:p-10 md:p-12 shadow-[0_20px_60px_rgba(0,0,0,0.06)] flex flex-col justify-between">
@@ -2091,7 +2071,7 @@ export default function Experience() {
       {/* --------------------------------------------------- FOOTER LANDMARK */}
       <footer aria-label="Contact and portfolio credits" className="sr-only">
         <h2>Contact &amp; Links</h2>
-        <p>Tharun S — Available for product design and engineering opportunities. Version 1.2.2.</p>
+        <p>Tharun S — Available for product design and engineering opportunities. Version 1.2.3.</p>
         <ul>
           <li><a href="mailto:tharun@example.com">tharun@example.com</a></li>
           <li><a href="https://github.com">GitHub</a></li>
