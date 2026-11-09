@@ -5,7 +5,6 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
 import ProfileSilhouette from "./ProfileSilhouette";
-import { EncryptedText } from "@/components/ui/encrypted-text";
 import { WorksExpandable } from "./WorksExpandable";
 import { soundFX } from "@/lib/audio";
 
@@ -1171,9 +1170,7 @@ export default function Experience() {
         return;
       }
 
-      // -------- Cinematic intro --------
-      lockScroll();
-
+      // -------- Hero intro setup --------
       let introFinished = false;
       const finishIntro = () => {
         if (introFinished) return;
@@ -1188,6 +1185,7 @@ export default function Experience() {
         ScrollTrigger.refresh();
       };
       finishIntroRef.current = finishIntro;
+      finishIntro();
 
       const handleEarlyGesture = () => {
         finishIntro();
@@ -1367,31 +1365,10 @@ export default function Experience() {
             style={{ fontSize: HEADING_SIZE }}
           >
             <span ref={heroPre} className="inline-block">
-              <EncryptedText
-                key={`pre-${decryptKey}`}
-                text={HERO_PRE}
-                revealDelayMs={95}
-                flipDelayMs={60}
-                startDelayMs={150}
-                soundEffect={true}
-                encryptedClassName="text-neutral-400 font-mono font-medium"
-                revealedClassName="text-ink font-excon font-bold"
-              />
+              {HERO_PRE}
             </span>
             <span ref={heroVaultInline} className="inline-block">
-              <EncryptedText
-                key={`vault-${decryptKey}`}
-                text={HERO_VAULT}
-                revealDelayMs={115}
-                flipDelayMs={60}
-                startDelayMs={1450}
-                soundEffect={true}
-                encryptedClassName="text-neutral-400 font-mono font-medium"
-                revealedClassName="text-ink font-excon font-bold"
-                onComplete={() => {
-                  measureRef.current();
-                }}
-              />
+              {HERO_VAULT}
             </span>
           </h1>
 
@@ -1427,19 +1404,7 @@ export default function Experience() {
               className="mt-[3vh] sm:mt-[4.5vh] text-center font-excon font-bold leading-none text-ink transition-transform duration-200 group-hover:-translate-y-0.5"
               style={{ fontSize: "clamp(0.95rem, 2.3vw, 1.55rem)" }}
             >
-              <EncryptedText
-                key={`sub-${decryptKey}`}
-                text={SUBTITLE}
-                revealDelayMs={70}
-                flipDelayMs={55}
-                startDelayMs={2200}
-                soundEffect={true}
-                encryptedClassName="text-neutral-400 font-mono font-medium"
-                revealedClassName="text-ink font-excon font-bold"
-                onComplete={() => {
-                  finishIntroRef.current();
-                }}
-              />
+              {SUBTITLE}
             </p>
           </button>
         </section>
@@ -2033,23 +1998,10 @@ export default function Experience() {
                               </span>
                             </div>
 
-                            {/* Headline with EncryptedText Decryption */}
+                            {/* Headline */}
                             <div className="mt-3">
                               <h3 className="font-excon text-lg sm:text-xl md:text-2xl font-bold tracking-tight text-ink leading-snug">
-                                {isCurrent ? (
-                                  <EncryptedText
-                                    key={`beyond-headline-${i}-${activeBeyondIndex}`}
-                                    text={item.headline}
-                                    revealDelayMs={26}
-                                    flipDelayMs={35}
-                                    startDelayMs={40}
-                                    soundEffect={false}
-                                    encryptedClassName="text-neutral-400 font-mono font-medium"
-                                    revealedClassName="text-ink font-excon font-bold"
-                                  />
-                                ) : (
-                                  item.headline
-                                )}
+                                {item.headline}
                               </h3>
                             </div>
 
