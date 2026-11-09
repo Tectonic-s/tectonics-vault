@@ -41,9 +41,29 @@ const ranade = localFont({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL || "https://vault.tectonics.dev"
+  ),
   title: "Vault. — Tharun S",
   description:
     "The Vault. A portfolio where thoughtful design meets reliable engineering.",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon.png", type: "image/png", sizes: "512x512" },
+      { url: "/icon-192.png", type: "image/png", sizes: "192x192" },
+    ],
+    shortcut: "/favicon.ico",
+    apple: [
+      { url: "/apple-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
+  openGraph: {
+    title: "Vault. — Tharun S",
+    description:
+      "An interactive editorial portfolio engineered through motion, mathematics, and sound.",
+    images: [{ url: "/logo.png", width: 1024, height: 1024, alt: "Vault." }],
+  },
 };
 
 export default function RootLayout({

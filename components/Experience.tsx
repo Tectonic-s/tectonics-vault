@@ -419,7 +419,8 @@ export default function Experience() {
     if (reduced) {
       if (mainPanel.current) gsap.set(mainPanel.current, { yPercent: 0 });
       if (heroVaultInline.current) gsap.set(heroVaultInline.current, { opacity: 0 });
-      if (vaultFloat.current) gsap.set(vaultFloat.current, { opacity: 1, x: 0, y: 0 });
+      if (navGhost.current) gsap.set(navGhost.current, { opacity: 1 });
+      if (vaultFloat.current) gsap.set(vaultFloat.current, { opacity: 0 });
       if (letsTalk.current) gsap.set(letsTalk.current, { opacity: 1, y: 0 });
       isTransitioningRef.current = false;
       setIsIntroComplete(true);
@@ -457,7 +458,8 @@ export default function Experience() {
           ease: "power3.inOut",
           onComplete: () => {
             if (heroVaultInline.current) gsap.set(heroVaultInline.current, { opacity: 0 });
-            if (vaultFloat.current) gsap.set(vaultFloat.current, { opacity: 1, x: 0, y: 0 });
+            if (navGhost.current) gsap.set(navGhost.current, { opacity: 1 });
+            if (vaultFloat.current) gsap.set(vaultFloat.current, { opacity: 0 });
           },
         },
         0.08
@@ -503,7 +505,8 @@ export default function Experience() {
     const dy = flip.ey - flip.sy;
     const scale = flip.es || 1;
 
-    // Swap floating logo back to inline wordmark starting from nav position
+    // Swap nav logo back to inline wordmark starting from nav position
+    if (navGhost.current) gsap.set(navGhost.current, { opacity: 0 });
     if (vaultFloat.current) gsap.set(vaultFloat.current, { opacity: 0 });
     if (heroVaultInline.current) gsap.set(heroVaultInline.current, { opacity: 1, x: dx, y: dy, scale: scale });
 
@@ -1047,8 +1050,9 @@ export default function Experience() {
               soundFX.playMenuClick();
               returnToHero();
             }}
+            onMouseEnter={() => soundFX.playHoverTick()}
             aria-label="Vault, return to welcome screen"
-            className="font-excon font-bold leading-none opacity-0 select-none cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 rounded"
+            className="font-excon font-bold leading-none opacity-0 select-none cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 rounded transition-transform duration-200 active:scale-95 hover:opacity-80"
             style={{ fontSize: NAV_VAULT_SIZE }}
           >
             Vault.
