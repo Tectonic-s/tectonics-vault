@@ -1638,6 +1638,15 @@ export default function Experience() {
     };
   }, []);
 
+  const currentCanonicalKey = activeSection === "craft" ? "skills" : activeSection;
+  const currentMenuItem = MENU.find((m) => m.key === currentCanonicalKey) ?? MENU[0];
+  const currentAccentColor =
+    currentCanonicalKey === "journey"
+      ? JOURNEY[activeChapterIndex]?.accent.join(" ")
+      : currentCanonicalKey === "beyond"
+      ? BEYOND[activeBeyondIndex]?.accent.join(" ")
+      : ROOMS[currentCanonicalKey as keyof typeof ROOMS]?.accent?.join(" ") || "10 10 10";
+
   return (
     <main id="main-content" ref={root} className="relative h-[800vh] w-full">
       {/* ---------------------------------- VIEWPORT SCROLL PROGRESS HAIRLINE */}
@@ -1668,6 +1677,7 @@ export default function Experience() {
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3">
+          {/* Mobile Chapter Badge & Editorial Menu Trigger */}
           <button
             ref={mobileNavTriggerRef}
             type="button"
@@ -1677,13 +1687,19 @@ export default function Experience() {
               setIsMobileNavOpen(true);
             }}
             onMouseEnter={() => soundFX.playHoverTick()}
-            aria-label="Open section navigation"
+            aria-label="Open editorial section navigation"
             aria-expanded={isMobileNavOpen}
             aria-controls="mobile-nav-drawer"
-            className="lg:hidden text-xs font-semibold text-neutral-700 hover:text-black border border-black/12 rounded-full px-3 py-1.5 bg-white/85 backdrop-blur-sm active:scale-95 transition-all shadow-xs cursor-pointer flex items-center gap-1.5 focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
+            className="lg:hidden text-xs font-mono font-medium text-neutral-800 hover:text-black border border-black/10 rounded-full px-3 py-1.5 bg-white/90 backdrop-blur-md active:scale-95 transition-all shadow-xs cursor-pointer flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-black"
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-black/60" />
-            <span>Sections</span>
+            <span
+              className="w-1.5 h-1.5 rounded-full transition-colors duration-300"
+              style={{ backgroundColor: `rgb(${currentAccentColor})` }}
+            />
+            <span className="font-semibold text-neutral-500">{currentMenuItem.numeral}</span>
+            <span className="text-black/20">/</span>
+            <span className="font-excon font-bold tracking-tight text-ink">{currentMenuItem.label}</span>
+            <span className="text-black/40 text-[0.65rem] ml-0.5">▾</span>
           </button>
           <button
             ref={letsTalk}
@@ -1866,7 +1882,7 @@ export default function Experience() {
             </nav>
 
             {/* Right: swappable content */}
-            <div className="relative h-full flex-1 w-full pb-14 lg:pb-0">
+            <div className="relative h-full flex-1 w-full pb-16 lg:pb-0">
               {/* About */}
               <section
                 id="about"
@@ -2553,115 +2569,154 @@ export default function Experience() {
         </div>
       </div>
 
-      {/* --------------------------------- MOBILE FLOATING SECTION NAV PILL */}
+      {/* --------------------------------- MOBILE FLOATING SECTION NAV DOCK */}
       <nav
         aria-label="Quick section navigation"
-        className={`lg:hidden fixed bottom-4 inset-x-0 mx-auto w-fit z-40 transition-all duration-300 ${activeSection === "hero"
-          ? "opacity-0 pointer-events-none translate-y-4"
-          : "opacity-100 pointer-events-auto translate-y-0"
-          }`}
+        className={`lg:hidden fixed bottom-[max(1.25rem,env(safe-area-inset-bottom))] inset-x-0 mx-auto w-fit z-40 transition-all duration-300 pointer-events-auto select-none ${
+          activeSection === "hero"
+            ? "opacity-0 pointer-events-none translate-y-4"
+            : "opacity-100 translate-y-0"
+        }`}
       >
-        <div className="flex items-center gap-1 p-1.5 rounded-full bg-white/95 backdrop-blur-md border border-black/10 shadow-[0_8px_30px_rgba(0,0,0,0.12)] overflow-x-auto max-w-[94vw] no-scrollbar">
+        <div className="flex items-center gap-0.5 p-1 rounded-full bg-white/90 backdrop-blur-xl border border-black/10 shadow-[0_12px_36px_rgba(0,0,0,0.12)]">
           {MENU.map((item) => {
-            const isActive = activeSection === item.key;
+            const isActive = currentCanonicalKey === item.key;
             return (
               <button
                 key={item.key}
                 type="button"
                 onClick={() => handleMenuClick(item.key)}
+                onMouseEnter={() => soundFX.playHoverTick()}
                 aria-current={isActive ? "true" : undefined}
-                className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-black ${isActive
-                  ? "bg-black text-white shadow-sm"
-                  : "text-black/60 hover:text-black hover:bg-black/[0.04]"
-                  }`}
+                aria-label={`Go to section ${item.label}`}
+                className={`flex items-center justify-center transition-all duration-300 ease-out active:scale-95 cursor-pointer rounded-full font-mono ${
+                  isActive
+                    ? "bg-black text-white px-3 py-1.5 gap-1.5 shadow-sm"
+                    : "text-black/50 hover:text-black hover:bg-black/5 px-2 py-1.5 text-xs font-medium"
+                }`}
               >
-                <span>{item.label}</span>
+                <span className={`text-[0.68rem] ${isActive ? "text-white/70 font-semibold" : "text-black/60 font-mono"}`}>
+                  {item.numeral}
+                </span>
+                {isActive && (
+                  <>
+                    <span className="w-1 h-1 rounded-full bg-white/40" />
+                    <span className="font-excon font-bold text-xs tracking-tight whitespace-nowrap text-white">
+                      {item.label}
+                    </span>
+                  </>
+                )}
               </button>
             );
           })}
         </div>
       </nav>
 
-      {/* ------------------------------------------- MOBILE NAV DRAWER */}
+      {/* ------------------------------------------- MOBILE FULLSCREEN EDITORIAL NAV */}
       {isMobileNavOpen && (
         <div
           id="mobile-nav-drawer"
           role="dialog"
           aria-modal="true"
           aria-label="Section navigation"
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+          className="fixed inset-0 z-50 flex flex-col justify-between bg-bg p-6 sm:p-10 select-none animate-in fade-in duration-200"
         >
-          <div
-            className="fixed inset-0 bg-white/80 backdrop-blur-md transition-opacity"
-            onClick={() => {
-              soundFX.playModalClose();
-              setIsMobileNavOpen(false);
-              lastActiveElementRef.current?.focus();
-            }}
-          />
-          <div className="relative w-full sm:max-w-[420px] rounded-t-[28px] sm:rounded-[28px] border border-black/10 bg-white p-6 shadow-2xl transition-all z-10 max-h-[85vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-4 border-b border-black/8">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-black animate-pulse" />
-                <h3 className="font-excon font-bold text-lg text-ink">
-                  Sections
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  soundFX.playModalClose();
-                  setIsMobileNavOpen(false);
-                  lastActiveElementRef.current?.focus();
-                }}
-                className="group flex h-8 w-8 items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-100 hover:text-black transition-all hover:scale-105 active:scale-90 cursor-pointer focus-visible:ring-2 focus-visible:ring-black"
-                aria-label="Close navigation"
-              >
-                <span className="transition-transform duration-200 group-hover:rotate-90">✕</span>
-              </button>
-            </div>
+          {/* Atmosphere layers matching vault */}
+          <div className="pointer-events-none absolute inset-0" aria-hidden>
+            <div className="vault-radial" />
+            <div className="vault-grain" />
+            <div className="vault-vignette" />
+          </div>
 
-            <nav aria-label="Mobile sections list" className="mt-4 flex flex-col gap-1.5">
-              {MENU.map((item) => {
-                const isActive = activeSection === item.key;
-                return (
-                  <button
-                    key={item.key}
-                    type="button"
-                    onClick={() => {
-                      soundFX.playMenuClick();
-                      setIsMobileNavOpen(false);
-                      handleMenuClick(item.key);
-                    }}
-                    onMouseEnter={() => soundFX.playHoverTick()}
-                    aria-current={isActive ? "true" : undefined}
-                    className={`group flex items-center justify-between w-full px-4 py-3 rounded-2xl text-left transition-all duration-200 active:scale-[0.98] cursor-pointer focus-visible:ring-2 focus-visible:ring-black ${isActive
-                      ? "bg-black text-white shadow-sm"
-                      : "bg-neutral-50/80 text-neutral-800 hover:bg-black/5"
-                      }`}
+          {/* Top Bar inside modal */}
+          <div className="relative z-10 flex items-center justify-between pb-4 border-b border-black/8">
+            <div className="flex items-center gap-2">
+              <span className="font-excon font-bold text-xl sm:text-2xl text-ink">
+                Vault.
+              </span>
+              <span className="font-mono text-xs text-neutral-400">/ Index</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                soundFX.playModalClose();
+                setIsMobileNavOpen(false);
+                lastActiveElementRef.current?.focus();
+              }}
+              onMouseEnter={() => soundFX.playHoverTick()}
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-black/10 text-neutral-500 hover:text-black hover:border-black/30 hover:bg-black/5 transition-all active:scale-90 cursor-pointer focus-visible:ring-2 focus-visible:ring-black"
+              aria-label="Close navigation"
+            >
+              <span className="font-mono text-base">✕</span>
+            </button>
+          </div>
+
+          {/* Center Accordion Menu — exact same design pattern as desktop */}
+          <nav aria-label="Mobile sections list" className="relative z-10 my-auto flex flex-col justify-center gap-3 sm:gap-4 py-4">
+            {MENU.map((item) => {
+              const isActive = currentCanonicalKey === item.key;
+              return (
+                <button
+                  key={item.key}
+                  type="button"
+                  onClick={() => {
+                    soundFX.playMenuClick();
+                    setIsMobileNavOpen(false);
+                    handleMenuClick(item.key);
+                  }}
+                  onMouseEnter={() => soundFX.playHoverTick()}
+                  aria-current={isActive ? "true" : undefined}
+                  className="group flex items-baseline gap-3.5 sm:gap-5 text-left transition-all duration-200 active:scale-[0.98] border-0 bg-transparent p-0 cursor-pointer"
+                >
+                  <span
+                    className={`font-mono text-xs sm:text-sm tracking-widest transition-opacity duration-200 ${
+                      isActive ? "text-ink font-bold opacity-100" : "text-ink/35 group-hover:text-ink/60"
+                    }`}
                   >
-                    <div className="flex items-center gap-3">
-                      <span
-                        className={`font-mono text-xs tracking-wider ${isActive ? "text-white/70" : "text-neutral-400"
-                          }`}
-                      >
-                        {item.numeral}
-                      </span>
-                      <span className="font-excon font-bold text-base">
-                        {item.label}
-                      </span>
-                    </div>
-                    {isActive ? (
-                      <span className="w-1.5 h-1.5 rounded-full bg-white" />
-                    ) : (
-                      <span className="font-mono text-xs opacity-0 -translate-x-1 transition-all duration-200 group-hover:opacity-100 group-hover:translate-x-0">
-                        ↗
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-            </nav>
+                    {item.numeral}
+                  </span>
+                  <span
+                    className={`font-excon font-bold leading-none tracking-tight transition-all duration-200 ${
+                      isActive
+                        ? "text-3xl sm:text-4xl text-ink"
+                        : "text-xl sm:text-2xl text-ink/40 group-hover:text-ink/80 group-hover:translate-x-1.5"
+                    }`}
+                  >
+                    {item.label}
+                  </span>
+                  {isActive && (
+                    <span
+                      className="w-2 h-2 rounded-full mb-1 animate-pulse"
+                      style={{
+                        backgroundColor: `rgb(${
+                          item.key === "journey"
+                            ? JOURNEY[activeChapterIndex]?.accent.join(" ")
+                            : item.key === "beyond"
+                            ? BEYOND[activeBeyondIndex]?.accent.join(" ")
+                            : ROOMS[item.key as keyof typeof ROOMS]?.accent?.join(" ") || "10 10 10"
+                        })`,
+                      }}
+                    />
+                  )}
+                </button>
+              );
+            })}
+          </nav>
+
+          {/* Bottom quick contact footer inside modal */}
+          <div className="relative z-10 flex items-center justify-between pt-4 border-t border-black/8 text-xs text-neutral-500 font-mono">
+            <span>Tharun S · Portfolio</span>
+            <button
+              type="button"
+              onClick={() => {
+                soundFX.playMenuClick();
+                setIsMobileNavOpen(false);
+                handleMenuClick("talk");
+              }}
+              className="text-black font-semibold hover:underline cursor-pointer"
+            >
+              Get in touch →
+            </button>
           </div>
         </div>
       )}
