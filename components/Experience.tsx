@@ -1756,11 +1756,43 @@ export default function Experience() {
             onClick={() => handleMenuClick("talk")}
             onMouseEnter={() => soundFX.playHoverTick()}
             aria-label="Scroll to connect section"
-            className="group will-reveal flex items-center gap-1.5 sm:gap-2 font-excon font-bold leading-none text-ink rounded-full border-2 border-ink px-3.5 py-1.5 sm:px-5 sm:py-2.5 text-xs sm:text-sm transition-all duration-200 hover:bg-ink hover:text-bg hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(0,0,0,0.12)] active:scale-95 active:translate-y-0 cursor-pointer focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
+            className="group will-reveal relative overflow-hidden flex items-center gap-2 sm:gap-2.5 font-excon font-bold leading-none text-ink rounded-full border-2 border-ink px-4 py-2 sm:px-6 sm:py-3 text-xs sm:text-base transition-all duration-300 ease-out hover:scale-108 hover:-translate-y-0.5 hover:bg-ink hover:text-bg hover:shadow-[0_12px_28px_rgba(0,0,0,0.18)] active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
           >
-            <span>Connect</span>
-            <span aria-hidden="true" className="inline-block transition-transform duration-200 ease-out group-hover:translate-y-0.5 font-mono text-[0.85em]">
-              ↓
+            {/* Morphing Envelope Icon: Closed envelope by default, transforms into an open envelope with letter on hover */}
+            <span className="relative w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center shrink-0">
+              {/* Closed Envelope (Default) */}
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="w-full h-full absolute transition-all duration-300 ease-out group-hover:opacity-0 group-hover:scale-75 group-hover:-translate-y-1.5"
+              >
+                <rect width="20" height="15" x="2" y="5" rx="2" />
+                <path d="m2 5 10 7 10-7" />
+              </svg>
+
+              {/* Open Envelope with Letter (Hover transformation) */}
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="w-full h-full absolute transition-all duration-300 ease-out opacity-0 scale-75 translate-y-1.5 group-hover:opacity-100 group-hover:scale-110 group-hover:translate-y-0 group-hover:-rotate-6"
+              >
+                <path d="M21.2 8.4c.5.3.8.8.8 1.4v8.2c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V9.8c0-.6.3-1.1.8-1.4l7.2-4.1a2 2 0 0 1 2 0l7.2 4.1z" />
+                <path d="m2 10 10 6 10-6" />
+                <path d="m2 20 7-6" />
+                <path d="m22 20-7-6" />
+                <path d="M7 6V3c0-.6.4-1 1-1h8c.6 0 1 .4 1 1v3" />
+              </svg>
+            </span>
+            <span className="tracking-wide transition-transform duration-300 ease-out group-hover:translate-x-0.5">
+              Connect
             </span>
           </button>
         </div>
