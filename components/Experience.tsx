@@ -250,6 +250,8 @@ export default function Experience() {
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [activeChapterIndex, setActiveChapterIndex] = useState(0);
   const [activeBeyondIndex, setActiveBeyondIndex] = useState(0);
+  const activeChapterRef = useRef(0);
+  const activeBeyondRef = useRef(0);
   const [copiedEmail, setCopiedEmail] = useState(false);
   const [hasInteracted, setHasInteracted] = useState(false);
   const [decryptKey, setDecryptKey] = useState(0);
@@ -333,7 +335,7 @@ export default function Experience() {
         lenisRef.current.scrollTo(window.innerHeight * 6.5, { duration: dur });
         break;
       case "beyond":
-        lenisRef.current.scrollTo(window.innerHeight * 8.2, { duration: dur });
+        lenisRef.current.scrollTo(window.innerHeight * 7.9, { duration: dur });
         break;
       case "talk":
         lenisRef.current.scrollTo(window.innerHeight * 10.7, { duration: dur });
@@ -343,6 +345,7 @@ export default function Experience() {
 
   const handleChapterClick = (index: number) => {
     soundFX.playTabSwitch();
+    activeChapterRef.current = index;
     setActiveChapterIndex(index);
     if (!lenisRef.current) return;
     const offsets = [
@@ -371,16 +374,17 @@ export default function Experience() {
 
   const handleBeyondChapterClick = (index: number) => {
     soundFX.playTabSwitch();
+    activeBeyondRef.current = index;
     setActiveBeyondIndex(index);
     if (!lenisRef.current) return;
     const offsets = [
-      window.innerHeight * 8.2,
-      window.innerHeight * 8.75,
-      window.innerHeight * 9.3,
-      window.innerHeight * 9.75,
+      window.innerHeight * 7.9,
+      window.innerHeight * 8.5,
+      window.innerHeight * 9.1,
+      window.innerHeight * 9.62,
     ];
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    lenisRef.current.scrollTo(offsets[index], { duration: reduced ? 0 : 0.8 });
+    lenisRef.current.scrollTo(offsets[index], { duration: reduced ? 0 : 0.7 });
   };
 
   const handleBeyondTabKeyDown = (e: React.KeyboardEvent, index: number) => {
@@ -519,10 +523,10 @@ export default function Experience() {
         } else if (scrollY < h * 5.6) {
           setActiveMenu("skills", immediate);
           setActiveSection("skills");
-        } else if (scrollY < h * 7.4) {
+        } else if (scrollY < h * 7.5) {
           setActiveMenu("works", immediate);
           setActiveSection("works");
-        } else if (scrollY < h * 10.0) {
+        } else if (scrollY < h * 10.1) {
           setActiveMenu("beyond", immediate);
           setActiveSection("beyond");
         } else {
@@ -562,7 +566,10 @@ export default function Experience() {
       });
 
       const setActiveBeyondTab = (index: number) => {
-        setActiveBeyondIndex(index);
+        if (activeBeyondRef.current !== index) {
+          activeBeyondRef.current = index;
+          setActiveBeyondIndex(index);
+        }
         bTabs.forEach((tab, i) => {
           if (i === index) {
             tab.classList.add("bg-black", "text-white", "shadow-sm");
@@ -727,7 +734,10 @@ export default function Experience() {
 
       // ======== PHASE 2b — Journey Chapters Scrubbing ========
       const setActiveTab = (index: number) => {
-        setActiveChapterIndex(index);
+        if (activeChapterRef.current !== index) {
+          activeChapterRef.current = index;
+          setActiveChapterIndex(index);
+        }
         jTabs.forEach((tab, i) => {
           if (i === index) {
             tab.classList.add("bg-black", "text-white", "shadow-sm");
@@ -887,6 +897,11 @@ export default function Experience() {
         end: () => "top+=" + window.innerHeight * 9.8 + " top",
         scrub: 0.5,
         animation: beyondTl,
+        onEnter: () => setActiveBeyondTab(0),
+        onLeaveBack: () => {
+          setActiveBeyondTab(0);
+          setRoom(ROOMS.works.accent, ROOMS.works.lift, 0.8);
+        },
         onUpdate: (self) => {
           const p = self.progress;
           let idx = 0;
@@ -933,7 +948,13 @@ export default function Experience() {
           if (names) gsap.set(names, { opacity: 1, x: 0, filter: "none" });
         });
         if (craftCount) craftCount.textContent = "16";
-        gsap.set(bCards, { opacity: 1, y: 0, pointerEvents: "auto" });
+        bCards.forEach((c, i) => {
+          gsap.set(c, {
+            opacity: i === 0 ? 1 : 0,
+            y: 0,
+            pointerEvents: i === 0 ? "auto" : "none",
+          });
+        });
         measure();
         unlockScroll();
         ScrollTrigger.refresh();
@@ -1406,9 +1427,6 @@ export default function Experience() {
                         className="absolute inset-0 rounded-[20px] sm:rounded-[24px] bg-white p-4 sm:p-7 md:p-8 border shadow-[0_12px_36px_rgba(0,0,0,0.04)] flex flex-col justify-between overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
                         style={{
                           borderColor: `rgb(${step.accent.join(" ")} / 0.45)`,
-                          opacity: i === 0 ? 1 : 0,
-                          transform: i === 0 ? "none" : "translateY(16px)",
-                          pointerEvents: i === 0 ? "auto" : "none",
                         }}
                       >
                         <div>
@@ -1726,7 +1744,7 @@ export default function Experience() {
                   </div>
 
                   {/* Stacked Chapter Cards */}
-                  <div className="relative h-[430px] sm:h-[400px] md:h-[370px] w-full">
+                  <div className="relative h-[440px] sm:h-[400px] md:h-[370px] w-full">
                     {BEYOND.map((item, i) => (
                       <div
                         key={item.title}
@@ -1735,12 +1753,9 @@ export default function Experience() {
                         aria-labelledby={`beyond-tab-${i}`}
                         tabIndex={0}
                         data-bcard={i}
-                        className="absolute inset-0 rounded-[20px] sm:rounded-[24px] bg-white p-4 sm:p-7 md:p-8 border shadow-[0_12px_36px_rgba(0,0,0,0.04)] flex flex-col justify-between overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
+                        className="absolute inset-0 rounded-[20px] sm:rounded-[24px] bg-white p-4 sm:p-7 md:p-8 border shadow-[0_12px_36px_rgba(0,0,0,0.04)] flex flex-col justify-between overflow-y-auto sm:overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
                         style={{
                           borderColor: `rgb(${item.accent.join(" ")} / 0.45)`,
-                          opacity: i === 0 ? 1 : 0,
-                          transform: i === 0 ? "none" : "translateY(16px)",
-                          pointerEvents: i === 0 ? "auto" : "none",
                         }}
                       >
                         <div>
@@ -2076,7 +2091,7 @@ export default function Experience() {
       {/* --------------------------------------------------- FOOTER LANDMARK */}
       <footer aria-label="Contact and portfolio credits" className="sr-only">
         <h2>Contact &amp; Links</h2>
-        <p>Tharun S — Available for product design and engineering opportunities. Version 1.2.1.</p>
+        <p>Tharun S — Available for product design and engineering opportunities. Version 1.2.2.</p>
         <ul>
           <li><a href="mailto:tharun@example.com">tharun@example.com</a></li>
           <li><a href="https://github.com">GitHub</a></li>
