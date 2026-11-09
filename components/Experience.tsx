@@ -278,6 +278,8 @@ export default function Experience() {
   const switchJourneyChapterRef = useRef<((idx: number) => void) | null>(null);
   const switchBeyondChapterRef = useRef<((idx: number) => void) | null>(null);
   const playToolkitShowcaseRef = useRef<((force?: boolean) => void) | null>(null);
+  const ensureSectionLoadedRef = useRef<((key: string) => void) | null>(null);
+  const navTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const mobileNavTriggerRef = useRef<HTMLButtonElement>(null);
   const lastActiveElementRef = useRef<HTMLElement | null>(null);
@@ -338,21 +340,33 @@ export default function Experience() {
   };
 
   const handleMenuClick = (key: string) => {
-    if (isProgrammaticScrollRef.current) return;
+    if (navTimeoutRef.current) {
+      clearTimeout(navTimeoutRef.current);
+      navTimeoutRef.current = null;
+    }
     soundFX.playMenuClick();
     lockedSectionRef.current = null;
     accumulatedDeltaRef.current = 0;
     isProgrammaticScrollRef.current = true;
     document.documentElement.classList.add("nav-animating");
-    if (!lenisRef.current) return;
+
+    // Immediately load target section content so clicking left menu headers never lands on white blank space
+    ensureSectionLoadedRef.current?.(key);
+
+    if (!lenisRef.current) {
+      isProgrammaticScrollRef.current = false;
+      document.documentElement.classList.remove("nav-animating");
+      return;
+    }
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const dur = reduced ? 0 : 0.85;
+    const dur = reduced ? 0 : 0.6;
     const finishNav = (after?: () => void) => {
-      setTimeout(() => {
+      navTimeoutRef.current = setTimeout(() => {
+        ensureSectionLoadedRef.current?.(key);
         isProgrammaticScrollRef.current = false;
         document.documentElement.classList.remove("nav-animating");
         after?.();
-      }, 150);
+      }, 100);
     };
     switch (key) {
       case "about":
@@ -374,7 +388,6 @@ export default function Experience() {
           onComplete: () =>
             finishNav(() => {
               lockedSectionRef.current = "skills";
-              playToolkitShowcaseRef.current?.(false);
             }),
         });
         break;
@@ -595,6 +608,7 @@ export default function Experience() {
       };
 
       const updateActiveMenuFromScroll = (immediate = false) => {
+        if (isProgrammaticScrollRef.current) return;
         const scrollY = window.scrollY;
         const h = window.innerHeight;
         if (scrollY < h * 0.7) {
@@ -643,17 +657,17 @@ export default function Experience() {
         });
       });
 
-      // Craft cards starting states:
+      // Craft cards starting states (visible by default; automated showcase animates them sequentially when scrolled into)
       craftCards.forEach((card) => {
-        gsap.set(card, { opacity: 0, y: 16 });
+        gsap.set(card, { opacity: 1, y: 0 });
         const trace = card.querySelector("[data-craft-trace]");
         const head = card.querySelector("[data-craft-head]");
         const checks = card.querySelectorAll("[data-craft-check]");
         const names = card.querySelectorAll("[data-craft-name]");
-        if (trace) gsap.set(trace, { strokeDashoffset: 100, strokeOpacity: 0.8 });
-        if (head) gsap.set(head, { opacity: 0, y: 8 });
-        if (checks) gsap.set(checks, { opacity: 0, scale: 0 });
-        if (names) gsap.set(names, { opacity: 0, x: -8 });
+        if (trace) gsap.set(trace, { strokeDashoffset: 0, strokeOpacity: 0.45 });
+        if (head) gsap.set(head, { opacity: 1, y: 0 });
+        if (checks) gsap.set(checks, { opacity: 1, scale: 1 });
+        if (names) gsap.set(names, { opacity: 1, x: 0 });
       });
 
       // Beyond cards starting states:
@@ -981,12 +995,7 @@ export default function Experience() {
         window.removeEventListener("touchend", onTouchEnd);
       };
 
-      // Craft cards starting states
-      gsap.set(q("[data-craft-card]"), { opacity: 0, y: 16 });
-      gsap.set(q("[data-craft-trace]"), { strokeDashoffset: 100, strokeOpacity: 1 });
-      gsap.set(q("[data-craft-head]"), { opacity: 0, y: 12 });
-      gsap.set(q("[data-craft-check]"), { opacity: 0, scale: 0.4 });
-      gsap.set(q("[data-craft-name]"), { opacity: 0, x: -10 });
+
 
       // ---------------- About: an occupied room, not a still ----------------
       const portrait = q("[data-portrait]")[0] ?? null;
@@ -1303,19 +1312,91 @@ export default function Experience() {
         onEnter: () => setRoom(ROOMS.works.accent, ROOMS.works.lift, 0.8),
         onLeaveBack: () => setRoom(ROOMS.craft.accent, ROOMS.craft.lift, 0.8),
       });
-      worksTransition
-        .to(craftRight.current, { autoAlpha: 0, y: -28, duration: 0.4 }, 0)
-        .to(worksRight.current, { autoAlpha: 1, y: 0, duration: 0.5 }, 0.25);
 
-      ScrollTrigger.create({
-        trigger: root.current,
-        start: () => "top+=" + window.innerHeight * 3.8 + " top",
-        end: () => "top+=" + window.innerHeight * 4.4 + " top",
-        scrub: true,
-        animation: worksTransition,
-        onEnter: () => setRoom(ROOMS.works.accent, ROOMS.works.lift, 0.8),
-        onLeaveBack: () => setRoom(ROOMS.craft.accent, ROOMS.craft.lift, 0.8),
-      });
+      // Ensure Section Loaded Engine (Immediate visual loading on left menu header clicks)
+      const ensureSectionLoaded = (sectionKey: string) => {
+        const canonical = sectionKey === "craft" ? "skills" : sectionKey;
+        setActiveMenu(canonical, false);
+        setActiveSection(canonical);
+
+        if (mainPanel.current) {
+          gsap.to(mainPanel.current, { yPercent: 0, duration: 0.25, ease: "power2.out", overwrite: "auto" });
+        }
+        if (heroVaultInline.current) gsap.to(heroVaultInline.current, { opacity: 0, duration: 0.2, overwrite: "auto" });
+        if (vaultFloat.current) gsap.to(vaultFloat.current, { opacity: 1, duration: 0.2, overwrite: "auto" });
+
+        const panels: Record<string, HTMLElement | null> = {
+          about: aboutRight.current,
+          journey: journeyRight.current,
+          skills: craftRight.current,
+          craft: craftRight.current,
+          works: worksRight.current,
+          beyond: beyondRight.current,
+          talk: talkRight.current,
+        };
+
+        Object.entries(panels).forEach(([k, panel]) => {
+          if (!panel) return;
+          const isTarget = k === canonical || (canonical === "skills" && k === "craft");
+          if (isTarget) {
+            gsap.to(panel, { autoAlpha: 1, y: 0, duration: 0.3, ease: "power2.out", overwrite: "auto" });
+          } else if (k !== "craft") {
+            gsap.to(panel, { autoAlpha: 0, duration: 0.2, overwrite: "auto" });
+          }
+        });
+
+        if (canonical === "skills") {
+          hasToolkitPlayed = true;
+          isToolkitAnimating = false;
+          craftCards.forEach((card) => {
+            const trace = card.querySelector("[data-craft-trace]");
+            const head = card.querySelector("[data-craft-head]");
+            const checks = card.querySelectorAll("[data-craft-check]");
+            const names = card.querySelectorAll("[data-craft-name]");
+            gsap.to(card, { opacity: 1, y: 0, duration: 0.25, overwrite: "auto" });
+            if (trace) gsap.to(trace, { strokeDashoffset: 0, strokeOpacity: 0.45, duration: 0.25, overwrite: "auto" });
+            if (head) gsap.to(head, { opacity: 1, y: 0, duration: 0.25, overwrite: "auto" });
+            if (checks) gsap.to(checks, { opacity: 1, scale: 1, duration: 0.25, overwrite: "auto" });
+            if (names) gsap.to(names, { opacity: 1, x: 0, duration: 0.25, overwrite: "auto" });
+          });
+          const progressBar = craftRight.current?.querySelector("[data-toolkit-progress]");
+          if (progressBar) gsap.to(progressBar, { scaleX: 1, opacity: 0.35, duration: 0.25, overwrite: "auto" });
+          const statusEl = craftRight.current?.querySelector("[data-toolkit-status]");
+          if (statusEl) statusEl.textContent = "16 Capabilities Unlocked";
+          setRoom(ROOMS.craft.accent, ROOMS.craft.lift, 0.45);
+        } else if (canonical === "journey") {
+          jCards.forEach((card, i) => {
+            const isActive = i === activeChapterRef.current;
+            gsap.to(card, {
+              opacity: isActive ? 1 : 0,
+              y: isActive ? 0 : 20,
+              duration: 0.25,
+              overwrite: "auto",
+            });
+            card.style.pointerEvents = isActive ? "auto" : "none";
+          });
+          setRoom(JOURNEY[activeChapterRef.current].accent, JOURNEY[activeChapterRef.current].lift, 0.45);
+        } else if (canonical === "beyond") {
+          bCards.forEach((card, i) => {
+            const isActive = i === activeBeyondRef.current;
+            gsap.to(card, {
+              opacity: isActive ? 1 : 0,
+              y: isActive ? 0 : 20,
+              duration: 0.25,
+              overwrite: "auto",
+            });
+            card.style.pointerEvents = isActive ? "auto" : "none";
+          });
+          setRoom(BEYOND[activeBeyondRef.current].accent, BEYOND[activeBeyondRef.current].lift, 0.45);
+        } else if (canonical === "works") {
+          setRoom(ROOMS.works.accent, ROOMS.works.lift, 0.45);
+        } else if (canonical === "talk") {
+          setRoom(ROOMS.talk.accent, ROOMS.talk.lift, 0.45);
+        } else if (canonical === "about") {
+          setRoom(ROOMS.about.accent, ROOMS.about.lift, 0.45);
+        }
+      };
+      ensureSectionLoadedRef.current = ensureSectionLoaded;
 
       // ======== PHASE 5a — Works → Beyond Work ========
       const worksToBeyond = gsap.timeline({ defaults: { ease: "power2.inOut" } });
@@ -1527,6 +1608,12 @@ export default function Experience() {
       }
       cleanupWheelListeners?.();
       unlockScroll();
+      ensureSectionLoadedRef.current = null;
+      playToolkitShowcaseRef.current = null;
+      if (navTimeoutRef.current) {
+        clearTimeout(navTimeoutRef.current);
+        navTimeoutRef.current = null;
+      }
       pointerListener?.();
       gsap.ticker.remove(tick);
       lenis.destroy();
@@ -2071,7 +2158,6 @@ export default function Experience() {
                           className="relative rounded-[16px] sm:rounded-[24px] p-3.5 sm:p-7 lg:p-8 transition-shadow duration-300 hover:shadow-[0_20px_48px_rgba(0,0,0,0.08)] bg-white shadow-[0_12px_36px_rgba(0,0,0,0.05)]"
                           style={
                             {
-                              opacity: 0,
                               "--origin-rgb": JOURNEY[dominant].accent.join(" "),
                             } as React.CSSProperties
                           }
