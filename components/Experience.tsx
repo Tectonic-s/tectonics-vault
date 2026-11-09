@@ -234,9 +234,6 @@ export default function Experience() {
   const heroVaultInner = useRef<HTMLSpanElement>(null);
   const heroSubInner = useRef<HTMLParagraphElement>(null);
   const scrollIndicator = useRef<HTMLDivElement>(null);
-  const ulPath = useRef<SVGPathElement>(null);
-  const arrowStem = useRef<SVGLineElement>(null);
-  const arrowHead = useRef<SVGPathElement>(null);
 
   // Scroll Progress
   const scrollProgressBar = useRef<HTMLDivElement>(null);
@@ -612,7 +609,6 @@ export default function Experience() {
       });
       gsap.set(mainPanel.current, { yPercent: 100 });
       gsap.set(vaultFloat.current, { opacity: 0, transformOrigin: "left top" });
-      gsap.set([ulPath.current, arrowStem.current, arrowHead.current], { opacity: 0 });
 
       // Initialize all menu items consistently
       menuItems.forEach((li) => {
@@ -1125,7 +1121,7 @@ export default function Experience() {
           { x: () => flip.ex, y: () => flip.ey, scale: () => flip.es, rotate: -2, duration: 0.78, ease: "power2.inOut" },
           0
         )
-        // Hero subtitle and arrow sink playfully with slight scale down
+        // Hero subtitle sinks playfully with slight scale down
         .to(scrollIndicator.current, { y: 36, scale: 0.92, opacity: 0, duration: 0.4, ease: "power2.in" }, 0)
         // "Welcome to my" floats up with slight scale down
         .to(heroPre.current, { yPercent: -90, scale: 0.94, opacity: 0, duration: 0.44, ease: "power2.in" }, 0)
@@ -1571,11 +1567,6 @@ export default function Experience() {
         if (heroPreInner.current) gsap.set(heroPreInner.current, { yPercent: 0, opacity: 1 });
         if (heroVaultInner.current) gsap.set(heroVaultInner.current, { yPercent: 0, opacity: 1 });
         if (heroSubInner.current) gsap.set(heroSubInner.current, { yPercent: 0, opacity: 1 });
-        if (ulPath.current) {
-          const len = ulPath.current.getTotalLength();
-          gsap.set(ulPath.current, { strokeDasharray: len, strokeDashoffset: 0 });
-        }
-        gsap.set([ulPath.current, arrowStem.current, arrowHead.current], { opacity: 1 });
         gsap.set(craftCards, { opacity: 1, y: 0 });
         craftCards.forEach((card) => {
           const trace = card.querySelector("[data-craft-trace]");
@@ -1602,13 +1593,8 @@ export default function Experience() {
         return;
       }
 
-      // -------- Masked Kinetic Line Slide Entrance for Hero --------
+      // -------- Hero Slide Entrance --------
       lockScroll();
-      const len = ulPath.current?.getTotalLength() ?? 640;
-      if (ulPath.current) {
-        gsap.set(ulPath.current, { strokeDasharray: len, strokeDashoffset: len, opacity: 1 });
-      }
-      gsap.set([arrowStem.current, arrowHead.current], { opacity: 0 });
 
       let introFinished = false;
       const finishIntro = () => {
@@ -1618,10 +1604,6 @@ export default function Experience() {
         if (heroPreInner.current) gsap.set(heroPreInner.current, { yPercent: 0, opacity: 1 });
         if (heroVaultInner.current) gsap.set(heroVaultInner.current, { yPercent: 0, opacity: 1 });
         if (heroSubInner.current) gsap.set(heroSubInner.current, { yPercent: 0, opacity: 1 });
-        if (ulPath.current) {
-          gsap.set(ulPath.current, { strokeDasharray: len, strokeDashoffset: 0, opacity: 1 });
-        }
-        gsap.set([arrowStem.current, arrowHead.current], { opacity: 1, scale: 1 });
         measure();
         unlockScroll();
         ScrollTrigger.refresh();
@@ -1660,31 +1642,11 @@ export default function Experience() {
             "-=0.85"
           )
           .fromTo(
-            ulPath.current,
-            { strokeDashoffset: len },
-            { strokeDashoffset: 0, duration: 1.15, ease: "power2.inOut" },
-            "-=0.7"
-          )
-          .fromTo(
-            [arrowStem.current, arrowHead.current],
-            { opacity: 0, scale: 0.8 },
-            { opacity: 1, scale: 1, duration: 0.65, ease: "back.out(1.4)" },
-            "-=0.4"
-          )
-          .fromTo(
             heroSubInner.current,
             { yPercent: 125, opacity: 0 },
             { yPercent: 0, opacity: 1, duration: 1.1, ease: "power3.out" },
-            "-=0.4"
+            "-=0.7"
           );
-
-        // Continuous subtle arrow breathing loop
-        gsap
-          .timeline({ repeat: -1, repeatDelay: 1.2, delay: 1.2 })
-          .to(arrowHead.current, { y: 6, duration: 0.5, ease: "sine.inOut" }, 0)
-          .to(arrowStem.current, { attr: { y2: 68 }, duration: 0.5, ease: "sine.inOut" }, 0)
-          .to(arrowHead.current, { y: 0, duration: 0.5, ease: "sine.inOut" }, 0.5)
-          .to(arrowStem.current, { attr: { y2: 60 }, duration: 0.5, ease: "sine.inOut" }, 0.5);
       };
 
       (document.fonts?.ready ?? Promise.resolve()).then(() => {
@@ -1872,22 +1834,7 @@ export default function Experience() {
             className="group mt-[3vh] sm:mt-[4.5vh] flex w-full flex-col items-center cursor-pointer transition-transform duration-300 hover:scale-[1.03] active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-4 rounded-xl p-2"
             style={{ maxWidth: "min(90vw, 560px)" }}
           >
-            <svg
-              viewBox="0 0 640 26"
-              className="w-full overflow-visible transition-opacity duration-300 group-hover:opacity-100"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={3}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              style={{ color: INK }}
-              aria-hidden="true"
-            >
-              <path ref={ulPath} d="M4 12 H 604 Q 622 12 622 30" />
-              <line ref={arrowStem} x1="622" y1="29" x2="622" y2="60" />
-              <path ref={arrowHead} d="M611 49 L622 61 L633 49" />
-            </svg>
-            <div className="mt-[2.5vh] sm:mt-[3.5vh] overflow-hidden py-1">
+            <div className="overflow-hidden py-1">
               <p
                 ref={heroSubInner}
                 className="text-center font-excon font-bold leading-none text-ink transition-transform duration-200 group-hover:-translate-y-0.5 will-change-transform flex items-center justify-center gap-2"
