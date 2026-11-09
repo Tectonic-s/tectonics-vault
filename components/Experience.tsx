@@ -129,60 +129,48 @@ const ROOMS = {
    narrative body copy, and core disciplines. */
 const BEYOND = [
   {
-    title: "Athletics & Endurance",
-    period: "Daily Discipline",
+    title: "Move",
+    period: "Find Your Pace",
     accent: [235, 115, 60], // fiery terra / warm ember
     lift: 0.07,
-    metric: "10k+",
-    metricUnit: "runs",
-    metricLabel: "Endurance",
     primary: "Physical Grit & Long Runs",
-    secondary: "Running, Functional Fitness & High-Stamina Conditioning",
-    habits: ["Mental Resilience", "Pacing & Stamina", "Focus Under Fatigue", "Recovery"],
+    secondary: "Running, functional fitness & endurance conditioning",
+    habits: ["10k Running", "Mental Resilience", "Pacing & Stamina", "Functional Fitness"],
     body:
       "Physical training and long-distance running build resilience, patience, and the mental stamina needed to solve tough engineering challenges. Pushing past physical walls teaches you how to keep moving forward when the code or architecture gets complex.",
   },
   {
-    title: "Systems & Mental Models",
-    period: "Continuous Learning",
+    title: "Think",
+    period: "Curiosity Has No Off Switch",
     accent: [65, 120, 220], // sapphire / architectural blue
     lift: 0.065,
-    metric: "30+",
-    metricUnit: "books",
-    metricLabel: "Deep Dives",
     primary: "Books, Psychology & First Principles",
-    secondary: "Decision Theory, Distributed Logic & Human Dynamics",
-    habits: ["First-Principles Thinking", "Second-Order Logic", "Behavioral Economics", "Feedback Loops"],
+    secondary: "Decision theory, distributed logic & human dynamics",
+    habits: ["First Principles", "Systems Thinking", "Mental Models", "Behavioral Psychology"],
     body:
       "Deeply interested in how complex systems interact—from distributed software architecture to team dynamics, decision theory, and human psychology. Reading foundational texts across disciplines helps connect seemingly unrelated concepts into cohesive engineering solutions.",
   },
   {
-    title: "Creative Experiments",
-    period: "Play & Craft",
+    title: "Create",
+    period: "Making Things Just Because",
     accent: [160, 95, 225], // deep electric violet
     lift: 0.08,
-    metric: "60+",
-    metricUnit: "fps",
-    metricLabel: "Micro-UX",
     primary: "Generative UI, WebGL & Audio",
-    secondary: "Interactive Physics, Typography & Audio Synthesizers",
-    habits: ["Interactive Canvas", "Fluid Animations", "Sound Design", "Typography Systems"],
+    secondary: "Interactive physics, typography & audio synthesizers",
+    habits: ["Creative Coding", "WebGL & Three.js", "Sound Design", "Micro-Interactions"],
     body:
       "Constantly exploring interactive web animations, generative UI, typography, and modern micro-interactions that elevate simple tools into memorable products. When software feels tactile and alive, engineering transcends into true product craft.",
   },
   {
-    title: "Life & Exploration",
-    period: "Perspective",
+    title: "Explore",
+    period: "Perspective & Recharging",
     accent: [50, 165, 120], // evergreen / grounding sage
     lift: 0.06,
-    metric: "01",
-    metricUnit: "mindset",
-    metricLabel: "Balance",
-    primary: "Coffee, Travel & Mindfulness",
-    secondary: "Specialty Brewing, Urban Walks & Intentional Living",
-    habits: ["Curiosity", "Observation", "Deliberate Presence", "Reflective Journaling"],
+    primary: "Life Happens Outside the Screen",
+    secondary: "Specialty brewing, road trips & intentional living",
+    habits: ["Motorcycles", "Road Trips", "Travel", "Anime", "Gaming", "Self-Reflection"],
     body:
-      "Great work requires moments of stillness. Whether dialing in an espresso brew, exploring new neighborhoods with an analog eye, or unplugging completely, maintaining a vibrant life outside the screen keeps creativity sharp, grounded, and purposeful.",
+      "Long rides, spontaneous plans, new places, and mornings by the beach. I'm drawn to experiences that break the routine. And when I'm indoors, there's usually a good film, anime, or game waiting.",
   },
 ];
 
@@ -319,8 +307,8 @@ export default function Experience() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isMobileNavOpen]);
 
-  const measureRef = useRef<() => void>(() => {});
-  const finishIntroRef = useRef<() => void>(() => {});
+  const measureRef = useRef<() => void>(() => { });
+  const finishIntroRef = useRef<() => void>(() => { });
 
   const handleCopyEmail = () => {
     soundFX.playSuccessChime();
@@ -620,6 +608,7 @@ export default function Experience() {
         gsap.set(card, {
           opacity: i === 0 ? 1 : 0,
           y: i === 0 ? 0 : 20,
+          pointerEvents: i === 0 ? "auto" : "none",
         });
       });
 
@@ -1493,29 +1482,25 @@ export default function Experience() {
                         onClick={() => handleMenuClick(item.key)}
                         onMouseEnter={() => soundFX.playHoverTick()}
                         aria-current={isActive ? "true" : undefined}
-                        className={`w-full text-left flex ${
-                          isMultiLine ? "items-start" : "items-center"
-                        } justify-between py-1 rounded-lg cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 active:scale-[0.98] transition-transform duration-150 border-0 bg-transparent p-0 text-inherit font-inherit`}
+                        className={`w-full text-left flex ${isMultiLine ? "items-start" : "items-center"
+                          } justify-between py-1 rounded-lg cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 active:scale-[0.98] transition-transform duration-150 border-0 bg-transparent p-0 text-inherit font-inherit`}
                       >
                         <span
-                          className={`inline-flex ${
-                            isMultiLine ? "items-start" : "items-center"
-                          } gap-3 transition-transform duration-300 ease-out group-hover:translate-x-2.5 group-active:translate-x-1`}
+                          className={`inline-flex ${isMultiLine ? "items-start" : "items-center"
+                            } gap-3 transition-transform duration-300 ease-out group-hover:translate-x-2.5 group-active:translate-x-1`}
                         >
                           <span
-                            className={`font-mono text-xs sm:text-sm tracking-wider transition-opacity duration-200 ${
-                              isMultiLine ? "mt-[0.22em]" : ""
-                            } ${isActive ? "opacity-100 font-bold" : "opacity-45"}`}
+                            className={`font-mono text-xs sm:text-sm tracking-wider transition-opacity duration-200 ${isMultiLine ? "mt-[0.22em]" : ""
+                              } ${isActive ? "opacity-100 font-bold" : "opacity-45"}`}
                           >
                             {item.numeral}
                           </span>
                           {"lines" in item && item.lines ? (
                             <span
-                              className={`inline-flex transition-all duration-300 ease-out ${
-                                isMultiLine
-                                  ? "flex-col items-start leading-[0.92]"
-                                  : "flex-row items-baseline gap-[0.28em] leading-normal"
-                              }`}
+                              className={`inline-flex transition-all duration-300 ease-out ${isMultiLine
+                                ? "flex-col items-start leading-[0.92]"
+                                : "flex-row items-baseline gap-[0.28em] leading-normal"
+                                }`}
                             >
                               <span className="transition-colors duration-200 group-hover:text-black">
                                 {item.lines[0]}
@@ -1548,9 +1533,8 @@ export default function Experience() {
                         {isActive && (
                           <span
                             aria-hidden="true"
-                            className={`font-mono text-xs tracking-wider font-semibold opacity-60 ml-2 ${
-                              isMultiLine ? "mt-[0.25em]" : ""
-                            } shrink-0`}
+                            className={`font-mono text-xs tracking-wider font-semibold opacity-60 ml-2 ${isMultiLine ? "mt-[0.25em]" : ""
+                              } shrink-0`}
                           >
                             {item.numeral} / 06
                           </span>
@@ -1633,11 +1617,10 @@ export default function Experience() {
                           onClick={() => handleChapterClick(i)}
                           onKeyDown={(e) => handleChapterKeyDown(e, i)}
                           onMouseEnter={() => soundFX.playHoverTick()}
-                          className={`group flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 hover:-translate-y-0.5 active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 ${
-                            i === activeChapterIndex
-                              ? "bg-black text-white shadow-sm"
-                              : "bg-black/[0.04] text-black/60 hover:text-black hover:bg-black/[0.08]"
-                          }`}
+                          className={`group flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 hover:-translate-y-0.5 active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 ${i === activeChapterIndex
+                            ? "bg-black text-white shadow-sm"
+                            : "bg-black/[0.04] text-black/60 hover:text-black hover:bg-black/[0.08]"
+                            }`}
                         >
                           <span
                             aria-hidden="true"
@@ -1943,7 +1926,7 @@ export default function Experience() {
                 <h2 className="sr-only">Beyond Work</h2>
                 <div className="w-full max-w-[880px] 2xl:max-w-[960px] flex flex-col justify-center">
                   {/* Navigation Tabs Header */}
-                  <div className="flex items-center justify-between pb-2.5 sm:pb-4 border-b border-black/8 mb-3 sm:mb-5">
+                  <div className="flex items-center justify-between pb-2.5 sm:pb-3.5 border-b border-black/8 mb-3 sm:mb-5">
                     <div
                       role="tablist"
                       aria-label="Beyond Work Categories"
@@ -1962,7 +1945,7 @@ export default function Experience() {
                           onClick={() => handleBeyondChapterClick(i)}
                           onKeyDown={(e) => handleBeyondTabKeyDown(e, i)}
                           onMouseEnter={() => soundFX.playHoverTick()}
-                          className={`group relative flex items-center gap-1 sm:gap-2 px-2.5 sm:px-4 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-semibold tracking-wide transition-all duration-200 active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-black ${
+                          className={`group relative flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-semibold tracking-wide transition-all duration-200 active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-black ${
                             i === activeBeyondIndex
                               ? "bg-black text-white shadow-sm"
                               : "bg-black/[0.04] text-black/60 hover:text-black hover:bg-black/[0.08]"
@@ -1974,7 +1957,7 @@ export default function Experience() {
                             style={{ backgroundColor: `rgb(${item.accent.join(" ")})` }}
                           />
                           <span>0{i + 1}</span>
-                          <span className="hidden sm:inline font-normal opacity-75">{item.title}</span>
+                          <span className="font-normal opacity-85">{item.title}</span>
                         </button>
                       ))}
                     </div>
@@ -2008,108 +1991,93 @@ export default function Experience() {
                     </div>
                   </div>
 
-                  {/* Stacked Chapter Cards */}
-                  <div className="relative h-[440px] sm:h-[400px] md:h-[370px] w-full">
-                    {BEYOND.map((item, i) => (
-                      <div
-                        key={item.title}
-                        id={`beyond-card-${i}`}
-                        role="tabpanel"
-                        aria-labelledby={`beyond-tab-${i}`}
-                        tabIndex={0}
-                        data-bcard={i}
-                        className="absolute inset-0 rounded-[20px] sm:rounded-[24px] bg-white p-4 sm:p-7 md:p-8 border shadow-[0_12px_36px_rgba(0,0,0,0.04)] flex flex-col justify-between overflow-y-auto sm:overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black will-change-[transform,opacity]"
-                        style={{
-                          borderColor: `rgb(${item.accent.join(" ")} / 0.45)`,
-                        }}
-                      >
-                        <div>
-                          {/* Top row: Category metadata badge + Metric display */}
-                          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-4">
-                            <div className="min-w-0 flex-1">
-                              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                  {/* Stacked Minimalist Cards */}
+                  <div className="relative h-[400px] sm:h-[370px] md:h-[340px] w-full">
+                    {BEYOND.map((item, i) => {
+                      const isCurrent = i === activeBeyondIndex;
+                      return (
+                        <div
+                          key={item.title}
+                          id={`beyond-card-${i}`}
+                          role="tabpanel"
+                          aria-labelledby={`beyond-tab-${i}`}
+                          tabIndex={0}
+                          data-bcard={i}
+                          className="absolute inset-0 rounded-[22px] sm:rounded-[26px] bg-white p-5 sm:p-7 md:p-8 border shadow-[0_12px_36px_rgba(0,0,0,0.03)] flex flex-col justify-between overflow-y-auto sm:overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black will-change-[transform,opacity]"
+                          style={{
+                            borderColor: `rgb(${item.accent.join(" ")} / 0.35)`,
+                          }}
+                        >
+                          <div className="flex flex-col">
+                            {/* Minimal Category Header & Tagline */}
+                            <div className="flex items-center justify-between gap-3 pb-3 border-b border-black/[0.05]">
+                              <div className="flex items-center gap-2">
                                 <span
-                                  className="inline-flex items-center gap-1 sm:gap-1.5 text-[0.65rem] sm:text-xs font-semibold uppercase tracking-wider px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md"
+                                  aria-hidden="true"
+                                  className="w-2 h-2 rounded-full"
                                   style={{
-                                    backgroundColor: `rgb(${item.accent.join(" ")} / 0.12)`,
-                                    color: `rgb(${item.accent.join(" ")})`,
+                                    backgroundColor: `rgb(${item.accent.join(" ")})`,
+                                    boxShadow: `0 0 8px rgb(${item.accent.join(" ")} / 0.6)`,
                                   }}
-                                >
-                                  <span
-                                    aria-hidden="true"
-                                    className="w-1.5 h-1.5 rounded-full"
-                                    style={{ backgroundColor: `rgb(${item.accent.join(" ")})` }}
-                                  />
-                                  Category 0{i + 1} · {item.title}
+                                />
+                                <span className="font-mono text-[0.72rem] sm:text-xs uppercase tracking-wider font-bold text-neutral-800">
+                                  0{i + 1} // {item.title}
                                 </span>
-                                {item.period && (
-                                  <span className="text-[0.65rem] sm:text-xs font-inter text-neutral-400 font-medium">
-                                    {item.period}
-                                  </span>
-                                )}
                               </div>
+                              {item.period && (
+                                <span className="font-inter text-[0.72rem] sm:text-xs text-neutral-400 font-medium">
+                                  {item.period}
+                                </span>
+                              )}
+                            </div>
 
-                              <h3 className="mt-2 sm:mt-3.5 font-excon text-lg sm:text-2xl md:text-3xl font-bold tracking-tight text-ink break-words">
-                                {item.primary}
+                            {/* Headline with EncryptedText Decryption */}
+                            <div className="mt-3.5 sm:mt-4">
+                              <h3 className="font-excon text-xl sm:text-2xl md:text-[1.85rem] font-bold tracking-tight text-ink leading-snug">
+                                {isCurrent ? (
+                                  <EncryptedText
+                                    key={`beyond-headline-${i}-${activeBeyondIndex}`}
+                                    text={item.primary}
+                                    revealDelayMs={26}
+                                    flipDelayMs={35}
+                                    startDelayMs={40}
+                                    soundEffect={false}
+                                    encryptedClassName="text-neutral-400 font-mono font-medium"
+                                    revealedClassName="text-ink font-excon font-bold"
+                                  />
+                                ) : (
+                                  item.primary
+                                )}
                               </h3>
                               {item.secondary && (
-                                <p className="mt-0.5 sm:mt-1 font-inter text-xs sm:text-sm md:text-base text-neutral-500 font-medium">
+                                <p className="mt-1 font-inter text-xs sm:text-sm text-neutral-500 font-normal">
                                   {item.secondary}
                                 </p>
                               )}
                             </div>
 
-                            {item.metric && (
-                              <div className="flex flex-col items-start sm:items-end shrink-0 self-start rounded-xl sm:rounded-2xl bg-neutral-50 border border-black/6 px-2.5 py-1.5 sm:px-4 sm:py-2.5 transition-all duration-300 hover:scale-105 hover:bg-white hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] cursor-default">
-                                <div className="flex items-baseline font-excon font-bold text-lg sm:text-2xl md:text-3xl text-ink leading-none">
-                                  <span>{item.metric}</span>
-                                  {item.metricUnit && (
-                                    <span className="text-xs sm:text-lg font-light ml-0.5 text-neutral-600">
-                                      {item.metricUnit}
-                                    </span>
-                                  )}
-                                </div>
-                                {item.metricLabel && (
-                                  <span className="mt-0.5 text-[0.62rem] sm:text-[0.68rem] font-semibold uppercase tracking-widest text-neutral-400">
-                                    {item.metricLabel}
-                                  </span>
-                                )}
-                              </div>
-                            )}
+                            {/* Narrative Story */}
+                            <p className="mt-3 sm:mt-4 font-inter text-neutral-600 text-xs sm:text-sm md:text-[0.95rem] leading-relaxed max-w-[62ch]">
+                              {item.body}
+                            </p>
                           </div>
 
-                          {/* Divider */}
-                          <div className="my-2.5 sm:my-5 h-px w-full bg-black/6" />
-
-                          {/* Narrative Story */}
-                          <p className="font-inter text-neutral-600 text-xs sm:text-sm md:text-[0.98rem] leading-relaxed max-w-[64ch] line-clamp-3 sm:line-clamp-none">
-                            {item.body}
-                          </p>
+                          {/* Minimal Interest / Focus Tags */}
+                          {item.habits && item.habits.length > 0 && (
+                            <div className="mt-4 pt-3.5 border-t border-black/[0.05] flex flex-wrap items-center gap-1.5 sm:gap-2">
+                              {item.habits.map((habit) => (
+                                <span
+                                  key={habit}
+                                  className="inline-flex items-center rounded-full bg-neutral-100/80 px-2.5 sm:px-3 py-0.5 sm:py-1 text-[0.68rem] sm:text-xs font-medium text-neutral-700 hover:bg-neutral-200/80 transition-colors cursor-default"
+                                >
+                                  {habit}
+                                </span>
+                              ))}
+                            </div>
+                          )}
                         </div>
-
-                        {/* Bottom row: Habits & Core Disciplines */}
-                        <div className="mt-2.5 sm:mt-5 pt-2 sm:pt-3.5 border-t border-black/5 flex flex-wrap items-center gap-1.5 sm:gap-2">
-                          <span className="text-[0.65rem] sm:text-[0.7rem] uppercase font-semibold tracking-wider text-neutral-400 mr-1">
-                            Core Disciplines:
-                          </span>
-                          {item.habits.map((habit) => (
-                            <span
-                              key={habit}
-                              className="group/pill inline-flex items-center gap-1 sm:gap-1.5 rounded-full border border-black/8 bg-neutral-50/70 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[0.68rem] sm:text-xs font-medium text-neutral-700 transition-all duration-200 hover:-translate-y-0.5 hover:border-black/20 hover:bg-white hover:shadow-sm cursor-default"
-                            >
-                              <span
-                                aria-hidden="true"
-                                className="font-bold text-[0.65rem] sm:text-[0.7rem] transition-transform duration-200 group-hover/pill:scale-125"
-                                style={{ color: `rgb(${item.accent.join(" ")})` }}
-                              >
-                                ✓
-                              </span>
-                              {habit}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               </section>
@@ -2157,11 +2125,10 @@ export default function Experience() {
                         <button
                           type="button"
                           onClick={handleCopyEmail}
-                          className={`flex-1 sm:flex-initial rounded-full px-5 py-2.5 text-xs font-semibold transition-all duration-200 active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-black ${
-                            copiedEmail
-                              ? "bg-emerald-600 text-white scale-105 shadow-md shadow-emerald-600/25"
-                              : "bg-black text-white hover:bg-neutral-800 hover:shadow-sm"
-                          }`}
+                          className={`flex-1 sm:flex-initial rounded-full px-5 py-2.5 text-xs font-semibold transition-all duration-200 active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-black ${copiedEmail
+                            ? "bg-emerald-600 text-white scale-105 shadow-md shadow-emerald-600/25"
+                            : "bg-black text-white hover:bg-neutral-800 hover:shadow-sm"
+                            }`}
                         >
                           {copiedEmail ? "Copied! ✓" : "Copy Email"}
                         </button>
@@ -2211,11 +2178,10 @@ export default function Experience() {
       {/* --------------------------------- MOBILE FLOATING SECTION NAV PILL */}
       <nav
         aria-label="Quick section navigation"
-        className={`lg:hidden fixed bottom-4 inset-x-0 mx-auto w-fit z-40 transition-all duration-300 ${
-          activeSection === "hero"
-            ? "opacity-0 pointer-events-none translate-y-4"
-            : "opacity-100 pointer-events-auto translate-y-0"
-        }`}
+        className={`lg:hidden fixed bottom-4 inset-x-0 mx-auto w-fit z-40 transition-all duration-300 ${activeSection === "hero"
+          ? "opacity-0 pointer-events-none translate-y-4"
+          : "opacity-100 pointer-events-auto translate-y-0"
+          }`}
       >
         <div className="flex items-center gap-1 p-1.5 rounded-full bg-white/95 backdrop-blur-md border border-black/10 shadow-[0_8px_30px_rgba(0,0,0,0.12)] overflow-x-auto max-w-[94vw] no-scrollbar">
           {MENU.map((item) => {
@@ -2226,19 +2192,17 @@ export default function Experience() {
                 type="button"
                 onClick={() => handleMenuClick(item.key)}
                 aria-current={isActive ? "true" : undefined}
-                className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-black ${
-                  isActive
-                    ? "bg-black text-white shadow-sm"
-                    : "text-black/60 hover:text-black hover:bg-black/[0.04]"
-                }`}
+                className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-black ${isActive
+                  ? "bg-black text-white shadow-sm"
+                  : "text-black/60 hover:text-black hover:bg-black/[0.04]"
+                  }`}
               >
                 <span>{item.label}</span>
                 {(item.key === "skills" || item.key === "craft") && (
                   <span
                     aria-hidden="true"
-                    className={`inline-flex shrink-0 items-center justify-center rounded-full font-mono text-[0.62rem] px-1 h-3.5 ${
-                      isActive ? "bg-white text-black font-bold" : "bg-black/10 text-black"
-                    }`}
+                    className={`inline-flex shrink-0 items-center justify-center rounded-full font-mono text-[0.62rem] px-1 h-3.5 ${isActive ? "bg-white text-black font-bold" : "bg-black/10 text-black"
+                      }`}
                   >
                     16
                   </span>
@@ -2302,17 +2266,15 @@ export default function Experience() {
                     }}
                     onMouseEnter={() => soundFX.playHoverTick()}
                     aria-current={isActive ? "true" : undefined}
-                    className={`group flex items-center justify-between w-full px-4 py-3 rounded-2xl text-left transition-all duration-200 active:scale-[0.98] cursor-pointer focus-visible:ring-2 focus-visible:ring-black ${
-                      isActive
-                        ? "bg-black text-white shadow-sm"
-                        : "bg-neutral-50/80 text-neutral-800 hover:bg-black/5"
-                    }`}
+                    className={`group flex items-center justify-between w-full px-4 py-3 rounded-2xl text-left transition-all duration-200 active:scale-[0.98] cursor-pointer focus-visible:ring-2 focus-visible:ring-black ${isActive
+                      ? "bg-black text-white shadow-sm"
+                      : "bg-neutral-50/80 text-neutral-800 hover:bg-black/5"
+                      }`}
                   >
                     <div className="flex items-center gap-3">
                       <span
-                        className={`font-mono text-xs tracking-wider ${
-                          isActive ? "text-white/70" : "text-neutral-400"
-                        }`}
+                        className={`font-mono text-xs tracking-wider ${isActive ? "text-white/70" : "text-neutral-400"
+                          }`}
                       >
                         {item.numeral}
                       </span>
@@ -2321,18 +2283,16 @@ export default function Experience() {
                       </span>
                       {(item.key === "skills" || item.key === "craft") && (
                         <span
-                          className={`inline-flex shrink-0 items-center justify-center rounded-full font-mono text-[0.65rem] px-1.5 h-4 font-bold ${
-                            isActive ? "bg-white text-black" : "bg-black text-white"
-                          }`}
+                          className={`inline-flex shrink-0 items-center justify-center rounded-full font-mono text-[0.65rem] px-1.5 h-4 font-bold ${isActive ? "bg-white text-black" : "bg-black text-white"
+                            }`}
                         >
                           16
                         </span>
                       )}
                       {item.key === "works" && (
                         <span
-                          className={`inline-flex shrink-0 items-center justify-center rounded-full font-mono text-[0.65rem] px-1.5 h-4 font-bold ${
-                            isActive ? "bg-white text-black" : "bg-black/10 text-neutral-700"
-                          }`}
+                          className={`inline-flex shrink-0 items-center justify-center rounded-full font-mono text-[0.65rem] px-1.5 h-4 font-bold ${isActive ? "bg-white text-black" : "bg-black/10 text-neutral-700"
+                            }`}
                         >
                           04
                         </span>
