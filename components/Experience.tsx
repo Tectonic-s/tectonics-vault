@@ -20,6 +20,11 @@ const NAV_VAULT_SIZE = "clamp(1.5rem, 2.6vw, 2.15rem)";
 const MENU_ACTIVE = "4.4rem";
 const MENU_SMALL = "1.5rem";
 
+const getActiveMenuSize = () => {
+  if (typeof window === "undefined") return MENU_ACTIVE;
+  return window.innerWidth < 1280 ? "3.6rem" : MENU_ACTIVE;
+};
+
 /* Typography colours are resolved literals, never `rgb(var(--x) / a)`:
    GSAP's colour regex matches that form only up to the first paren, fails to
    find any digits, and silently falls back to transparent black. Ink is
@@ -31,12 +36,12 @@ const HERO_PRE = "Welcome to my ";
 const HERO_VAULT = "Vault.";
 const SUBTITLE = "Scroll Down to explore";
 
-const MENU = [
+const MENU: { key: string; label: string; numeral: string; lines?: string[] }[] = [
   { key: "about", label: "About", numeral: "01" },
   { key: "journey", label: "Journey", numeral: "02" },
   { key: "skills", label: "Skills", numeral: "03" },
   { key: "works", label: "Works", numeral: "04" },
-  { key: "beyond", label: "Beyond Work", numeral: "05" },
+  { key: "beyond", label: "Beyond Work", numeral: "05", lines: ["Beyond", "Work"] },
   { key: "talk", label: "Let’s Talk.", numeral: "06" },
 ];
 
@@ -256,6 +261,8 @@ export default function Experience() {
   const [hasInteracted, setHasInteracted] = useState(false);
   const [decryptKey, setDecryptKey] = useState(0);
   const [activeSection, setActiveSection] = useState<string>("hero");
+  const [isBeyondMultiLine, setIsBeyondMultiLine] = useState(false);
+  const beyondResetTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const mobileNavTriggerRef = useRef<HTMLButtonElement>(null);
   const lastActiveElementRef = useRef<HTMLElement | null>(null);
@@ -486,7 +493,7 @@ export default function Experience() {
       menuItems.forEach((li) => {
         const isAbout = li.getAttribute("data-key") === "about";
         gsap.set(li, {
-          fontSize: isAbout ? MENU_ACTIVE : MENU_SMALL,
+          fontSize: isAbout ? getActiveMenuSize() : MENU_SMALL,
           color: isAbout ? INK : INK_DIM,
         });
       });
@@ -496,11 +503,36 @@ export default function Experience() {
       const setActiveMenu = (key: string, immediate = false) => {
         if (currentActiveKey === key && !immediate) return;
         currentActiveKey = key;
+
+        // Manage multi-line layout for Beyond Work with seamless transition timing
+        if (key === "beyond") {
+          if (beyondResetTimerRef.current) {
+            clearTimeout(beyondResetTimerRef.current);
+            beyondResetTimerRef.current = null;
+          }
+          setIsBeyondMultiLine(true);
+        } else {
+          if (beyondResetTimerRef.current) {
+            clearTimeout(beyondResetTimerRef.current);
+            beyondResetTimerRef.current = null;
+          }
+          if (immediate) {
+            setIsBeyondMultiLine(false);
+          } else {
+            // Keep multi-line layout during GSAP font-size shrink (380ms) to prevent card overlap
+            beyondResetTimerRef.current = setTimeout(() => {
+              setIsBeyondMultiLine(false);
+              beyondResetTimerRef.current = null;
+            }, 380);
+          }
+        }
+
+        const targetSize = getActiveMenuSize();
         menuItems.forEach((li) => {
           const itemKey = li.getAttribute("data-key");
           const isActive = itemKey === key;
           gsap.to(li, {
-            fontSize: isActive ? MENU_ACTIVE : MENU_SMALL,
+            fontSize: isActive ? targetSize : MENU_SMALL,
             color: isActive ? INK : INK_DIM,
             duration: immediate ? 0 : 0.38,
             ease: "power2.out",
@@ -1013,6 +1045,10 @@ export default function Experience() {
 
     return () => {
       cancelled = true;
+      if (beyondResetTimerRef.current) {
+        clearTimeout(beyondResetTimerRef.current);
+        beyondResetTimerRef.current = null;
+      }
       unlockScroll();
       pointerListener?.();
       gsap.ticker.remove(tick);
@@ -1218,11 +1254,12 @@ export default function Experience() {
               >
                 {MENU.map((item) => {
                   const isActive = activeSection === item.key;
+                  const isMultiLine = item.key === "beyond" && isBeyondMultiLine;
                   return (
                     <li
                       key={item.key}
                       data-key={item.key}
-                      className="group will-reveal select-none whitespace-nowrap"
+                      className="group will-reveal select-none"
                       style={{
                         fontSize: item.key === "about" ? MENU_ACTIVE : MENU_SMALL,
                         color: item.key === "about" ? INK : INK_DIM,
@@ -1233,19 +1270,42 @@ export default function Experience() {
                         onClick={() => handleMenuClick(item.key)}
                         onMouseEnter={() => soundFX.playHoverTick()}
                         aria-current={isActive ? "true" : undefined}
-                        className="w-full text-left flex items-center justify-between py-1 rounded-lg cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 active:scale-[0.98] transition-transform duration-150 border-0 bg-transparent p-0 text-inherit font-inherit"
+                        className={`w-full text-left flex ${
+                          isMultiLine ? "items-start" : "items-center"
+                        } justify-between py-1 rounded-lg cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 active:scale-[0.98] transition-transform duration-150 border-0 bg-transparent p-0 text-inherit font-inherit`}
                       >
-                        <span className="inline-flex items-center gap-3 transition-transform duration-300 ease-out group-hover:translate-x-2.5 group-active:translate-x-1">
+                        <span
+                          className={`inline-flex ${
+                            isMultiLine ? "items-start" : "items-center"
+                          } gap-3 transition-transform duration-300 ease-out group-hover:translate-x-2.5 group-active:translate-x-1`}
+                        >
                           <span
                             className={`font-mono text-xs sm:text-sm tracking-wider transition-opacity duration-200 ${
-                              isActive ? "opacity-100 font-bold" : "opacity-45"
-                            }`}
+                              isMultiLine ? "mt-[0.22em]" : ""
+                            } ${isActive ? "opacity-100 font-bold" : "opacity-45"}`}
                           >
                             {item.numeral}
                           </span>
-                          <span className="transition-colors duration-200 group-hover:text-black">
-                            {item.label}
-                          </span>
+                          {"lines" in item && item.lines ? (
+                            <span
+                              className={`inline-flex transition-all duration-300 ease-out ${
+                                isMultiLine
+                                  ? "flex-col items-start leading-[0.92]"
+                                  : "flex-row items-baseline gap-[0.28em] leading-normal"
+                              }`}
+                            >
+                              <span className="transition-colors duration-200 group-hover:text-black">
+                                {item.lines[0]}
+                              </span>
+                              <span className="transition-colors duration-200 group-hover:text-black">
+                                {item.lines[1]}
+                              </span>
+                            </span>
+                          ) : (
+                            <span className="transition-colors duration-200 group-hover:text-black whitespace-nowrap">
+                              {item.label}
+                            </span>
+                          )}
                           {(item.key === "skills" || item.key === "craft") && (
                             <span
                               data-craft-count
@@ -1265,7 +1325,9 @@ export default function Experience() {
                         {isActive && (
                           <span
                             aria-hidden="true"
-                            className="font-mono text-xs tracking-wider font-semibold opacity-60 ml-2"
+                            className={`font-mono text-xs tracking-wider font-semibold opacity-60 ml-2 ${
+                              isMultiLine ? "mt-[0.25em]" : ""
+                            } shrink-0`}
                           >
                             {item.numeral} / 06
                           </span>
@@ -2071,7 +2133,7 @@ export default function Experience() {
       {/* --------------------------------------------------- FOOTER LANDMARK */}
       <footer aria-label="Contact and portfolio credits" className="sr-only">
         <h2>Contact &amp; Links</h2>
-        <p>Tharun S — Available for product design and engineering opportunities. Version 1.2.3.</p>
+        <p>Tharun S — Available for product design and engineering opportunities. Version 1.2.4.</p>
         <ul>
           <li><a href="mailto:tharun@example.com">tharun@example.com</a></li>
           <li><a href="https://github.com">GitHub</a></li>
