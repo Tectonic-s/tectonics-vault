@@ -236,6 +236,33 @@ const CRAFT_CATEGORIES = [
   },
 ];
 
+const TOOLKIT_CARD_PALETTE = [
+  {
+    // 0: The Essentials — Warm Peach Cream
+    bg: "linear-gradient(145deg, rgba(255, 243, 229, 0.94) 0%, rgba(255, 249, 242, 0.88) 100%)",
+    border: "rgba(217, 119, 6, 0.22)",
+    accentRgb: "217 119 6",
+  },
+  {
+    // 1: The Analytical Side — Pale Botanical Mint
+    bg: "linear-gradient(145deg, rgba(232, 249, 241, 0.94) 0%, rgba(244, 253, 249, 0.88) 100%)",
+    border: "rgba(16, 185, 129, 0.22)",
+    accentRgb: "16 185 129",
+  },
+  {
+    // 2: People & Business — Soft Lavender Periwinkle
+    bg: "linear-gradient(145deg, rgba(240, 237, 255, 0.94) 0%, rgba(248, 246, 255, 0.88) 100%)",
+    border: "rgba(109, 40, 217, 0.20)",
+    accentRgb: "109 40 217",
+  },
+  {
+    // 3: The Engineering Side — Crisp Sky Azure
+    bg: "linear-gradient(145deg, rgba(231, 246, 254, 0.94) 0%, rgba(244, 251, 255, 0.88) 100%)",
+    border: "rgba(2, 132, 199, 0.22)",
+    accentRgb: "2 132 199",
+  },
+] as const;
+
 /** Which chapter earned a skill. -1 means it was never earned. */
 const originOf = (skill: string) => JOURNEY.findIndex((c) => c.skills.includes(skill as never));
 
@@ -1901,24 +1928,17 @@ export default function Experience() {
                   {/* 4 Cards Grid */}
                   <div className="grid w-full grid-cols-2 gap-3 sm:gap-5 lg:gap-6">
                     {CRAFT_CATEGORIES.map((cat, ci) => {
-                      const tally = cat.skills.reduce<Record<number, number>>((m, s) => {
-                        const o = originOf(s);
-                        m[o] = (m[o] ?? 0) + 1;
-                        return m;
-                      }, {});
-                      const dominant = Number(
-                        Object.keys(tally).sort((a, b) => tally[Number(b)] - tally[Number(a)])[0]
-                      );
+                      const palette = TOOLKIT_CARD_PALETTE[ci] ?? TOOLKIT_CARD_PALETTE[0];
                       return (
                         <div
                           key={cat.name}
                           data-craft-card={ci}
-                          className="group relative rounded-[20px] sm:rounded-[24px] p-4 sm:p-6 lg:p-7 overflow-hidden transition-all duration-300 hover:shadow-[0_24px_60px_rgba(15,23,42,0.1)] hover:-translate-y-0.5 border border-black/[0.08] hover:border-black/15 shadow-[0_16px_40px_rgba(15,23,42,0.06),inset_0_1px_0_rgba(255,255,255,0.9)] backdrop-blur-2xl"
+                          className="group relative rounded-[20px] sm:rounded-[24px] p-4 sm:p-6 lg:p-7 overflow-hidden transition-all duration-300 hover:shadow-[0_24px_60px_rgba(15,23,42,0.1)] hover:-translate-y-0.5 shadow-[0_16px_40px_rgba(15,23,42,0.06),inset_0_1px_0_rgba(255,255,255,0.9)] backdrop-blur-2xl"
                           style={
                             {
-                              "--origin-rgb": JOURNEY[dominant].accent.join(" "),
-                              background:
-                                "radial-gradient(ellipse 90% 60% at 0% 0%, rgb(var(--origin-rgb) / 0.14) 0%, transparent 70%), rgba(255, 255, 255, 0.78)",
+                              "--origin-rgb": palette.accentRgb,
+                              background: palette.bg,
+                              border: `1px solid ${palette.border}`,
                             } as React.CSSProperties
                           }
                         >
@@ -1941,7 +1961,7 @@ export default function Experience() {
                                 stroke: "rgb(var(--origin-rgb))",
                                 strokeDasharray: 100,
                                 strokeDashoffset: 100,
-                                filter: "drop-shadow(0 0 6px rgb(var(--origin-rgb) / 0.35))",
+                                filter: "drop-shadow(0 0 6px rgb(var(--origin-rgb) / 0.3))",
                               }}
                             />
                           </svg>
@@ -1952,10 +1972,10 @@ export default function Experience() {
                               className="h-1.5 w-1.5 rounded-full shrink-0"
                               style={{
                                 backgroundColor: "rgb(var(--origin-rgb))",
-                                boxShadow: "0 0 8px rgb(var(--origin-rgb) / 0.55)",
+                                boxShadow: "0 0 8px rgb(var(--origin-rgb) / 0.5)",
                               }}
                             />
-                            <h3 className="font-mono font-semibold uppercase text-neutral-600 text-[0.68rem] sm:text-xs tracking-wider">
+                            <h3 className="font-mono font-semibold uppercase text-neutral-700 text-[0.68rem] sm:text-xs tracking-wider">
                               {cat.name}
                             </h3>
                           </div>
@@ -1969,7 +1989,7 @@ export default function Experience() {
                                   key={s}
                                   data-craft-item
                                   onMouseEnter={() => soundFX.playHoverTick()}
-                                  className="group/item relative flex items-center justify-between rounded-lg px-2 sm:px-2.5 py-1 sm:py-1.5 transition-all duration-200 hover:bg-black/[0.04] cursor-default"
+                                  className="group/item relative flex items-center justify-between rounded-lg px-2 sm:px-2.5 py-1 sm:py-1.5 transition-all duration-200 hover:bg-white/75 cursor-default"
                                   style={
                                     {
                                       "--origin-rgb": JOURNEY[origin].accent.join(" "),
