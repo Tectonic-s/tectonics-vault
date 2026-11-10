@@ -288,6 +288,12 @@ export default function Experience() {
   const activeBeyondRef = useRef(0);
   const [copiedEmail, setCopiedEmail] = useState(false);
   const [hasInteracted, setHasInteracted] = useState(false);
+  const [contactName, setContactName] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
+  const [contactTopic, setContactTopic] = useState("Engineering Role");
+  const [contactMessage, setContactMessage] = useState("");
+  const [contactSubmitted, setContactSubmitted] = useState(false);
+  const [contactError, setContactError] = useState("");
   const [isDarkMode, setIsDarkMode] = useState(() => {
     if (typeof window === "undefined") return false;
     return window.matchMedia("(prefers-color-scheme: dark)").matches;
@@ -371,9 +377,26 @@ export default function Experience() {
 
   const handleCopyEmail = () => {
     soundFX.playSuccessChime();
-    navigator.clipboard?.writeText("tharun@example.com");
+    navigator.clipboard?.writeText("tharun.suresh@outlook.com");
     setCopiedEmail(true);
     setTimeout(() => setCopiedEmail(false), 2000);
+  };
+
+  const handleContactSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!contactName.trim() || !contactEmail.trim() || !contactMessage.trim()) {
+      setContactError("Please fill in your name, email, and message.");
+      return;
+    }
+    setContactError("");
+    soundFX.playSuccessChime();
+
+    const subject = encodeURIComponent(`[${contactTopic}] from ${contactName}`);
+    const body = encodeURIComponent(
+      `Name: ${contactName}\nEmail: ${contactEmail}\nTopic: ${contactTopic}\n\nMessage:\n${contactMessage}`
+    );
+    window.location.href = `mailto:tharun.suresh@outlook.com?subject=${subject}&body=${body}`;
+    setContactSubmitted(true);
   };
 
   const measure = useCallback(() => {
@@ -2098,79 +2121,194 @@ export default function Experience() {
               >
                 <h2 className="sr-only">Connect</h2>
                 <div
-                  className="w-full max-w-[680px] rounded-[28px] sm:rounded-[36px] overflow-hidden border border-white/[0.08] hover:border-white/20 shadow-[0_24px_60px_rgba(0,0,0,0.55),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-2xl p-6 sm:p-10 md:p-12 flex flex-col justify-between text-white transition-all duration-300"
+                  className="w-full max-w-[900px] 2xl:max-w-[960px] rounded-[24px] sm:rounded-[32px] overflow-hidden border border-white/[0.08] hover:border-white/20 shadow-[0_24px_60px_rgba(0,0,0,0.55),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-2xl p-5 sm:p-7 md:p-8 text-white transition-all duration-300"
                   style={{
                     background: "radial-gradient(ellipse 90% 60% at 0% 0%, rgba(46, 175, 135, 0.12) 0%, transparent 70%), rgba(18, 18, 22, 0.75)",
                   }}
                 >
-                  <div>
-                    <div className="flex items-center">
-                      <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-950/60 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-emerald-400">
-                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                        Available for opportunities
-                      </span>
-                    </div>
-
-                    <h3 className="mt-4 sm:mt-5 font-excon text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white leading-[1.08]">
-                      Let’s build something exceptional.
-                    </h3>
-                    <p className="mt-2 sm:mt-3 font-inter text-sm sm:text-base text-neutral-300 leading-relaxed max-w-[54ch]">
-                      Have a product to build, an engineering opportunity, or just want to connect? Reach out directly or connect on social platforms.
-                    </p>
-                  </div>
-
-                  <div className="mt-6 sm:mt-8 flex flex-col gap-3.5">
-                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.05] p-4 sm:p-5 text-white transition-colors">
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 lg:gap-8 items-start">
+                    {/* Left Column (5 cols): Context & Direct Communication */}
+                    <div className="lg:col-span-5 flex flex-col justify-between space-y-4">
                       <div>
-                        <span className="block text-xs uppercase font-semibold tracking-wider text-neutral-400">
-                          Direct Communication
+                        <div className="flex items-center">
+                          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-950/60 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-emerald-400">
+                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                            Available for opportunities
+                          </span>
+                        </div>
+
+                        <h3 className="mt-3 font-excon text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-white leading-[1.08]">
+                          Let’s build something exceptional.
+                        </h3>
+                        <p className="mt-2 font-inter text-xs sm:text-sm text-neutral-300 leading-relaxed">
+                          Have a product to build, an engineering opportunity, or just want to connect? Share your details or reach out directly.
+                        </p>
+                      </div>
+
+                      {/* Direct Channel Card */}
+                      <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-white">
+                        <span className="block text-xs uppercase font-semibold tracking-wider text-neutral-400 mb-1">
+                          Direct Channel
                         </span>
                         <a
-                          href="mailto:tharun@example.com"
-                          className="font-inter text-base sm:text-lg font-bold text-white hover:text-emerald-400 transition-colors"
+                          href="mailto:tharun.suresh@outlook.com"
+                          className="font-inter text-sm sm:text-base font-bold text-white hover:text-emerald-400 transition-colors break-all"
                         >
-                          tharun@example.com
+                          tharun.suresh@outlook.com
                         </a>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={handleCopyEmail}
-                          className={`flex-1 sm:flex-initial rounded-full px-5 py-2.5 text-xs font-semibold transition-all duration-200 active:scale-95 cursor-pointer outline-none ${copiedEmail
-                            ? "bg-emerald-600 text-white scale-105 shadow-md shadow-emerald-600/25"
-                            : "bg-white text-black hover:bg-neutral-200 hover:shadow-sm"
+                        <div className="mt-3">
+                          <button
+                            type="button"
+                            onClick={handleCopyEmail}
+                            className={`w-full rounded-full py-2 px-4 text-xs font-semibold transition-all duration-200 active:scale-95 cursor-pointer outline-none ${
+                              copiedEmail
+                                ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/25"
+                                : "bg-white/10 hover:bg-white/20 text-white border border-white/15"
                             }`}
-                        >
-                          {copiedEmail ? "Copied! ✓" : "Copy Email"}
-                        </button>
+                          >
+                            {copiedEmail ? "Copied to Clipboard! ✓" : "Copy Email"}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Social Links */}
+                      <div className="grid grid-cols-2 gap-2.5">
                         <a
-                          href="mailto:tharun@example.com"
-                          className="rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-xs font-semibold text-white hover:bg-white/20 transition-all active:scale-95 cursor-pointer outline-none"
+                          href="https://github.com"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onMouseEnter={() => soundFX.playHoverTick()}
+                          className="group flex items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] py-2.5 text-xs font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:border-white/25 active:scale-95 outline-none"
                         >
-                          Connect
+                          <span>GitHub</span>
+                        </a>
+                        <a
+                          href="https://linkedin.com"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onMouseEnter={() => soundFX.playHoverTick()}
+                          className="group flex items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] py-2.5 text-xs font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:border-white/25 active:scale-95 outline-none"
+                        >
+                          <span>LinkedIn</span>
                         </a>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3 pt-1">
-                      <a
-                        href="https://github.com"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onMouseEnter={() => soundFX.playHoverTick()}
-                        className="group flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] py-3.5 text-xs sm:text-sm font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:border-white/25 active:scale-95 outline-none"
-                      >
-                        <span>GitHub</span>
-                      </a>
-                      <a
-                        href="https://linkedin.com"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onMouseEnter={() => soundFX.playHoverTick()}
-                        className="group flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] py-3.5 text-xs sm:text-sm font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:border-white/25 active:scale-95 outline-none"
-                      >
-                        <span>LinkedIn</span>
-                      </a>
+                    {/* Right Column (7 cols): Interactive Details Intake Form */}
+                    <div className="lg:col-span-7 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md p-4 sm:p-5">
+                      {contactSubmitted ? (
+                        <div className="flex flex-col items-center justify-center text-center py-8 px-3 gap-3">
+                          <div className="h-10 w-10 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 font-bold text-base">
+                            ✓
+                          </div>
+                          <h4 className="font-excon font-bold text-lg sm:text-xl text-white">Transmission Prepared</h4>
+                          <p className="font-inter text-xs sm:text-sm text-neutral-300 max-w-[34ch] leading-relaxed">
+                            Your mail application has opened with your message ready to send to <span className="text-white font-medium">tharun.suresh@outlook.com</span>.
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setContactSubmitted(false);
+                              setContactMessage("");
+                            }}
+                            className="mt-2 text-xs font-mono text-neutral-400 hover:text-white underline underline-offset-4 cursor-pointer"
+                          >
+                            Send another transmission
+                          </button>
+                        </div>
+                      ) : (
+                        <form onSubmit={handleContactSubmit} className="flex flex-col gap-3">
+                          <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                            <span className="font-mono text-xs uppercase font-bold tracking-wider text-neutral-400">
+                              Intake / Transmission Form
+                            </span>
+                            <span className="font-mono text-[0.65rem] text-emerald-400">Direct Delivery</span>
+                          </div>
+
+                          {contactError && (
+                            <div className="rounded-lg bg-red-950/60 border border-red-500/30 px-3 py-1.5 text-xs text-red-300">
+                              {contactError}
+                            </div>
+                          )}
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div className="flex flex-col gap-1">
+                              <label htmlFor="contact-name" className="font-mono text-[0.7rem] uppercase text-neutral-400">
+                                Your Name
+                              </label>
+                              <input
+                                id="contact-name"
+                                type="text"
+                                required
+                                value={contactName}
+                                onChange={(e) => setContactName(e.target.value)}
+                                placeholder="e.g. Alex Rivera"
+                                className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-xs sm:text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-500/50 focus:bg-white/[0.07] transition-all"
+                              />
+                            </div>
+
+                            <div className="flex flex-col gap-1">
+                              <label htmlFor="contact-email" className="font-mono text-[0.7rem] uppercase text-neutral-400">
+                                Your Email
+                              </label>
+                              <input
+                                id="contact-email"
+                                type="email"
+                                required
+                                value={contactEmail}
+                                onChange={(e) => setContactEmail(e.target.value)}
+                                placeholder="alex@company.com"
+                                className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-xs sm:text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-500/50 focus:bg-white/[0.07] transition-all"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="flex flex-col gap-1">
+                            <label className="font-mono text-[0.7rem] uppercase text-neutral-400">
+                              Topic
+                            </label>
+                            <div className="flex flex-wrap gap-1.5">
+                              {["Engineering Role", "Project Inquiry", "General Chat"].map((t) => (
+                                <button
+                                  key={t}
+                                  type="button"
+                                  onClick={() => setContactTopic(t)}
+                                  className={`px-2.5 py-1 rounded-full text-xs font-mono font-medium transition-all cursor-pointer ${
+                                    contactTopic === t
+                                      ? "bg-white text-black font-semibold shadow-xs"
+                                      : "bg-white/5 border border-white/10 text-neutral-400 hover:text-white hover:bg-white/10"
+                                  }`}
+                                >
+                                  {t}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="flex flex-col gap-1">
+                            <label htmlFor="contact-message" className="font-mono text-[0.7rem] uppercase text-neutral-400">
+                              Message
+                            </label>
+                            <textarea
+                              id="contact-message"
+                              required
+                              rows={3}
+                              value={contactMessage}
+                              onChange={(e) => setContactMessage(e.target.value)}
+                              placeholder="Tell me about what you have in mind..."
+                              className="w-full rounded-xl border border-white/10 bg-white/[0.04] p-3 text-xs sm:text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-500/50 focus:bg-white/[0.07] transition-all resize-none"
+                            />
+                          </div>
+
+                          <button
+                            type="submit"
+                            onMouseEnter={() => soundFX.playHoverTick()}
+                            className="mt-1 w-full rounded-full bg-white hover:bg-neutral-200 text-black py-2.5 px-4 font-inter text-xs sm:text-sm font-bold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:scale-95 cursor-pointer flex items-center justify-center gap-2"
+                          >
+                            <span>Connect</span>
+                          </button>
+                        </form>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -2308,7 +2446,7 @@ export default function Experience() {
         <h2>Contact &amp; Links</h2>
         <p>Tharun S — Available for product design and engineering opportunities. Version 1.2.5.</p>
         <ul>
-          <li><a href="mailto:tharun@example.com">tharun@example.com</a></li>
+          <li><a href="mailto:tharun.suresh@outlook.com">tharun.suresh@outlook.com</a></li>
           <li><a href="https://github.com" target="_blank" rel="noopener noreferrer">GitHub</a></li>
           <li><a href="https://linkedin.com" target="_blank" rel="noopener noreferrer">LinkedIn</a></li>
         </ul>
