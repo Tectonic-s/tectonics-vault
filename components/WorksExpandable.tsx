@@ -217,47 +217,44 @@ export const PROJECTS: WorkProject[] = [
 ];
 
 /* -------------------------------------------------------------------------- */
-/* ARCHITECTURAL BLUEPRINT FALLBACK CANVAS                                    */
-/* Renders a high-craft generative technical schematic when app-name.png      */
-/* is loading or not yet uploaded in public/                                  */
+/* MINIMAL ARCHITECTURAL VISUAL CANVAS                                        */
+/* Clean gallery aesthetic without boilerplate labels or fake OS frames       */
 /* -------------------------------------------------------------------------- */
 function BlueprintSchematic({ project }: { project: WorkProject }) {
+  const accentRgb = project.accent.join(" ");
+
   return (
-    <div className="relative w-full h-full min-h-[220px] sm:min-h-[260px] flex flex-col justify-between p-4 sm:p-5 overflow-hidden bg-[#0d0f12] text-white/90 select-none font-mono">
-      {/* Background Architectural Grid */}
+    <div className="relative w-full h-full min-h-[220px] sm:min-h-[280px] flex flex-col items-center justify-center p-8 overflow-hidden bg-[#0a0c0f] text-white/90 select-none">
+      {/* Subtle architectural coordinate grid */}
       <div
-        className="absolute inset-0 opacity-20 pointer-events-none"
+        className="absolute inset-0 opacity-10 pointer-events-none"
         style={{
           backgroundImage:
-            "linear-gradient(to right, rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.08) 1px, transparent 1px)",
-          backgroundSize: "20px 20px",
+            "linear-gradient(to right, rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.1) 1px, transparent 1px)",
+          backgroundSize: "24px 24px",
         }}
       />
       {/* Ambient Radial Spotlight */}
-      <div className="absolute -right-16 -top-16 w-56 h-56 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: `radial-gradient(circle at 50% 45%, rgb(${accentRgb} / 0.16) 0%, transparent 65%)`,
+        }}
+      />
 
-      {/* Top Header: System Coordinate & Category */}
-      <div className="relative z-10 flex items-center justify-between text-[0.62rem] sm:text-[0.68rem] tracking-widest uppercase text-white/45 border-b border-white/10 pb-2">
-        <div className="flex items-center gap-1.5">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          <span>SPEC // {project.numeral} · {project.blueprintType.toUpperCase()}</span>
-        </div>
-        <span>ARCHIVE_NODE // 2024</span>
-      </div>
-
-      {/* Center Visual: Thematic SVG Vector Schematic */}
-      <div className="relative z-10 my-auto flex flex-col items-center justify-center py-4">
+      {/* Crisp Thematic Vector Schematic */}
+      <div className="relative z-10 flex flex-col items-center justify-center gap-5">
         {project.blueprintType === "fintech" && (
-          <svg className="w-24 h-16 sm:w-32 sm:h-20 stroke-emerald-400/80 fill-none" viewBox="0 0 120 60">
+          <svg className="w-28 h-20 sm:w-36 sm:h-24 stroke-emerald-400/90 fill-none" viewBox="0 0 120 60">
             <path d="M5 45 Q 35 48 55 25 T 115 10" strokeWidth="2.5" strokeLinecap="round" />
-            <line x1="5" y1="52" x2="115" y2="52" strokeWidth="1" strokeDasharray="3 3" strokeOpacity="0.4" />
+            <line x1="5" y1="52" x2="115" y2="52" strokeWidth="1" strokeDasharray="3 3" strokeOpacity="0.3" />
             <circle cx="55" cy="25" r="3.5" fill="#34d399" />
             <circle cx="115" cy="10" r="3.5" fill="#34d399" />
           </svg>
         )}
         {project.blueprintType === "vault" && (
-          <svg className="w-20 h-20 sm:w-24 sm:h-24 stroke-white/70 fill-none" viewBox="0 0 80 80">
-            <circle cx="40" cy="40" r="32" strokeWidth="1.5" strokeDasharray="4 3" />
+          <svg className="w-24 h-24 sm:w-28 sm:h-28 stroke-white/80 fill-none" viewBox="0 0 80 80">
+            <circle cx="40" cy="40" r="32" strokeWidth="1.5" strokeDasharray="4 3" strokeOpacity="0.45" />
             <circle cx="40" cy="40" r="22" strokeWidth="2" />
             <circle cx="40" cy="40" r="6" fill="white" />
             <line x1="40" y1="4" x2="40" y2="12" strokeWidth="2" />
@@ -267,14 +264,14 @@ function BlueprintSchematic({ project }: { project: WorkProject }) {
           </svg>
         )}
         {project.blueprintType === "civic" && (
-          <svg className="w-20 h-20 sm:w-24 sm:h-24 stroke-amber-300/80 fill-none" viewBox="0 0 80 80">
+          <svg className="w-24 h-24 sm:w-28 sm:h-28 stroke-amber-300/90 fill-none" viewBox="0 0 80 80">
             <path d="M15 70 L 15 35 L 40 10 L 65 35 L 65 70 Z" strokeWidth="2" />
             <path d="M30 70 L 30 45 Q 40 38 50 45 L 50 70" strokeWidth="2" />
             <line x1="40" y1="10" x2="40" y2="2" strokeWidth="2.5" />
           </svg>
         )}
         {project.blueprintType === "storage" && (
-          <svg className="w-22 h-18 sm:w-28 sm:h-20 stroke-sky-400/80 fill-none" viewBox="0 0 100 60">
+          <svg className="w-28 h-20 sm:w-32 sm:h-24 stroke-sky-400/90 fill-none" viewBox="0 0 100 60">
             <rect x="10" y="8" width="80" height="12" rx="3" strokeWidth="1.8" />
             <rect x="10" y="24" width="80" height="12" rx="3" strokeWidth="1.8" />
             <rect x="10" y="40" width="80" height="12" rx="3" strokeWidth="1.8" />
@@ -284,7 +281,7 @@ function BlueprintSchematic({ project }: { project: WorkProject }) {
           </svg>
         )}
         {project.blueprintType === "career" && (
-          <svg className="w-24 h-16 sm:w-28 sm:h-20 stroke-purple-400/80 fill-none" viewBox="0 0 110 50">
+          <svg className="w-28 h-20 sm:w-32 sm:h-24 stroke-purple-400/90 fill-none" viewBox="0 0 110 50">
             <circle cx="15" cy="25" r="6" strokeWidth="2" />
             <line x1="21" y1="25" x2="45" y2="25" strokeWidth="2" strokeDasharray="3 2" />
             <circle cx="55" cy="25" r="7" strokeWidth="2.5" />
@@ -292,20 +289,9 @@ function BlueprintSchematic({ project }: { project: WorkProject }) {
             <circle cx="95" cy="25" r="6" strokeWidth="2" fill="#c084fc" />
           </svg>
         )}
-        <div className="mt-2 text-center">
-          <span className="font-excon font-bold text-base sm:text-lg text-white tracking-wide">
-            {project.title}
-          </span>
-          <p className="text-[0.65rem] text-white/50 tracking-wider">
-            UPLOAD // public/{project.slug}.png
-          </p>
-        </div>
-      </div>
-
-      {/* Bottom Technical Tag */}
-      <div className="relative z-10 flex items-center justify-between text-[0.6rem] text-white/40 border-t border-white/10 pt-2">
-        <span>CORE // {project.metrics}</span>
-        <span className="text-emerald-400/80">STANDBY_OK</span>
+        <span className="font-excon font-bold text-sm sm:text-base text-white/75 tracking-wide">
+          {project.title}
+        </span>
       </div>
     </div>
   );
@@ -318,7 +304,6 @@ function ProjectImageCanvas({ project }: { project: WorkProject }) {
   const [currentSrcIndex, setCurrentSrcIndex] = useState(0);
   const [hasFailedAll, setHasFailedAll] = useState(false);
 
-  // Candidate paths where user may drop app-name.png
   const candidatePaths = [
     `/${project.slug}.png`,
     `/projects/${project.slug}.png`,
@@ -335,40 +320,21 @@ function ProjectImageCanvas({ project }: { project: WorkProject }) {
   };
 
   return (
-    <div className="relative w-full h-full min-h-[220px] sm:min-h-[280px] lg:min-h-[320px] rounded-[18px] sm:rounded-[22px] overflow-hidden bg-neutral-950 border border-black/10 shadow-[0_16px_40px_rgba(0,0,0,0.12)] flex items-center justify-center group">
-      {/* Subtle Studio Window Titlebar */}
-      <div className="absolute top-0 inset-x-0 h-7 bg-black/60 backdrop-blur-md z-20 flex items-center justify-between px-3.5 border-b border-white/10">
-        <div className="flex items-center gap-1.5">
-          <span className="h-2 w-2 rounded-full bg-rose-500/80" />
-          <span className="h-2 w-2 rounded-full bg-amber-500/80" />
-          <span className="h-2 w-2 rounded-full bg-emerald-500/80" />
-        </div>
-        <span className="font-mono text-[0.62rem] text-white/50 tracking-wider">
-          {project.slug}.png
-        </span>
-        <span className="font-mono text-[0.6rem] text-white/35">
-          {project.numeral}/05
-        </span>
-      </div>
-
+    <div className="relative w-full h-full min-h-[240px] sm:min-h-[300px] rounded-2xl overflow-hidden bg-[#0a0c0f] border border-white/10 shadow-[0_16px_40px_rgba(0,0,0,0.3)] flex items-center justify-center group">
       {!hasFailedAll ? (
-        <div className="w-full h-full pt-7">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={candidatePaths[currentSrcIndex]}
-            alt={project.title}
-            onError={handleImageError}
-            className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-          />
-        </div>
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={candidatePaths[currentSrcIndex]}
+          alt={project.title}
+          onError={handleImageError}
+          className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+        />
       ) : (
-        <div className="w-full h-full pt-7">
-          <BlueprintSchematic project={project} />
-        </div>
+        <BlueprintSchematic project={project} />
       )}
 
-      {/* Glass sheen overlay */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-transparent via-white/[0.04] to-white/[0.08]" />
+      {/* Subtle glass sheen overlay */}
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-transparent via-white/[0.02] to-white/[0.06]" />
     </div>
   );
 }
@@ -472,11 +438,11 @@ export function WorksExpandable({
   });
 
   return (
-    <div className="w-full flex flex-col gap-3 sm:gap-4 select-none">
+    <div className="w-full flex flex-col gap-4 sm:gap-5 select-none">
       {/* ------------------------------------------------------------------ */}
       {/* TOP INTERACTIVE INDEX RAIL                                         */}
       {/* ------------------------------------------------------------------ */}
-      <div className="flex items-center justify-between gap-2 overflow-x-auto pb-1 sm:pb-1.5 scrollbar-none">
+      <div className="flex items-center justify-between gap-2 overflow-x-auto pb-0.5 scrollbar-none">
         <div className="flex items-center gap-1 sm:gap-1.5 p-1 rounded-full bg-white/[0.06] border border-white/10 w-full sm:w-auto">
           {projects.map((proj, idx) => {
             const isCurrent = idx === selectedIndex;
@@ -487,7 +453,7 @@ export function WorksExpandable({
                 onClick={() => handleSelect(idx)}
                 onMouseEnter={() => soundFX.playHoverTick()}
                 aria-label={`Select project ${proj.numeral} ${proj.title}`}
-                className={`relative px-2.5 sm:px-3.5 py-1.5 rounded-full font-excon text-xs sm:text-sm font-bold tracking-tight transition-all duration-200 cursor-pointer flex items-center gap-1.5 shrink-0 ${
+                className={`relative px-3 sm:px-4 py-1.5 rounded-full font-excon text-xs sm:text-sm font-bold tracking-tight transition-all duration-200 cursor-pointer flex items-center gap-1.5 shrink-0 ${
                   isCurrent ? "text-black" : "text-neutral-400 hover:text-white hover:bg-white/10"
                 }`}
               >
@@ -498,50 +464,17 @@ export function WorksExpandable({
                     className="absolute inset-0 bg-white rounded-full shadow-sm"
                   />
                 )}
-                <span className="relative z-10 font-mono text-[0.65rem] sm:text-[0.72rem] opacity-75">
-                  {proj.numeral}
-                </span>
-                <span className="relative z-10 truncate max-w-[90px] sm:max-w-none">
+                <span className="relative z-10 truncate max-w-[100px] sm:max-w-none">
                   {proj.title}
                 </span>
-                <span
-                  className={`relative z-10 h-1.5 w-1.5 rounded-full ${
-                    proj.status.includes("Completed") ? "bg-emerald-400" : "bg-amber-400"
-                  }`}
-                />
               </button>
             );
           })}
         </div>
-
-        {/* Quick Stepper Controls */}
-        <div className="hidden sm:flex items-center gap-1.5 shrink-0">
-          <button
-            type="button"
-            onClick={handlePrev}
-            onMouseEnter={() => soundFX.playHoverTick()}
-            aria-label="Previous project"
-            className="px-2.5 py-1 rounded-full border border-white/15 bg-white/5 hover:bg-white/15 text-neutral-300 hover:text-white font-mono text-xs transition-all active:scale-95 cursor-pointer"
-          >
-            Prev
-          </button>
-          <span className="font-mono text-xs text-neutral-400 px-1">
-            {selectedProject.numeral} / 05
-          </span>
-          <button
-            type="button"
-            onClick={handleNext}
-            onMouseEnter={() => soundFX.playHoverTick()}
-            aria-label="Next project"
-            className="px-2.5 py-1 rounded-full border border-white/15 bg-white/5 hover:bg-white/15 text-neutral-300 hover:text-white font-mono text-xs transition-all active:scale-95 cursor-pointer"
-          >
-            Next
-          </button>
-        </div>
       </div>
 
       {/* ------------------------------------------------------------------ */}
-      {/* MAIN CINEMATIC STAGE: SPLIT EDITORIAL & DEVICE SHOWCASE            */}
+      {/* MAIN EDITORIAL STAGE: SPACIOUS CARD & MINIMAL VISUAL FRAME         */}
       {/* ------------------------------------------------------------------ */}
       <AnimatePresence mode="wait">
         <motion.div
@@ -550,131 +483,67 @@ export function WorksExpandable({
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
           transition={{ duration: 0.28, ease: "easeOut" }}
-          className="relative w-full rounded-[24px] sm:rounded-[28px] overflow-hidden border border-white/[0.08] hover:border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-2xl p-5 sm:p-7 lg:p-8 grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-7 lg:gap-8 items-center transition-all duration-300"
+          className="relative w-full rounded-[24px] sm:rounded-[32px] overflow-hidden border border-white/[0.08] hover:border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-2xl p-6 sm:p-8 lg:p-10 grid grid-cols-1 lg:grid-cols-12 gap-7 sm:gap-8 lg:gap-10 items-center transition-all duration-300"
           style={{
             background: `radial-gradient(ellipse 90% 60% at 0% 0%, rgb(${selectedProject.accent.join(" ")} / 0.12) 0%, transparent 70%), rgba(18, 18, 22, 0.75)`,
           }}
         >
-          {/* Left Column (7 cols): Editorial Typography & Architecture */}
-          <div className="lg:col-span-7 flex flex-col justify-between space-y-3.5 sm:space-y-4">
+          {/* Left Column (7 cols): Calm Editorial Story */}
+          <div className="lg:col-span-7 flex flex-col justify-between space-y-6">
             <div>
-              {/* Category Breadcrumb & Status */}
-              <div className="flex items-center justify-between gap-2 mb-2">
-                <div className="flex items-center gap-2">
-                  <span
-                    className="h-1.5 w-1.5 rounded-full shrink-0 shadow-sm"
-                    style={{
-                      backgroundColor: `rgb(${selectedProject.accent.join(" ")})`,
-                      boxShadow: `0 0 8px rgb(${selectedProject.accent.join(" ")} / 0.75)`,
-                    }}
-                  />
-                  <span className="font-mono text-xs font-semibold uppercase tracking-wider text-neutral-400">
-                    {`${selectedProject.numeral} // ${selectedProject.category}`}
-                  </span>
-                </div>
+              {/* Unified Category & Status */}
+              <div className="flex items-center gap-2 mb-3">
                 <span
-                  className="inline-flex items-center gap-1.5 font-mono text-xs font-medium px-2.5 py-0.5 rounded-full border border-white/10 bg-white/[0.04] text-neutral-300"
-                >
-                  <span
-                    className="h-1.5 w-1.5 rounded-full"
-                    style={{ backgroundColor: `rgb(${selectedProject.accent.join(" ")})` }}
-                  />
-                  {selectedProject.status}
+                  className="h-1.5 w-1.5 rounded-full shrink-0"
+                  style={{
+                    backgroundColor: `rgb(${selectedProject.accent.join(" ")})`,
+                    boxShadow: `0 0 8px rgb(${selectedProject.accent.join(" ")} / 0.75)`,
+                  }}
+                />
+                <span className="font-mono text-xs font-medium uppercase tracking-wider text-neutral-400">
+                  {selectedProject.category.split("/")[0].trim()} · {selectedProject.status}
                 </span>
               </div>
 
-              {/* Title & Tagline */}
+              {/* Display Title & Summary */}
               <h3 className="font-excon text-3xl sm:text-4xl lg:text-[2.75rem] font-bold tracking-tight text-white leading-[1.08]">
                 {selectedProject.title}
               </h3>
-              <p className="mt-1 font-inter text-base sm:text-lg font-medium text-neutral-200 leading-snug">
+              <p className="mt-2 font-inter text-base sm:text-lg font-medium text-neutral-200 leading-snug">
                 {selectedProject.tagline}
+              </p>
+              <p className="mt-3 font-inter text-sm sm:text-[0.95rem] text-neutral-400 leading-relaxed max-w-[46ch]">
+                {selectedProject.description}
               </p>
             </div>
 
-            {/* Standout Metric / Maker's Mark Highlight */}
-            {selectedProject.isSpecialSignature ? (
-              <div
-                className="rounded-2xl border p-3.5 sm:p-4 relative transition-colors"
-                style={{
-                  backgroundColor: `rgb(${selectedProject.accent.join(" ")} / 0.08)`,
-                  borderColor: `rgb(${selectedProject.accent.join(" ")} / 0.25)`,
-                }}
-              >
-                <div className="flex items-center justify-between gap-2 mb-1">
-                  <span className="font-mono text-xs uppercase font-bold tracking-widest text-amber-300">
-                    Artisan Signature
-                  </span>
-                  <span className="rounded-full border border-amber-400/40 bg-amber-400/10 text-amber-300 px-2.5 py-0.5 font-mono text-xs font-bold tracking-wider flex items-center gap-1 shadow-xs">
-                    <span className="text-amber-400">✦</span> 100% Tharun
-                  </span>
-                </div>
-                <p className="font-excon font-bold text-base text-white">
-                  {selectedProject.metricLabel}
-                </p>
-                <p className="font-inter text-xs sm:text-sm text-neutral-300 mt-0.5 leading-relaxed">
-                  {selectedProject.metricDetail}
-                </p>
-              </div>
-            ) : (
-              <div
-                className="rounded-2xl border p-3.5 sm:p-4 transition-colors"
-                style={{
-                  backgroundColor: `rgb(${selectedProject.accent.join(" ")} / 0.06)`,
-                  borderColor: `rgb(${selectedProject.accent.join(" ")} / 0.20)`,
-                }}
-              >
-                <div className="flex items-center justify-between gap-2 mb-1">
-                  <span className="font-mono text-xs uppercase font-bold tracking-widest text-neutral-400">
-                    Standout Metric
-                  </span>
-                  <span
-                    className="font-excon font-bold text-base sm:text-lg"
-                    style={{ color: `rgb(${selectedProject.accent.join(" ")})` }}
-                  >
-                    {selectedProject.metrics}
-                  </span>
-                </div>
-                <p className="font-inter font-semibold text-xs sm:text-sm text-white">
-                  {selectedProject.metricLabel}
-                </p>
-                <p className="font-inter text-xs sm:text-sm text-neutral-300 mt-0.5 leading-relaxed">
-                  {selectedProject.metricDetail}
-                </p>
-              </div>
-            )}
-
-            {/* Short Technical Description */}
-            <p className="font-inter text-sm sm:text-base text-neutral-300 leading-relaxed line-clamp-2 sm:line-clamp-3">
-              {selectedProject.description}
-            </p>
-
-            {/* Tech Stack Chips */}
-            <div className="flex flex-wrap gap-1.5 pt-1">
-              {selectedProject.tags.slice(0, 4).map((tag) => (
+            {/* Clean Hairline Spec Strip (Zero Nested Cards or Tag Bloat) */}
+            <div className="border-t border-white/10 pt-4 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-baseline gap-2.5">
+                <span className="font-mono text-xs uppercase tracking-wider text-neutral-500">
+                  Highlight
+                </span>
                 <span
-                  key={tag}
-                  className="rounded-full border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] px-3 py-1 font-inter text-xs font-medium text-neutral-200 transition-colors"
+                  className="font-excon font-bold text-sm sm:text-base"
+                  style={{ color: `rgb(${selectedProject.accent.join(" ")})` }}
                 >
-                  {tag}
+                  {selectedProject.metrics}
                 </span>
-              ))}
-              {selectedProject.tags.length > 4 && (
-                <span className="rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-1 font-mono text-xs font-medium text-neutral-400">
-                  +{selectedProject.tags.length - 4} more
-                </span>
-              )}
+              </div>
+              <span className="font-mono text-xs text-neutral-400">
+                {selectedProject.tags.slice(0, 3).join(" · ")}
+              </span>
             </div>
 
-            {/* Action Buttons */}
-            <div className="pt-2 flex items-center gap-2.5 flex-wrap">
+            {/* Actions */}
+            <div className="flex items-center gap-3 pt-1">
               <button
                 type="button"
                 onClick={(e) => openModal(selectedProject, e.currentTarget)}
                 onMouseEnter={() => soundFX.playHoverTick()}
-                className="rounded-full bg-white hover:bg-neutral-200 text-black px-5 py-2.5 font-inter text-xs sm:text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:scale-95 cursor-pointer flex items-center gap-1.5"
+                className="rounded-full bg-white hover:bg-neutral-200 text-black px-5 py-2.5 font-inter text-xs sm:text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:scale-95 cursor-pointer"
               >
-                <span>Inspect Architecture</span>
+                Inspect Architecture
               </button>
 
               {selectedProject.ctaLink && selectedProject.ctaLink !== "#" && (
@@ -682,15 +551,15 @@ export function WorksExpandable({
                   href={selectedProject.ctaLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="rounded-full border border-white/20 bg-white/10 hover:bg-white/20 text-white px-4 py-2.5 font-inter text-xs sm:text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 active:scale-95 flex items-center gap-1.5"
+                  className="rounded-full border border-white/15 bg-white/[0.04] hover:bg-white/[0.1] text-white px-4 py-2.5 font-inter text-xs sm:text-sm font-medium transition-all duration-200 hover:-translate-y-0.5 active:scale-95"
                 >
-                  <span>{selectedProject.ctaText}</span>
+                  {selectedProject.ctaText}
                 </a>
               )}
             </div>
           </div>
 
-          {/* Right Column (5 cols): The Device Showcase / Image Canvas */}
+          {/* Right Column (5 cols): Visual Canvas */}
           <div
             onClick={(e) => openModal(selectedProject, e.currentTarget)}
             className="lg:col-span-5 w-full cursor-pointer transition-transform duration-300 hover:scale-[1.015]"

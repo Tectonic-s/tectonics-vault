@@ -2067,23 +2067,17 @@ export default function Experience() {
                 className="absolute inset-0 flex items-center justify-center will-change-[transform,opacity]"
               >
                 <h2 className="sr-only">Selected Projects</h2>
-                <div className="w-full max-w-[880px] 2xl:max-w-[960px] flex flex-col gap-2 sm:gap-4">
-                  <div className="flex items-center justify-between border-b border-white/10 pb-2 sm:pb-2.5">
-                    <div className="flex items-center gap-1.5 sm:gap-2">
+                <div className="w-full max-w-[900px] 2xl:max-w-[980px] flex flex-col gap-3 sm:gap-5">
+                  <div className="flex items-center justify-between border-b border-white/10 pb-2.5 sm:pb-3">
+                    <div className="flex items-center gap-2">
                       <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
                       <span className="font-excon font-bold text-xs sm:text-sm uppercase tracking-wider text-white">
-                        Selected Projects
-                      </span>
-                      <span className="text-white/30 hidden sm:inline">·</span>
-                      <span className="font-inter text-[0.68rem] sm:text-xs text-neutral-400 hidden sm:inline">
-                        Five core engineering systems engineered for depth and precision.
+                        Projects
                       </span>
                     </div>
-                    <div className="hidden sm:flex items-center gap-1.5 font-mono text-[0.65rem] text-neutral-400">
-                      <span>Keys:</span>
-                      <kbd className="px-1.5 py-0.5 rounded border border-white/15 bg-white/10 text-neutral-300 font-mono">1–5</kbd>
-                      <kbd className="px-1.5 py-0.5 rounded border border-white/15 bg-white/10 text-neutral-300 font-mono">Prev / Next</kbd>
-                    </div>
+                    <span className="font-inter text-xs text-neutral-400 hidden sm:inline">
+                      Selected engineering systems
+                    </span>
                   </div>
                   <WorksExpandable />
                 </div>
@@ -2097,24 +2091,18 @@ export default function Experience() {
                 className="absolute inset-0 flex items-center justify-center will-change-[transform,opacity]"
               >
                 <h2 className="sr-only">Off Script</h2>
-                <div className="w-full max-w-[880px] 2xl:max-w-[960px] flex flex-col gap-2 sm:gap-4">
+                <div className="w-full max-w-[900px] 2xl:max-w-[980px] flex flex-col gap-3 sm:gap-5">
                   {/* Context Header */}
-                  <div className="flex items-center justify-between border-b border-white/10 pb-2 sm:pb-2.5">
-                    <div className="flex items-center gap-1.5 sm:gap-2">
+                  <div className="flex items-center justify-between border-b border-white/10 pb-2.5 sm:pb-3">
+                    <div className="flex items-center gap-2">
                       <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
                       <span className="font-excon font-bold text-xs sm:text-sm uppercase tracking-wider text-white">
                         Off Script
                       </span>
-                      <span className="text-white/30 hidden sm:inline">·</span>
-                      <span className="font-inter text-[0.68rem] sm:text-xs text-neutral-400 hidden sm:inline">
-                        A little more about the person behind the pixels.
-                      </span>
                     </div>
-                    <div className="hidden sm:flex items-center gap-1.5 font-mono text-[0.65rem] text-neutral-400">
-                      <span>Keys:</span>
-                      <kbd className="px-1.5 py-0.5 rounded border border-white/15 bg-white/10 text-neutral-300 font-mono">1–4</kbd>
-                      <kbd className="px-1.5 py-0.5 rounded border border-white/15 bg-white/10 text-neutral-300 font-mono">Prev / Next</kbd>
-                    </div>
+                    <span className="font-inter text-xs text-neutral-400 hidden sm:inline">
+                      Life beyond the screen
+                    </span>
                   </div>
 
                   <OffScriptShowcase

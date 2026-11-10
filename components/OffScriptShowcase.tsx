@@ -99,44 +99,34 @@ export const OFF_SCRIPT_CHAPTERS: OffScriptChapter[] = [
 ];
 
 /* -------------------------------------------------------------------------- */
-/* GENERATIVE BLUEPRINT SCHEMATIC FOR OFF SCRIPT                              */
+/* MINIMAL ARTWORK FALLBACK CANVAS FOR OFF SCRIPT                             */
 /* -------------------------------------------------------------------------- */
 function OffScriptBlueprint({ chapter }: { chapter: OffScriptChapter }) {
   const accentRgb = chapter.accent.join(" ");
 
   return (
-    <div className="relative w-full h-full min-h-[220px] sm:min-h-[260px] flex flex-col justify-between p-4 sm:p-5 overflow-hidden bg-[#0d0f12] text-white/90 select-none font-mono">
-      {/* Background Coordinate Grid */}
+    <div className="relative w-full h-full min-h-[220px] sm:min-h-[280px] flex flex-col items-center justify-center p-8 overflow-hidden bg-[#0a0c0f] text-white/90 select-none">
+      {/* Subtle coordinate grid */}
       <div
-        className="absolute inset-0 opacity-15 pointer-events-none"
+        className="absolute inset-0 opacity-10 pointer-events-none"
         style={{
           backgroundImage:
-            "linear-gradient(to right, rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.08) 1px, transparent 1px)",
-          backgroundSize: "20px 20px",
+            "linear-gradient(to right, rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.1) 1px, transparent 1px)",
+          backgroundSize: "24px 24px",
         }}
       />
       {/* Dynamic Ambient Spotlight */}
       <div
-        className="absolute -right-16 -top-16 w-56 h-56 rounded-full blur-3xl pointer-events-none"
-        style={{ backgroundColor: `rgb(${accentRgb} / 0.15)` }}
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: `radial-gradient(circle at 50% 45%, rgb(${accentRgb} / 0.16) 0%, transparent 65%)`,
+        }}
       />
 
-      {/* Top Coordinate Header */}
-      <div className="relative z-10 flex items-center justify-between text-[0.62rem] sm:text-[0.68rem] tracking-widest uppercase text-white/45 border-b border-white/10 pb-2">
-        <div className="flex items-center gap-1.5">
-          <span
-            className="h-1.5 w-1.5 rounded-full animate-pulse"
-            style={{ backgroundColor: `rgb(${accentRgb})` }}
-          />
-          <span>OFF_SCRIPT // {chapter.numeral} · {chapter.title.toUpperCase()}</span>
-        </div>
-        <span>ARCHIVE // PERSONAL</span>
-      </div>
-
-      {/* Center Thematic Vector Schematic */}
-      <div className="relative z-10 my-auto flex flex-col items-center justify-center py-4">
+      {/* Crisp Thematic Vector Artwork */}
+      <div className="relative z-10 flex flex-col items-center justify-center gap-5">
         {chapter.id === "move" && (
-          <svg className="w-24 h-16 sm:w-32 sm:h-20 stroke-orange-400 fill-none" viewBox="0 0 120 60">
+          <svg className="w-28 h-20 sm:w-36 sm:h-24 stroke-orange-400 fill-none" viewBox="0 0 120 60">
             <path
               d="M10 35 L 35 35 L 45 10 L 55 50 L 65 25 L 75 40 L 85 35 L 110 35"
               strokeWidth="2.5"
@@ -148,7 +138,7 @@ function OffScriptBlueprint({ chapter }: { chapter: OffScriptChapter }) {
           </svg>
         )}
         {chapter.id === "think" && (
-          <svg className="w-20 h-20 sm:w-24 sm:h-24 stroke-sky-400 fill-none" viewBox="0 0 80 80">
+          <svg className="w-24 h-24 sm:w-28 sm:h-28 stroke-sky-400 fill-none" viewBox="0 0 80 80">
             <circle cx="40" cy="20" r="8" strokeWidth="2" />
             <circle cx="20" cy="55" r="7" strokeWidth="2" />
             <circle cx="60" cy="55" r="7" strokeWidth="2" />
@@ -159,7 +149,7 @@ function OffScriptBlueprint({ chapter }: { chapter: OffScriptChapter }) {
           </svg>
         )}
         {chapter.id === "create" && (
-          <svg className="w-20 h-20 sm:w-24 sm:h-24 stroke-purple-400 fill-none" viewBox="0 0 80 80">
+          <svg className="w-24 h-24 sm:w-28 sm:h-28 stroke-purple-400 fill-none" viewBox="0 0 80 80">
             <circle cx="40" cy="40" r="30" strokeWidth="2" strokeDasharray="4 2" />
             <circle cx="40" cy="40" r="18" strokeWidth="2.5" />
             <circle cx="40" cy="40" r="6" fill="#c084fc" />
@@ -170,7 +160,7 @@ function OffScriptBlueprint({ chapter }: { chapter: OffScriptChapter }) {
           </svg>
         )}
         {chapter.id === "explore" && (
-          <svg className="w-24 h-18 sm:w-28 sm:h-20 stroke-emerald-400 fill-none" viewBox="0 0 100 60">
+          <svg className="w-28 h-20 sm:w-32 sm:h-24 stroke-emerald-400 fill-none" viewBox="0 0 100 60">
             <path
               d="M5 45 Q 25 25 50 40 T 95 20"
               strokeWidth="2.5"
@@ -186,33 +176,21 @@ function OffScriptBlueprint({ chapter }: { chapter: OffScriptChapter }) {
             <circle cx="95" cy="20" r="3.5" fill="#34d399" />
           </svg>
         )}
-        <div className="mt-2 text-center">
-          <span className="font-excon font-bold text-base sm:text-lg text-white tracking-wide">
-            {chapter.headline}
-          </span>
-          <p className="text-[0.65rem] text-white/50 tracking-wider">
-            UPLOAD // public/{chapter.slug}.png
-          </p>
-        </div>
-      </div>
-
-      {/* Bottom Technical Status */}
-      <div className="relative z-10 flex items-center justify-between text-[0.6rem] text-white/40 border-t border-white/10 pt-2">
-        <span>MINDSET // {chapter.mindset}</span>
-        <span style={{ color: `rgb(${accentRgb})` }}>ACTIVE_PURSUIT</span>
+        <span className="font-excon font-bold text-sm sm:text-base text-white/75 tracking-wide">
+          {chapter.title}
+        </span>
       </div>
     </div>
   );
 }
 
 /* -------------------------------------------------------------------------- */
-/* DYNAMIC PHOTO CANVAS WITH AUTO RESOLUTION & BLUEPRINT FALLBACK             */
+/* DYNAMIC PHOTO CANVAS WITH AUTO RESOLUTION & MINIMAL ARTWORK FALLBACK       */
 /* -------------------------------------------------------------------------- */
 function OffScriptImageCanvas({ chapter }: { chapter: OffScriptChapter }) {
   const [currentSrcIndex, setCurrentSrcIndex] = useState(0);
   const [hasFailedAll, setHasFailedAll] = useState(false);
 
-  // Candidate paths where user can drop move.png, think.png, etc.
   const candidatePaths = [
     `/${chapter.slug}.png`,
     `/beyond/${chapter.slug}.png`,
@@ -230,40 +208,21 @@ function OffScriptImageCanvas({ chapter }: { chapter: OffScriptChapter }) {
   };
 
   return (
-    <div className="relative w-full h-full min-h-[220px] sm:min-h-[280px] lg:min-h-[320px] rounded-[18px] sm:rounded-[22px] overflow-hidden bg-neutral-950 border border-black/10 shadow-[0_16px_40px_rgba(0,0,0,0.12)] flex items-center justify-center group">
-      {/* Studio Window Bar */}
-      <div className="absolute top-0 inset-x-0 h-7 bg-black/60 backdrop-blur-md z-20 flex items-center justify-between px-3.5 border-b border-white/10">
-        <div className="flex items-center gap-1.5">
-          <span className="h-2 w-2 rounded-full bg-rose-500/80" />
-          <span className="h-2 w-2 rounded-full bg-amber-500/80" />
-          <span className="h-2 w-2 rounded-full bg-emerald-500/80" />
-        </div>
-        <span className="font-mono text-[0.62rem] text-white/50 tracking-wider">
-          {chapter.slug}.png
-        </span>
-        <span className="font-mono text-[0.6rem] text-white/35">
-          {chapter.numeral}/04
-        </span>
-      </div>
-
+    <div className="relative w-full h-full min-h-[240px] sm:min-h-[300px] rounded-2xl overflow-hidden bg-[#0a0c0f] border border-white/10 shadow-[0_16px_40px_rgba(0,0,0,0.3)] flex items-center justify-center group">
       {!hasFailedAll ? (
-        <div className="w-full h-full pt-7">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={candidatePaths[currentSrcIndex]}
-            alt={chapter.headline}
-            onError={handleImageError}
-            className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-          />
-        </div>
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={candidatePaths[currentSrcIndex]}
+          alt={chapter.headline}
+          onError={handleImageError}
+          className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+        />
       ) : (
-        <div className="w-full h-full pt-7">
-          <OffScriptBlueprint chapter={chapter} />
-        </div>
+        <OffScriptBlueprint chapter={chapter} />
       )}
 
-      {/* Glass Sheen */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-transparent via-white/[0.04] to-white/[0.08]" />
+      {/* Subtle glass sheen */}
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-transparent via-white/[0.02] to-white/[0.06]" />
     </div>
   );
 }
@@ -286,16 +245,6 @@ export function OffScriptShowcase({
   const lastTriggerRef = useRef<HTMLElement | null>(null);
 
   const selectedChapter = OFF_SCRIPT_CHAPTERS[activeIndex] ?? OFF_SCRIPT_CHAPTERS[0];
-
-  const handlePrev = () => {
-    const nextIdx = activeIndex === 0 ? OFF_SCRIPT_CHAPTERS.length - 1 : activeIndex - 1;
-    onSelectIndex(nextIdx);
-  };
-
-  const handleNext = () => {
-    const nextIdx = activeIndex === OFF_SCRIPT_CHAPTERS.length - 1 ? 0 : activeIndex + 1;
-    onSelectIndex(nextIdx);
-  };
 
   const openModal = (chapter: OffScriptChapter, trigger?: HTMLElement | null) => {
     soundFX.playModalOpen();
@@ -338,11 +287,11 @@ export function OffScriptShowcase({
   });
 
   return (
-    <div className="w-full flex flex-col gap-3 sm:gap-4 select-none">
+    <div className="w-full flex flex-col gap-4 sm:gap-5 select-none">
       {/* ------------------------------------------------------------------ */}
       {/* TOP INTERACTIVE INDEX RAIL                                         */}
       {/* ------------------------------------------------------------------ */}
-      <div className="flex items-center justify-between gap-2 overflow-x-auto pb-1 sm:pb-1.5 scrollbar-none">
+      <div className="flex items-center justify-between gap-2 overflow-x-auto pb-0.5 scrollbar-none">
         <div className="flex items-center gap-1 sm:gap-1.5 p-1 rounded-full bg-white/[0.06] border border-white/10 w-full sm:w-auto">
           {OFF_SCRIPT_CHAPTERS.map((item, idx) => {
             const isCurrent = idx === activeIndex;
@@ -355,8 +304,8 @@ export function OffScriptShowcase({
                   onSelectIndex(idx);
                 }}
                 onMouseEnter={() => soundFX.playHoverTick()}
-                aria-label={`Select chapter ${item.numeral} ${item.title}`}
-                className={`group relative px-3 sm:px-4 py-1.5 rounded-full font-excon text-xs sm:text-sm font-bold tracking-tight transition-all duration-200 cursor-pointer flex items-center gap-1.5 shrink-0 ${
+                aria-label={`Select chapter ${item.title}`}
+                className={`group relative px-3.5 sm:px-4 py-1.5 rounded-full font-excon text-xs sm:text-sm font-bold tracking-tight transition-all duration-200 cursor-pointer flex items-center gap-2 shrink-0 ${
                   isCurrent ? "text-black" : "text-neutral-400 hover:text-white hover:bg-white/10"
                 }`}
               >
@@ -367,9 +316,6 @@ export function OffScriptShowcase({
                     className="absolute inset-0 bg-white rounded-full shadow-sm"
                   />
                 )}
-                <span className="relative z-10 font-mono text-[0.65rem] sm:text-[0.72rem] opacity-75">
-                  {item.numeral}
-                </span>
                 <span className="relative z-10">{item.title}</span>
                 <span
                   className="relative z-10 h-1.5 w-1.5 rounded-full transition-transform group-hover:scale-125"
@@ -379,35 +325,10 @@ export function OffScriptShowcase({
             );
           })}
         </div>
-
-        {/* Stepper Buttons */}
-        <div className="hidden sm:flex items-center gap-1.5 shrink-0">
-          <button
-            type="button"
-            onClick={handlePrev}
-            onMouseEnter={() => soundFX.playHoverTick()}
-            aria-label="Previous chapter"
-            className="px-2.5 py-1 rounded-full border border-white/15 bg-white/5 hover:bg-white/15 text-neutral-300 hover:text-white font-mono text-xs transition-all active:scale-95 cursor-pointer"
-          >
-            Prev
-          </button>
-          <span className="font-mono text-xs text-neutral-400 px-1">
-            {selectedChapter.numeral} / 04
-          </span>
-          <button
-            type="button"
-            onClick={handleNext}
-            onMouseEnter={() => soundFX.playHoverTick()}
-            aria-label="Next chapter"
-            className="px-2.5 py-1 rounded-full border border-white/15 bg-white/5 hover:bg-white/15 text-neutral-300 hover:text-white font-mono text-xs transition-all active:scale-95 cursor-pointer"
-          >
-            Next
-          </button>
-        </div>
       </div>
 
       {/* ------------------------------------------------------------------ */}
-      {/* MAIN CINEMATIC STAGE: SPLIT NARRATIVE & VISUAL PHOTO CANVAS        */}
+      {/* MAIN EDITORIAL STAGE: SPACIOUS NARRATIVE & MINIMAL VISUAL CANVAS   */}
       {/* ------------------------------------------------------------------ */}
       <AnimatePresence mode="wait">
         <motion.div
@@ -416,103 +337,69 @@ export function OffScriptShowcase({
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
           transition={{ duration: 0.28, ease: "easeOut" }}
-          className="relative w-full rounded-[24px] sm:rounded-[28px] overflow-hidden border border-white/[0.08] hover:border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-2xl p-5 sm:p-7 lg:p-8 grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-7 lg:gap-8 items-center transition-all duration-300"
+          className="relative w-full rounded-[24px] sm:rounded-[32px] overflow-hidden border border-white/[0.08] hover:border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-2xl p-6 sm:p-8 lg:p-10 grid grid-cols-1 lg:grid-cols-12 gap-7 sm:gap-8 lg:gap-10 items-center transition-all duration-300"
           style={{
             background: `radial-gradient(ellipse 90% 60% at 0% 0%, rgb(${selectedChapter.accent.join(" ")} / 0.12) 0%, transparent 70%), rgba(18, 18, 22, 0.75)`,
           }}
         >
-          {/* Left Column (7 cols): Editorial Story & Disciplines */}
-          <div className="lg:col-span-7 flex flex-col justify-between space-y-3.5 sm:space-y-4">
+          {/* Left Column (7 cols): Calm Narrative Storytelling */}
+          <div className="lg:col-span-7 flex flex-col justify-between space-y-6">
             <div>
-              {/* Category Breadcrumb & Chapter Tag */}
-              <div className="flex items-center justify-between gap-2 mb-2">
-                <div className="flex items-center gap-2">
-                  <span
-                    className="h-1.5 w-1.5 rounded-full shrink-0 shadow-sm"
-                    style={{
-                      backgroundColor: `rgb(${selectedChapter.accent.join(" ")})`,
-                      boxShadow: `0 0 8px rgb(${selectedChapter.accent.join(" ")} / 0.75)`,
-                    }}
-                  />
-                  <span className="font-mono text-xs font-semibold uppercase tracking-wider text-neutral-400">
-                    {`${selectedChapter.numeral} // ${selectedChapter.category}`}
-                  </span>
-                </div>
+              {/* Category Eyebrow */}
+              <div className="flex items-center gap-2 mb-3">
                 <span
-                  className="inline-flex items-center gap-1.5 font-mono text-xs font-medium px-2.5 py-0.5 rounded-full border border-white/10 bg-white/[0.04] text-neutral-300"
-                >
-                  <span
-                    className="h-1.5 w-1.5 rounded-full"
-                    style={{ backgroundColor: `rgb(${selectedChapter.accent.join(" ")})` }}
-                  />
-                  Chapter {selectedChapter.numeral}
+                  className="h-1.5 w-1.5 rounded-full shrink-0"
+                  style={{
+                    backgroundColor: `rgb(${selectedChapter.accent.join(" ")})`,
+                    boxShadow: `0 0 8px rgb(${selectedChapter.accent.join(" ")} / 0.75)`,
+                  }}
+                />
+                <span className="font-mono text-xs font-medium uppercase tracking-wider text-neutral-400">
+                  {selectedChapter.category}
                 </span>
               </div>
 
-              {/* Title & Tagline */}
+              {/* Headline & Story */}
               <h3 className="font-excon text-3xl sm:text-4xl lg:text-[2.75rem] font-bold tracking-tight text-white leading-[1.08]">
                 {selectedChapter.headline}
               </h3>
-              <p className="mt-1 font-inter text-base sm:text-lg font-medium text-neutral-200 leading-snug">
-                {selectedChapter.tagline}
+              <p className="mt-3 font-inter text-sm sm:text-base text-neutral-300 leading-relaxed max-w-[46ch]">
+                {selectedChapter.body}
               </p>
             </div>
 
-            {/* Mindset Callout Card */}
-            <div
-              className="rounded-2xl border p-3.5 sm:p-4 transition-colors"
-              style={{
-                backgroundColor: `rgb(${selectedChapter.accent.join(" ")} / 0.08)`,
-                borderColor: `rgb(${selectedChapter.accent.join(" ")} / 0.25)`,
-              }}
-            >
-              <div className="flex items-center justify-between gap-2 mb-1">
-                <span className="font-mono text-xs uppercase font-bold tracking-widest text-neutral-400">
-                  Core Mindset
+            {/* Clean Hairline Focus Strip (No Nested Boxes or Chip Overload) */}
+            <div className="border-t border-white/10 pt-4 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-baseline gap-2.5">
+                <span className="font-mono text-xs uppercase tracking-wider text-neutral-500">
+                  Mindset
                 </span>
                 <span
-                  className="font-excon font-bold text-base sm:text-lg"
+                  className="font-excon font-bold text-sm sm:text-base"
                   style={{ color: `rgb(${selectedChapter.accent.join(" ")})` }}
                 >
                   {selectedChapter.mindset}
                 </span>
               </div>
-              <p className="font-inter text-xs sm:text-sm text-neutral-300 leading-relaxed">
-                {selectedChapter.mindsetSub}
-              </p>
-            </div>
-
-            {/* Narrative Story Excerpt */}
-            <p className="font-inter text-sm sm:text-base text-neutral-300 leading-relaxed line-clamp-3">
-              {selectedChapter.body}
-            </p>
-
-            {/* Habits & Focus Chips */}
-            <div className="flex flex-wrap gap-1.5 pt-1">
-              {selectedChapter.habits.map((habit) => (
-                <span
-                  key={habit}
-                  className="rounded-full border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] px-3 py-1 font-inter text-xs font-medium text-neutral-200 transition-colors"
-                >
-                  {habit}
-                </span>
-              ))}
+              <span className="font-mono text-xs text-neutral-400">
+                {selectedChapter.habits.slice(0, 3).join(" · ")}
+              </span>
             </div>
 
             {/* Action Bar */}
-            <div className="pt-2 flex items-center gap-2.5">
+            <div className="flex items-center gap-3 pt-1">
               <button
                 type="button"
                 onClick={(e) => openModal(selectedChapter, e.currentTarget)}
                 onMouseEnter={() => soundFX.playHoverTick()}
-                className="rounded-full bg-white hover:bg-neutral-200 text-black px-5 py-2.5 font-inter text-xs sm:text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:scale-95 cursor-pointer flex items-center gap-1.5"
+                className="rounded-full bg-white hover:bg-neutral-200 text-black px-5 py-2.5 font-inter text-xs sm:text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:scale-95 cursor-pointer"
               >
-                <span>Read Story & Reflections</span>
+                Read Reflections
               </button>
             </div>
           </div>
 
-          {/* Right Column (5 cols): Dynamic Photo / Blueprint Frame */}
+          {/* Right Column (5 cols): Visual Canvas */}
           <div
             onClick={(e) => openModal(selectedChapter, e.currentTarget)}
             className="lg:col-span-5 w-full cursor-pointer transition-transform duration-300 hover:scale-[1.015]"
