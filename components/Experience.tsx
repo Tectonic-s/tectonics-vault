@@ -294,6 +294,7 @@ export default function Experience() {
   const [contactMessage, setContactMessage] = useState("");
   const [contactSubmitted, setContactSubmitted] = useState(false);
   const [contactError, setContactError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     if (typeof window === "undefined") return false;
     return window.matchMedia("(prefers-color-scheme: dark)").matches;
@@ -382,21 +383,48 @@ export default function Experience() {
     setTimeout(() => setCopiedEmail(false), 2000);
   };
 
-  const handleContactSubmit = (e: React.FormEvent) => {
+  const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!contactName.trim() || !contactEmail.trim() || !contactMessage.trim()) {
       setContactError("Please fill in your name, email, and message.");
       return;
     }
     setContactError("");
-    soundFX.playSuccessChime();
+    setIsSubmitting(true);
 
-    const subject = encodeURIComponent(`[${contactTopic}] from ${contactName}`);
-    const body = encodeURIComponent(
-      `Name: ${contactName}\nEmail: ${contactEmail}\nTopic: ${contactTopic}\n\nMessage:\n${contactMessage}`
-    );
-    window.location.href = `mailto:tharun.suresh@outlook.com?subject=${subject}&body=${body}`;
-    setContactSubmitted(true);
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: contactName.trim(),
+          email: contactEmail.trim(),
+          topic: contactTopic,
+          message: contactMessage.trim(),
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to dispatch transmission.");
+      }
+
+      soundFX.playSuccessChime();
+      setContactSubmitted(true);
+    } catch (err: unknown) {
+      console.warn("API dispatch unsuccessful, falling back to mail client:", err);
+      // Seamless fallback to mailto if network or service is unreachable
+      const subject = encodeURIComponent(`[${contactTopic}] from ${contactName}`);
+      const body = encodeURIComponent(
+        `Name: ${contactName}\nEmail: ${contactEmail}\nTopic: ${contactTopic}\n\nMessage:\n${contactMessage}`
+      );
+      window.location.href = `mailto:tharun.suresh@outlook.com?subject=${subject}&body=${body}`;
+      soundFX.playSuccessChime();
+      setContactSubmitted(true);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const measure = useCallback(() => {
@@ -2201,9 +2229,9 @@ export default function Experience() {
                           <div className="h-10 w-10 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 font-bold text-base">
                             ✓
                           </div>
-                          <h4 className="font-excon font-bold text-lg sm:text-xl text-white">Transmission Prepared</h4>
-                          <p className="font-inter text-xs sm:text-sm text-neutral-300 max-w-[34ch] leading-relaxed">
-                            Your mail application has opened with your message ready to send to <span className="text-white font-medium">tharun.suresh@outlook.com</span>.
+                          <h4 className="font-excon font-bold text-lg sm:text-xl text-white">Transmission Dispatched</h4>
+                          <p className="font-inter text-xs sm:text-sm text-neutral-300 max-w-[36ch] leading-relaxed">
+                            Your message has been sent directly to <span className="text-white font-medium">tharun.suresh@outlook.com</span>. I&apos;ll get back to you shortly!
                           </p>
                           <button
                             type="button"
@@ -2302,10 +2330,18 @@ export default function Experience() {
 
                           <button
                             type="submit"
+                            disabled={isSubmitting}
                             onMouseEnter={() => soundFX.playHoverTick()}
-                            className="mt-1 w-full rounded-full bg-white hover:bg-neutral-200 text-black py-2.5 px-4 font-inter text-xs sm:text-sm font-bold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:scale-95 cursor-pointer flex items-center justify-center gap-2"
+                            className="mt-1 w-full rounded-full bg-white hover:bg-neutral-200 text-black py-2.5 px-4 font-inter text-xs sm:text-sm font-bold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:scale-95 cursor-pointer flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
                           >
-                            <span>Connect</span>
+                            {isSubmitting ? (
+                              <>
+                                <span className="h-3.5 w-3.5 rounded-full border-2 border-black/30 border-t-black animate-spin" />
+                                <span>Connecting...</span>
+                              </>
+                            ) : (
+                              <span>Connect</span>
+                            )}
                           </button>
                         </form>
                       )}
