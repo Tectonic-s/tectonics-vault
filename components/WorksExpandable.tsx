@@ -224,13 +224,13 @@ function BlueprintSchematic({ project }: { project: WorkProject }) {
   const accentRgb = project.accent.join(" ");
 
   return (
-    <div className="relative w-full h-full min-h-[220px] sm:min-h-[280px] flex flex-col items-center justify-center p-8 overflow-hidden bg-[#0a0c0f] text-white/90 select-none">
+    <div className="relative w-full h-full min-h-[220px] sm:min-h-[280px] flex flex-col items-center justify-center p-8 overflow-hidden bg-[#f8f9fa] text-neutral-900 select-none">
       {/* Subtle architectural coordinate grid */}
       <div
-        className="absolute inset-0 opacity-10 pointer-events-none"
+        className="absolute inset-0 opacity-[0.045] pointer-events-none"
         style={{
           backgroundImage:
-            "linear-gradient(to right, rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.1) 1px, transparent 1px)",
+            "linear-gradient(to right, rgba(0,0,0,0.4) 1px, transparent 1px), linear-gradient(to bottom, rgba(0,0,0,0.4) 1px, transparent 1px)",
           backgroundSize: "24px 24px",
         }}
       />
@@ -245,18 +245,18 @@ function BlueprintSchematic({ project }: { project: WorkProject }) {
       {/* Crisp Thematic Vector Schematic */}
       <div className="relative z-10 flex flex-col items-center justify-center gap-5">
         {project.blueprintType === "fintech" && (
-          <svg className="w-28 h-20 sm:w-36 sm:h-24 stroke-emerald-400/90 fill-none" viewBox="0 0 120 60">
+          <svg className="w-28 h-20 sm:w-36 sm:h-24 stroke-emerald-600 fill-none" viewBox="0 0 120 60">
             <path d="M5 45 Q 35 48 55 25 T 115 10" strokeWidth="2.5" strokeLinecap="round" />
-            <line x1="5" y1="52" x2="115" y2="52" strokeWidth="1" strokeDasharray="3 3" strokeOpacity="0.3" />
-            <circle cx="55" cy="25" r="3.5" fill="#34d399" />
-            <circle cx="115" cy="10" r="3.5" fill="#34d399" />
+            <line x1="5" y1="52" x2="115" y2="52" strokeWidth="1" strokeDasharray="3 3" strokeOpacity="0.25" />
+            <circle cx="55" cy="25" r="3.5" fill="#059669" />
+            <circle cx="115" cy="10" r="3.5" fill="#059669" />
           </svg>
         )}
         {project.blueprintType === "vault" && (
-          <svg className="w-24 h-24 sm:w-28 sm:h-28 stroke-white/80 fill-none" viewBox="0 0 80 80">
-            <circle cx="40" cy="40" r="32" strokeWidth="1.5" strokeDasharray="4 3" strokeOpacity="0.45" />
+          <svg className="w-24 h-24 sm:w-28 sm:h-28 stroke-neutral-800 fill-none" viewBox="0 0 80 80">
+            <circle cx="40" cy="40" r="32" strokeWidth="1.5" strokeDasharray="4 3" strokeOpacity="0.35" />
             <circle cx="40" cy="40" r="22" strokeWidth="2" />
-            <circle cx="40" cy="40" r="6" fill="white" />
+            <circle cx="40" cy="40" r="6" fill="#171717" />
             <line x1="40" y1="4" x2="40" y2="12" strokeWidth="2" />
             <line x1="40" y1="68" x2="40" y2="76" strokeWidth="2" />
             <line x1="4" y1="40" x2="12" y2="40" strokeWidth="2" />
@@ -264,32 +264,32 @@ function BlueprintSchematic({ project }: { project: WorkProject }) {
           </svg>
         )}
         {project.blueprintType === "civic" && (
-          <svg className="w-24 h-24 sm:w-28 sm:h-28 stroke-amber-300/90 fill-none" viewBox="0 0 80 80">
+          <svg className="w-24 h-24 sm:w-28 sm:h-28 stroke-blue-600 fill-none" viewBox="0 0 80 80">
             <path d="M15 70 L 15 35 L 40 10 L 65 35 L 65 70 Z" strokeWidth="2" />
             <path d="M30 70 L 30 45 Q 40 38 50 45 L 50 70" strokeWidth="2" />
             <line x1="40" y1="10" x2="40" y2="2" strokeWidth="2.5" />
           </svg>
         )}
         {project.blueprintType === "storage" && (
-          <svg className="w-28 h-20 sm:w-32 sm:h-24 stroke-sky-400/90 fill-none" viewBox="0 0 100 60">
+          <svg className="w-28 h-20 sm:w-32 sm:h-24 stroke-sky-600 fill-none" viewBox="0 0 100 60">
             <rect x="10" y="8" width="80" height="12" rx="3" strokeWidth="1.8" />
             <rect x="10" y="24" width="80" height="12" rx="3" strokeWidth="1.8" />
             <rect x="10" y="40" width="80" height="12" rx="3" strokeWidth="1.8" />
-            <circle cx="80" cy="14" r="2" fill="#38bdf8" />
-            <circle cx="80" cy="30" r="2" fill="#38bdf8" />
-            <circle cx="80" cy="46" r="2" fill="#38bdf8" />
+            <circle cx="80" cy="14" r="2" fill="#0284c7" />
+            <circle cx="80" cy="30" r="2" fill="#0284c7" />
+            <circle cx="80" cy="46" r="2" fill="#0284c7" />
           </svg>
         )}
         {project.blueprintType === "career" && (
-          <svg className="w-28 h-20 sm:w-32 sm:h-24 stroke-purple-400/90 fill-none" viewBox="0 0 110 50">
+          <svg className="w-28 h-20 sm:w-32 sm:h-24 stroke-purple-600 fill-none" viewBox="0 0 110 50">
             <circle cx="15" cy="25" r="6" strokeWidth="2" />
             <line x1="21" y1="25" x2="45" y2="25" strokeWidth="2" strokeDasharray="3 2" />
             <circle cx="55" cy="25" r="7" strokeWidth="2.5" />
             <line x1="62" y1="25" x2="88" y2="25" strokeWidth="2" strokeDasharray="3 2" />
-            <circle cx="95" cy="25" r="6" strokeWidth="2" fill="#c084fc" />
+            <circle cx="95" cy="25" r="6" strokeWidth="2" fill="#9333ea" />
           </svg>
         )}
-        <span className="font-excon font-bold text-sm sm:text-base text-white/75 tracking-wide">
+        <span className="font-excon font-bold text-sm sm:text-base text-neutral-800 tracking-wide">
           {project.title}
         </span>
       </div>
@@ -320,7 +320,7 @@ function ProjectImageCanvas({ project }: { project: WorkProject }) {
   };
 
   return (
-    <div className="relative w-full h-full min-h-[240px] sm:min-h-[300px] rounded-2xl overflow-hidden bg-[#0a0c0f] border border-white/10 shadow-[0_16px_40px_rgba(0,0,0,0.3)] flex items-center justify-center group">
+    <div className="relative w-full h-full min-h-[240px] sm:min-h-[300px] rounded-2xl overflow-hidden bg-[#f8f9fa] border border-black/[0.08] shadow-[0_12px_32px_rgba(15,23,42,0.06)] flex items-center justify-center group">
       {!hasFailedAll ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
@@ -334,7 +334,7 @@ function ProjectImageCanvas({ project }: { project: WorkProject }) {
       )}
 
       {/* Subtle glass sheen overlay */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-transparent via-white/[0.02] to-white/[0.06]" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-white/30" />
     </div>
   );
 }
@@ -443,7 +443,7 @@ export function WorksExpandable({
       {/* TOP INTERACTIVE INDEX RAIL                                         */}
       {/* ------------------------------------------------------------------ */}
       <div className="flex items-center justify-between gap-2 overflow-x-auto pb-0.5 scrollbar-none">
-        <div className="flex items-center gap-1 sm:gap-1.5 p-1 rounded-full bg-white/[0.06] border border-white/10 w-full sm:w-auto">
+        <div className="flex items-center gap-1 sm:gap-1.5 p-1 rounded-full bg-black/[0.04] border border-black/[0.08] w-full sm:w-auto">
           {projects.map((proj, idx) => {
             const isCurrent = idx === selectedIndex;
             return (
@@ -454,14 +454,14 @@ export function WorksExpandable({
                 onMouseEnter={() => soundFX.playHoverTick()}
                 aria-label={`Select project ${proj.numeral} ${proj.title}`}
                 className={`relative px-3 sm:px-4 py-1.5 rounded-full font-excon text-xs sm:text-sm font-bold tracking-tight transition-all duration-200 cursor-pointer flex items-center gap-1.5 shrink-0 ${
-                  isCurrent ? "text-black" : "text-neutral-400 hover:text-white hover:bg-white/10"
+                  isCurrent ? "text-neutral-900" : "text-neutral-500 hover:text-neutral-900 hover:bg-black/[0.04]"
                 }`}
               >
                 {isCurrent && (
                   <motion.div
                     layoutId="activeProjectPill"
                     transition={{ type: "spring", stiffness: 450, damping: 35 }}
-                    className="absolute inset-0 bg-white rounded-full shadow-sm"
+                    className="absolute inset-0 bg-white rounded-full shadow-xs border border-black/[0.06]"
                   />
                 )}
                 <span className="relative z-10 truncate max-w-[100px] sm:max-w-none">
@@ -483,9 +483,9 @@ export function WorksExpandable({
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
           transition={{ duration: 0.28, ease: "easeOut" }}
-          className="relative w-full rounded-[24px] sm:rounded-[32px] overflow-hidden border border-white/[0.08] hover:border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-2xl p-6 sm:p-8 lg:p-10 grid grid-cols-1 lg:grid-cols-12 gap-7 sm:gap-8 lg:gap-10 items-center transition-all duration-300"
+          className="relative w-full rounded-[24px] sm:rounded-[32px] overflow-hidden border border-black/[0.08] hover:border-black/15 shadow-[0_20px_50px_rgba(15,23,42,0.07),inset_0_1px_0_rgba(255,255,255,0.95)] backdrop-blur-2xl p-6 sm:p-8 lg:p-10 grid grid-cols-1 lg:grid-cols-12 gap-7 sm:gap-8 lg:gap-10 items-center transition-all duration-300"
           style={{
-            background: `radial-gradient(ellipse 90% 60% at 0% 0%, rgb(${selectedProject.accent.join(" ")} / 0.12) 0%, transparent 70%), rgba(18, 18, 22, 0.75)`,
+            background: `radial-gradient(ellipse 90% 60% at 0% 0%, rgb(${selectedProject.accent.join(" ")} / 0.14) 0%, transparent 70%), rgba(255, 255, 255, 0.78)`,
           }}
         >
           {/* Left Column (7 cols): Calm Editorial Story */}
@@ -497,40 +497,37 @@ export function WorksExpandable({
                   className="h-1.5 w-1.5 rounded-full shrink-0"
                   style={{
                     backgroundColor: `rgb(${selectedProject.accent.join(" ")})`,
-                    boxShadow: `0 0 8px rgb(${selectedProject.accent.join(" ")} / 0.75)`,
+                    boxShadow: `0 0 8px rgb(${selectedProject.accent.join(" ")} / 0.55)`,
                   }}
                 />
-                <span className="font-mono text-xs font-medium uppercase tracking-wider text-neutral-400">
+                <span className="font-mono text-xs font-medium uppercase tracking-wider text-neutral-500">
                   {selectedProject.category.split("/")[0].trim()} · {selectedProject.status}
                 </span>
               </div>
 
               {/* Display Title & Summary */}
-              <h3 className="font-excon text-3xl sm:text-4xl lg:text-[2.75rem] font-bold tracking-tight text-white leading-[1.08]">
+              <h3 className="font-excon text-3xl sm:text-4xl lg:text-[2.75rem] font-bold tracking-tight text-neutral-900 leading-[1.08]">
                 {selectedProject.title}
               </h3>
-              <p className="mt-2 font-inter text-base sm:text-lg font-medium text-neutral-200 leading-snug">
+              <p className="mt-2 font-inter text-base sm:text-lg font-medium text-neutral-800 leading-snug">
                 {selectedProject.tagline}
               </p>
-              <p className="mt-3 font-inter text-sm sm:text-[0.95rem] text-neutral-400 leading-relaxed max-w-[46ch]">
+              <p className="mt-3 font-inter text-sm sm:text-[0.95rem] text-neutral-600 leading-relaxed max-w-[46ch]">
                 {selectedProject.description}
               </p>
             </div>
 
-            {/* Clean Hairline Spec Strip (Zero Nested Cards or Tag Bloat) */}
-            <div className="border-t border-white/10 pt-4 flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-baseline gap-2.5">
-                <span className="font-mono text-xs uppercase tracking-wider text-neutral-500">
-                  Highlight
-                </span>
-                <span
-                  className="font-excon font-bold text-sm sm:text-base"
-                  style={{ color: `rgb(${selectedProject.accent.join(" ")})` }}
-                >
-                  {selectedProject.metrics}
-                </span>
-              </div>
-              <span className="font-mono text-xs text-neutral-400">
+            {/* Clean Hairline Spec Strip (Highlight label removed) */}
+            <div className="border-t border-black/10 pt-4 flex flex-wrap items-center justify-between gap-3">
+              <span
+                className="font-excon font-bold text-sm sm:text-base"
+                style={{
+                  color: `color-mix(in srgb, rgb(${selectedProject.accent.join(" ")}) 74%, #000000)`,
+                }}
+              >
+                {selectedProject.metrics}
+              </span>
+              <span className="font-mono text-xs text-neutral-500">
                 {selectedProject.tags.slice(0, 3).join(" · ")}
               </span>
             </div>
@@ -541,7 +538,7 @@ export function WorksExpandable({
                 type="button"
                 onClick={(e) => openModal(selectedProject, e.currentTarget)}
                 onMouseEnter={() => soundFX.playHoverTick()}
-                className="rounded-full bg-white hover:bg-neutral-200 text-black px-5 py-2.5 font-inter text-xs sm:text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:scale-95 cursor-pointer"
+                className="rounded-full bg-neutral-900 hover:bg-neutral-800 text-white px-5 py-2.5 font-inter text-xs sm:text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:scale-95 cursor-pointer"
               >
                 Inspect Architecture
               </button>
@@ -551,7 +548,7 @@ export function WorksExpandable({
                   href={selectedProject.ctaLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="rounded-full border border-white/15 bg-white/[0.04] hover:bg-white/[0.1] text-white px-4 py-2.5 font-inter text-xs sm:text-sm font-medium transition-all duration-200 hover:-translate-y-0.5 active:scale-95"
+                  className="rounded-full border border-black/15 bg-black/[0.03] hover:bg-black/[0.07] text-neutral-900 px-4 py-2.5 font-inter text-xs sm:text-sm font-medium transition-all duration-200 hover:-translate-y-0.5 active:scale-95"
                 >
                   {selectedProject.ctaText}
                 </a>
@@ -584,7 +581,7 @@ export function WorksExpandable({
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.2, ease: "easeOut" }}
-                  className="fixed inset-0 bg-black/80 backdrop-blur-md"
+                  className="fixed inset-0 bg-black/30 backdrop-blur-md"
                   onClick={closeModal}
                 />
 
@@ -601,11 +598,11 @@ export function WorksExpandable({
                     duration: 0.22,
                     ease: [0.16, 1, 0.3, 1],
                   }}
-                  className="relative w-full max-w-[660px] max-h-[88vh] flex flex-col bg-neutral-950 rounded-[24px] sm:rounded-[28px] border border-white/10 shadow-[0_24px_64px_rgba(0,0,0,0.6)] text-white overflow-hidden z-10"
+                  className="relative w-full max-w-[660px] max-h-[88vh] flex flex-col bg-white/95 backdrop-blur-2xl rounded-[24px] sm:rounded-[28px] border border-black/10 shadow-[0_24px_64px_rgba(15,23,42,0.16)] text-neutral-900 overflow-hidden z-10"
                 >
                   {/* Close Button with ESC hint */}
                   <button
-                    className="group absolute top-3.5 sm:top-4 right-3.5 sm:right-4 z-30 flex items-center gap-1.5 h-8 px-2.5 rounded-full bg-white/15 text-white backdrop-blur-md hover:bg-white hover:text-black transition-all hover:scale-105 active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-white"
+                    className="group absolute top-3.5 sm:top-4 right-3.5 sm:right-4 z-30 flex items-center gap-1.5 h-8 px-2.5 rounded-full bg-black/10 text-neutral-800 backdrop-blur-md hover:bg-neutral-900 hover:text-white transition-all hover:scale-105 active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-neutral-900"
                     onClick={closeModal}
                     onMouseEnter={() => soundFX.playHoverTick()}
                     aria-label="Close dialog"
@@ -619,33 +616,33 @@ export function WorksExpandable({
                   </button>
 
                   {/* Hero Showcase Image in Modal */}
-                  <div className="relative h-44 sm:h-56 w-full shrink-0 overflow-hidden bg-neutral-950">
+                  <div className="relative h-44 sm:h-56 w-full shrink-0 overflow-hidden bg-neutral-100">
                     <ProjectImageCanvas key={activeModalProject.slug} project={activeModalProject} />
                   </div>
 
                   {/* Modal Body */}
                   <div className="flex flex-col flex-1 overflow-y-auto p-5 sm:p-7 md:p-8 space-y-5">
                     {/* Header: Title, Category & Direct CTA */}
-                    <div className="flex items-start justify-between gap-3 pb-4 border-b border-white/10">
+                    <div className="flex items-start justify-between gap-3 pb-4 border-b border-black/10">
                       <div className="min-w-0">
-                        <span className="font-mono text-[0.68rem] sm:text-xs font-semibold uppercase tracking-wider text-neutral-400">
+                        <span className="font-mono text-[0.68rem] sm:text-xs font-semibold uppercase tracking-wider text-neutral-500">
                           {`${activeModalProject.numeral} // ${activeModalProject.category}`}
                         </span>
                         <div className="flex items-center gap-2 mt-1">
-                          <h3 id="works-modal-title" className="font-excon text-2xl sm:text-3xl font-bold tracking-tight text-white">
+                          <h3 id="works-modal-title" className="font-excon text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900">
                             {activeModalProject.title}
                           </h3>
                           <span
                             className={`rounded-full px-2.5 py-0.5 font-mono text-[0.65rem] sm:text-[0.7rem] font-medium border ${
                               activeModalProject.status.includes("Completed")
-                                ? "border-emerald-500/30 bg-emerald-950/60 text-emerald-400"
-                                : "border-amber-500/30 bg-amber-950/60 text-amber-400"
+                                ? "border-emerald-600/25 bg-emerald-50 text-emerald-700"
+                                : "border-amber-600/25 bg-amber-50 text-amber-700"
                             }`}
                           >
                             {activeModalProject.status}
                           </span>
                         </div>
-                        <p className="mt-1 font-inter text-xs sm:text-sm font-medium text-neutral-300 leading-snug">
+                        <p className="mt-1 font-inter text-xs sm:text-sm font-medium text-neutral-600 leading-snug">
                           {activeModalProject.tagline}
                         </p>
                       </div>
@@ -655,12 +652,12 @@ export function WorksExpandable({
                           href={activeModalProject.ctaLink}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="shrink-0 rounded-full bg-white px-4 py-2 sm:px-4.5 sm:py-2.5 font-inter text-xs font-semibold text-black transition-all duration-200 hover:-translate-y-0.5 hover:bg-neutral-200 hover:shadow-lg active:scale-95"
+                          className="shrink-0 rounded-full bg-neutral-900 px-4 py-2 sm:px-4.5 sm:py-2.5 font-inter text-xs font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-neutral-800 hover:shadow-lg active:scale-95"
                         >
                           {activeModalProject.ctaText}
                         </a>
                       ) : (
-                        <span className="shrink-0 rounded-full bg-white/10 border border-white/15 px-3.5 py-2 font-inter text-xs font-semibold text-neutral-400">
+                        <span className="shrink-0 rounded-full bg-black/[0.04] border border-black/10 px-3.5 py-2 font-inter text-xs font-semibold text-neutral-600">
                           {activeModalProject.ctaText}
                         </span>
                       )}
@@ -668,36 +665,36 @@ export function WorksExpandable({
 
                     {/* Standout Metric / Maker's Mark Box */}
                     {activeModalProject.isSpecialSignature ? (
-                      <div className="rounded-2xl border-2 border-dashed border-amber-400/30 bg-amber-950/20 p-4 sm:p-5 relative">
+                      <div className="rounded-2xl border-2 border-dashed border-amber-500/35 bg-amber-50/70 p-4 sm:p-5 relative">
                         <div className="flex items-center justify-between gap-3 mb-1.5">
-                          <span className="font-mono text-[0.68rem] uppercase font-bold tracking-widest text-amber-300">
+                          <span className="font-mono text-[0.68rem] uppercase font-bold tracking-widest text-amber-700">
                             Creator Signature
                           </span>
-                          <span className="rounded-full border border-amber-400/40 bg-amber-400/10 text-amber-300 px-2.5 py-0.5 font-mono text-[0.68rem] font-bold tracking-wider flex items-center gap-1 shadow-sm">
-                            <span className="text-amber-400">✦</span> 100% Tharun
+                          <span className="rounded-full border border-amber-500/30 bg-amber-100 text-amber-800 px-2.5 py-0.5 font-mono text-[0.68rem] font-bold tracking-wider flex items-center gap-1 shadow-xs">
+                            <span className="text-amber-600">✦</span> 100% Tharun
                           </span>
                         </div>
-                        <p className="font-excon font-bold text-sm sm:text-base text-white">
+                        <p className="font-excon font-bold text-sm sm:text-base text-neutral-900">
                           {activeModalProject.metricLabel}
                         </p>
-                        <p className="mt-1 font-inter text-xs text-neutral-300 leading-relaxed">
+                        <p className="mt-1 font-inter text-xs text-neutral-600 leading-relaxed">
                           {activeModalProject.metricDetail}
                         </p>
                       </div>
                     ) : (
-                      <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 sm:p-5">
+                      <div className="rounded-2xl border border-black/[0.08] bg-neutral-50/90 p-4 sm:p-5">
                         <div className="flex items-center justify-between gap-3 mb-1">
-                          <span className="font-mono text-[0.68rem] uppercase font-bold tracking-widest text-neutral-400">
-                            Standout Metric
+                          <span className="font-mono text-[0.68rem] uppercase font-bold tracking-widest text-neutral-500">
+                            Key Outcome
                           </span>
-                          <span className="font-excon font-bold text-base sm:text-lg text-emerald-400">
+                          <span className="font-excon font-bold text-base sm:text-lg text-emerald-700">
                             {activeModalProject.metrics}
                           </span>
                         </div>
-                        <p className="font-inter font-semibold text-xs sm:text-sm text-white">
+                        <p className="font-inter font-semibold text-xs sm:text-sm text-neutral-900">
                           {activeModalProject.metricLabel}
                         </p>
-                        <p className="mt-1 font-inter text-xs text-neutral-300 leading-relaxed">
+                        <p className="mt-1 font-inter text-xs text-neutral-600 leading-relaxed">
                           {activeModalProject.metricDetail}
                         </p>
                       </div>
@@ -705,40 +702,40 @@ export function WorksExpandable({
 
                     {/* Project Overview */}
                     <div className="space-y-1.5">
-                      <span className="block font-mono text-[0.68rem] uppercase font-bold tracking-widest text-neutral-400">
+                      <span className="block font-mono text-[0.68rem] uppercase font-bold tracking-widest text-neutral-500">
                         Project Overview
                       </span>
-                      <p className="font-inter text-xs sm:text-sm text-neutral-300 leading-relaxed">
+                      <p className="font-inter text-xs sm:text-sm text-neutral-700 leading-relaxed">
                         {activeModalProject.overview}
                       </p>
                     </div>
 
                     {/* Feature Highlight Callout */}
-                    <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 sm:p-5 shadow-sm space-y-2">
+                    <div className="rounded-2xl border border-black/[0.08] bg-neutral-50/90 p-4 sm:p-5 shadow-xs space-y-2">
                       <div className="flex items-center gap-2">
-                        <span className="h-2 w-2 rounded-full bg-white" />
-                        <span className="font-mono text-[0.68rem] uppercase font-bold tracking-widest text-neutral-400">
-                          Feature Highlight
+                        <span className="h-2 w-2 rounded-full bg-neutral-900" />
+                        <span className="font-mono text-[0.68rem] uppercase font-bold tracking-widest text-neutral-500">
+                          Architecture Deep Dive
                         </span>
                       </div>
-                      <h4 className="font-excon font-bold text-sm sm:text-base text-white">
+                      <h4 className="font-excon font-bold text-sm sm:text-base text-neutral-900">
                         {activeModalProject.featureHeading}
                       </h4>
-                      <p className="font-inter text-xs sm:text-sm text-neutral-300 leading-relaxed">
+                      <p className="font-inter text-xs sm:text-sm text-neutral-700 leading-relaxed">
                         {activeModalProject.featureDescription}
                       </p>
                     </div>
 
                     {/* Tech Stack Pills */}
-                    <div className="space-y-2 pt-2 border-t border-white/10">
-                      <span className="block font-mono text-[0.68rem] uppercase font-bold tracking-widest text-neutral-400">
+                    <div className="space-y-2 pt-2 border-t border-black/10">
+                      <span className="block font-mono text-[0.68rem] uppercase font-bold tracking-widest text-neutral-500">
                         Technology Stack
                       </span>
                       <div className="flex flex-wrap gap-1.5">
                         {activeModalProject.tags.map((tag) => (
                           <span
                             key={tag}
-                            className="rounded-full border border-white/10 bg-white/[0.06] px-2.5 py-0.5 font-inter text-[0.7rem] font-medium text-neutral-200"
+                            className="rounded-full border border-black/10 bg-neutral-100 px-2.5 py-0.5 font-inter text-[0.7rem] font-medium text-neutral-800"
                           >
                             {tag}
                           </span>
@@ -748,28 +745,28 @@ export function WorksExpandable({
 
                     {/* Links & Resources */}
                     {activeModalProject.resources && activeModalProject.resources.length > 0 && (
-                      <div className="space-y-2 pt-2 border-t border-white/10">
-                        <span className="block font-mono text-[0.68rem] uppercase font-bold tracking-widest text-neutral-400">
+                      <div className="space-y-2 pt-2 border-t border-black/10">
+                        <span className="block font-mono text-[0.68rem] uppercase font-bold tracking-widest text-neutral-500">
                           Links & Documentation
                         </span>
                         <div className="flex flex-wrap gap-2">
                           {activeModalProject.resources.map((res) => (
                             <div
                               key={res.label}
-                              className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1 text-xs font-inter text-neutral-200"
+                              className="inline-flex items-center gap-1.5 rounded-lg border border-black/10 bg-neutral-50 px-2.5 py-1 text-xs font-inter text-neutral-800"
                             >
-                              <span className="font-semibold text-white">{res.label}:</span>
+                              <span className="font-semibold text-neutral-900">{res.label}:</span>
                               {res.url ? (
                                 <a
                                   href={res.url}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="text-emerald-400 underline underline-offset-2 hover:text-emerald-300 font-mono text-[0.7rem]"
+                                  className="text-emerald-700 underline underline-offset-2 hover:text-emerald-800 font-mono text-[0.7rem]"
                                 >
                                   View
                                 </a>
                               ) : (
-                                <span className="font-mono text-[0.7rem] text-neutral-400">{res.note}</span>
+                                <span className="font-mono text-[0.7rem] text-neutral-500">{res.note}</span>
                               )}
                             </div>
                           ))}

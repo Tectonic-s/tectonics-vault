@@ -25,34 +25,34 @@ const getActiveMenuSize = () => {
    GSAP's colour regex matches that form only up to the first paren, fails to
    find any digits, and silently falls back to transparent black. Ink is
    static, so baking the value here is safe as well as necessary. */
-const INK_LIGHT = "rgb(255 255 255)";
-const INK_DIM_LIGHT = "rgba(255, 255, 255, 0.42)";
+const INK_DARK = "rgb(17 17 20)";
+const INK_DIM_DARK = "rgba(17, 17, 20, 0.42)";
 
-/* Option 2: Full Chamber Shift Backgrounds */
+/* Bright High-Key Chamber Shift Backgrounds (Airy Pastel Washes Closer to White) */
 const JOURNEY_BG = [
-  "#140e08", // Chapter 0: Bronze Beginning
-  "#091612", // Chapter 1: Mint Foundation
-  "#0a1222", // Chapter 2: Sapphire Strategy
-  "#161108", // Chapter 3: Gold Leadership
-  "#081418", // Chapter 4: Slate Cyan Engineering
+  "#fcf6ef", // Chapter 0: Warm Ivory Peach
+  "#effaf5", // Chapter 1: Pale Seafoam Mint
+  "#eff4fc", // Chapter 2: Soft Ice Sapphire
+  "#fdf9ec", // Chapter 3: Sunlit Champagne Gold
+  "#eef8fb", // Chapter 4: Frost Sky Cyan
 ];
 
 const BEYOND_BG = [
-  "#170b07", // Move: Fiery Terra / Ember
-  "#0a1122", // Think: Deep Sapphire
-  "#130922", // Create: Electric Amethyst
-  "#09160f", // Explore: Evergreen Sage
+  "#fdf2ed", // Move: Soft Blush Apricot
+  "#f0f5fc", // Think: Pale Cerulean Sky
+  "#f7f1fc", // Create: Airy Lavender Mist
+  "#eff9f4", // Explore: Pale Eucalyptus Sage
 ];
 
-const getChamberBg = (section: string, journeyIdx: number, beyondIdx: number, isDark = false) => {
-  if (section === "hero") return isDark ? "#08080a" : "#f5f5f5";
-  if (section === "about") return "#000000";
-  if (section === "journey") return JOURNEY_BG[journeyIdx] ?? "#0c111c";
-  if (section === "skills" || section === "craft") return "#08111c";
-  if (section === "works") return "#0a0a0c";
-  if (section === "beyond") return BEYOND_BG[beyondIdx] ?? "#170b07";
-  if (section === "talk") return "#07120e";
-  return "#000000";
+const getChamberBg = (section: string, journeyIdx: number, beyondIdx: number) => {
+  if (section === "hero") return "#f8f9fa";
+  if (section === "about") return "#fafafa";
+  if (section === "journey") return JOURNEY_BG[journeyIdx] ?? "#eff4fc";
+  if (section === "skills" || section === "craft") return "#f0f6fb";
+  if (section === "works") return "#f4f5f7";
+  if (section === "beyond") return BEYOND_BG[beyondIdx] ?? "#fdf2ed";
+  if (section === "talk") return "#effaf5";
+  return "#fafafa";
 };
 
 const HERO_PRE = "Welcome to my ";
@@ -296,32 +296,11 @@ export default function Experience() {
   const [contactSubmitted, setContactSubmitted] = useState(false);
   const [contactError, setContactError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return window.matchMedia("(prefers-color-scheme: dark)").matches;
-  });
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const mq = window.matchMedia("(prefers-color-scheme: dark)");
-
-    if (mq.matches) {
-      document.documentElement.classList.add("dark");
-    } else {
+    if (typeof window !== "undefined") {
       document.documentElement.classList.remove("dark");
     }
-
-    const handler = (e: MediaQueryListEvent) => {
-      setIsDarkMode(e.matches);
-      if (e.matches) {
-        document.documentElement.classList.add("dark");
-      } else {
-        document.documentElement.classList.remove("dark");
-      }
-    };
-
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
   }, []);
 
   const [activeSection, setActiveSectionState] = useState<string>("hero");
@@ -872,7 +851,7 @@ export default function Experience() {
         const isAbout = li.getAttribute("data-key") === "about";
         gsap.set(li, {
           fontSize: isAbout ? getActiveMenuSize() : MENU_SMALL,
-          color: isAbout ? INK_LIGHT : INK_DIM_LIGHT,
+          color: isAbout ? INK_DARK : INK_DIM_DARK,
         });
       });
 
@@ -905,7 +884,7 @@ export default function Experience() {
           const isActive = itemKey === key;
           gsap.to(li, {
             fontSize: isActive ? targetSize : MENU_SMALL,
-            color: isActive ? INK_LIGHT : INK_DIM_LIGHT,
+            color: isActive ? INK_DARK : INK_DIM_DARK,
             duration: immediate ? 0 : 0.38,
             ease: "power2.out",
             overwrite: "auto",
@@ -987,13 +966,13 @@ export default function Experience() {
 
         jTabs.forEach((tab, i) => {
           if (i === newIndex) {
-            tab.classList.add("bg-white", "text-black", "shadow-sm");
-            tab.classList.remove("bg-white/10", "text-white/70");
+            tab.classList.add("bg-neutral-900", "text-white", "shadow-sm");
+            tab.classList.remove("bg-black/[0.05]", "text-neutral-600");
             tab.setAttribute("aria-selected", "true");
             tab.setAttribute("tabindex", "0");
           } else {
-            tab.classList.remove("bg-white", "text-black", "shadow-sm");
-            tab.classList.add("bg-white/10", "text-white/70");
+            tab.classList.remove("bg-neutral-900", "text-white", "shadow-sm");
+            tab.classList.add("bg-black/[0.05]", "text-neutral-600");
             tab.setAttribute("aria-selected", "false");
             tab.setAttribute("tabindex", "-1");
           }
@@ -1235,8 +1214,7 @@ export default function Experience() {
       : currentCanonicalKey === "beyond"
       ? BEYOND[activeBeyondIndex]?.accent.join(" ")
       : ROOMS[currentCanonicalKey as keyof typeof ROOMS]?.accent?.join(" ") || "10 10 10";
-  const currentChamberBg = getChamberBg(activeSection, activeChapterIndex, activeBeyondIndex, isDarkMode);
-  const isChamberActive = activeSection !== "hero";
+  const currentChamberBg = getChamberBg(activeSection, activeChapterIndex, activeBeyondIndex);
 
   return (
     <main id="main-content" ref={root} className="relative h-screen h-[100dvh] w-full overflow-hidden select-none">
@@ -1269,20 +1247,16 @@ export default function Experience() {
             aria-label="Open editorial section navigation"
             aria-expanded={isMobileNavOpen}
             aria-controls="mobile-nav-drawer"
-            className={`lg:hidden text-xs font-mono font-medium rounded-full px-3 py-1.5 backdrop-blur-md active:scale-95 transition-all shadow-xs cursor-pointer flex items-center gap-2 focus:outline-none ${
-              isChamberActive || isDarkMode
-                ? "text-white hover:text-white border border-white/15 bg-black/60"
-                : "text-neutral-800 hover:text-black border border-black/10 bg-white/90"
-            }`}
+            className="lg:hidden text-xs font-mono font-medium rounded-full px-3 py-1.5 backdrop-blur-md active:scale-95 transition-all shadow-xs cursor-pointer flex items-center gap-2 focus:outline-none text-neutral-800 hover:text-black border border-black/10 bg-white/85"
           >
             <span
               className="w-1.5 h-1.5 rounded-full transition-colors duration-300"
               style={{ backgroundColor: `rgb(${currentAccentColor})` }}
             />
-            <span className={`font-semibold ${isChamberActive || isDarkMode ? "text-neutral-300" : "text-neutral-500"}`}>{currentMenuItem.numeral}</span>
-            <span className={isChamberActive || isDarkMode ? "text-white/30" : "text-black/20"}>/</span>
-            <span className={`font-excon font-bold tracking-tight ${isChamberActive || isDarkMode ? "text-white" : "text-ink"}`}>{currentMenuItem.label}</span>
-            <span className={`${isChamberActive || isDarkMode ? "text-white/50" : "text-black/40"} text-[0.65rem] ml-0.5`}>▾</span>
+            <span className="font-semibold text-neutral-500">{currentMenuItem.numeral}</span>
+            <span className="text-black/20">/</span>
+            <span className="font-excon font-bold tracking-tight text-neutral-900">{currentMenuItem.label}</span>
+            <span className="text-black/40 text-[0.65rem] ml-0.5">▾</span>
           </button>
           <button
             ref={letsTalk}
@@ -1290,11 +1264,7 @@ export default function Experience() {
             onClick={() => switchSectionTo("talk")}
             onMouseEnter={() => soundFX.playHoverTick()}
             aria-label="Go to connect section"
-            className={`group will-reveal relative overflow-hidden flex items-center gap-2 sm:gap-2.5 font-excon font-bold leading-none rounded-full border-2 px-4 py-2 sm:px-6 sm:py-3 text-xs sm:text-base transition-all duration-300 ease-out hover:scale-108 hover:-translate-y-0.5 active:scale-95 cursor-pointer focus:outline-none ${
-              isChamberActive || isDarkMode
-                ? "text-white border-white/35 hover:border-white hover:bg-white hover:text-black hover:shadow-[0_12px_28px_rgba(255,255,255,0.18)]"
-                : "text-ink border-ink hover:bg-ink hover:text-bg hover:shadow-[0_12px_28px_rgba(0,0,0,0.18)]"
-            }`}
+            className="group will-reveal relative overflow-hidden flex items-center gap-2 sm:gap-2.5 font-excon font-bold leading-none rounded-full border-2 px-4 py-2 sm:px-6 sm:py-3 text-xs sm:text-base transition-all duration-300 ease-out hover:scale-108 hover:-translate-y-0.5 active:scale-95 cursor-pointer focus:outline-none text-neutral-900 border-neutral-900/85 bg-white/60 backdrop-blur-md hover:bg-neutral-900 hover:text-white hover:shadow-[0_12px_28px_rgba(0,0,0,0.14)]"
           >
             {/* Morphing Envelope Icon: Closed envelope by default, transforms into an open envelope with letter on hover */}
             <span className="relative w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center shrink-0">
@@ -1350,9 +1320,7 @@ export default function Experience() {
               soundFX.playHoverTick();
             }
           }}
-          className={`text-glow pointer-events-auto fixed left-0 top-0 font-excon font-bold leading-none cursor-pointer active:scale-95 border-0 bg-transparent p-0 z-50 select-none focus:outline-none rounded transition-colors duration-500 ${
-            isChamberActive || isDarkMode ? "text-white" : "text-ink"
-          }`}
+          className="text-glow pointer-events-auto fixed left-0 top-0 font-excon font-bold leading-none cursor-pointer active:scale-95 border-0 bg-transparent p-0 z-50 select-none focus:outline-none rounded transition-colors duration-500 text-neutral-900"
           style={{ fontSize: HEADING_SIZE, willChange: "transform" }}
         >
           Vault.
@@ -1374,7 +1342,7 @@ export default function Experience() {
         <section
           id="hero"
           aria-label="Introduction"
-          style={{ touchAction: "none" }}
+          style={{ touchAction: "none", backgroundColor: "#f8f9fa" }}
           onTouchMove={(e) => {
             e.preventDefault();
           }}
@@ -1397,11 +1365,11 @@ export default function Experience() {
               distortionStrength={26}
               returnSpeed={0.08}
               friction={0.84}
-              dotColorRgb={isDarkMode ? [240, 245, 255] : [15, 15, 15]}
-              minAlpha={isDarkMode ? 0.22 : 0.25}
-              maxAlpha={isDarkMode ? 0.85 : 0.78}
-              baseAlphaMin={isDarkMode ? 0.25 : 0.28}
-              baseAlphaMax={isDarkMode ? 0.50 : 0.48}
+              dotColorRgb={[15, 15, 20]}
+              minAlpha={0.22}
+              maxAlpha={0.78}
+              baseAlphaMin={0.24}
+              baseAlphaMax={0.44}
             />
 
             {/* Cursor spotlight */}
@@ -1409,9 +1377,7 @@ export default function Experience() {
               ref={heroSpotlightRef}
               className="absolute left-0 top-0 -translate-x-1/2 -translate-y-1/2 rounded-full w-[640px] h-[640px] will-change-transform opacity-0 pointer-events-none transition-opacity duration-700"
               style={{
-                background: isDarkMode
-                  ? "radial-gradient(circle, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 40%, transparent 72%)"
-                  : "radial-gradient(circle, rgba(0,0,0,0.045) 0%, rgba(0,0,0,0.015) 38%, transparent 72%)",
+                background: "radial-gradient(circle, rgba(0,0,0,0.045) 0%, rgba(0,0,0,0.015) 38%, transparent 72%)",
               }}
             />
 
@@ -1420,51 +1386,37 @@ export default function Experience() {
               {/* Outer dashed ring */}
               <div
                 ref={heroRingOuterRef}
-                className={`w-[min(88vw,620px)] h-[min(88vw,620px)] rounded-full border border-dashed will-change-transform pointer-events-none transition-colors duration-500 ${
-                  isDarkMode ? "border-white/[0.08]" : "border-black/[0.045]"
-                }`}
+                className="w-[min(88vw,620px)] h-[min(88vw,620px)] rounded-full border border-dashed border-black/[0.055] will-change-transform pointer-events-none transition-colors duration-500"
               />
               {/* Inner concentric ring with cardinal ticks */}
               <div
                 ref={heroRingInnerRef}
-                className={`absolute w-[min(62vw,420px)] h-[min(62vw,420px)] rounded-full border will-change-transform flex items-center justify-center pointer-events-none transition-colors duration-500 ${
-                  isDarkMode ? "border-white/[0.12]" : "border-black/[0.065]"
-                }`}
+                className="absolute w-[min(62vw,420px)] h-[min(62vw,420px)] rounded-full border border-black/[0.075] will-change-transform flex items-center justify-center pointer-events-none transition-colors duration-500"
               >
                 {/* Cardinal tick marks */}
-                <div className={`absolute -top-1 w-2.5 h-[2px] transition-colors duration-500 ${isDarkMode ? "bg-white/30" : "bg-black/20"}`} />
-                <div className={`absolute -bottom-1 w-2.5 h-[2px] transition-colors duration-500 ${isDarkMode ? "bg-white/30" : "bg-black/20"}`} />
-                <div className={`absolute -left-1 h-2.5 w-[2px] transition-colors duration-500 ${isDarkMode ? "bg-white/30" : "bg-black/20"}`} />
-                <div className={`absolute -right-1 h-2.5 w-[2px] transition-colors duration-500 ${isDarkMode ? "bg-white/30" : "bg-black/20"}`} />
+                <div className="absolute -top-1 w-2.5 h-[2px] bg-black/20" />
+                <div className="absolute -bottom-1 w-2.5 h-[2px] bg-black/20" />
+                <div className="absolute -left-1 h-2.5 w-[2px] bg-black/20" />
+                <div className="absolute -right-1 h-2.5 w-[2px] bg-black/20" />
               </div>
             </div>
 
             {/* Technical Blueprint Corner Markings */}
-            <div className={`hidden sm:block absolute top-8 left-8 lg:top-12 lg:left-12 font-mono text-[9px] tracking-widest uppercase pointer-events-none transition-colors duration-500 ${
-              isDarkMode ? "text-white/25" : "text-black/20"
-            }`}>
+            <div className="hidden sm:block absolute top-8 left-8 lg:top-12 lg:left-12 font-mono text-[9px] tracking-widest uppercase pointer-events-none text-black/25">
               SEC // 001 · ENTRANCE
             </div>
-            <div className={`hidden sm:block absolute top-8 right-8 lg:top-12 lg:right-12 font-mono text-[9px] tracking-widest uppercase pointer-events-none transition-colors duration-500 ${
-              isDarkMode ? "text-white/25" : "text-black/20"
-            }`}>
+            <div className="hidden sm:block absolute top-8 right-8 lg:top-12 lg:right-12 font-mono text-[9px] tracking-widest uppercase pointer-events-none text-black/25">
               SYS // ARMED
             </div>
-            <div className={`hidden sm:block absolute bottom-8 left-8 lg:bottom-12 lg:left-12 font-mono text-[9px] tracking-widest uppercase pointer-events-none transition-colors duration-500 ${
-              isDarkMode ? "text-white/25" : "text-black/20"
-            }`}>
+            <div className="hidden sm:block absolute bottom-8 left-8 lg:bottom-12 lg:left-12 font-mono text-[9px] tracking-widest uppercase pointer-events-none text-black/25">
               MODE // EXPLORER
             </div>
-            <div className={`hidden sm:block absolute bottom-8 right-8 lg:bottom-12 lg:right-12 font-mono text-[9px] tracking-widest uppercase pointer-events-none transition-colors duration-500 ${
-              isDarkMode ? "text-white/25" : "text-black/20"
-            }`}>
+            <div className="hidden sm:block absolute bottom-8 right-8 lg:bottom-12 lg:right-12 font-mono text-[9px] tracking-widest uppercase pointer-events-none text-black/25">
               EST // 2024
             </div>
           </div>
           <h1
-            className={`text-glow font-excon font-bold leading-[1.08] sm:leading-[1.02] flex flex-col sm:inline-flex sm:flex-row items-center justify-center text-center gap-0 sm:gap-2 select-none pointer-events-none transition-colors duration-500 ${
-              isDarkMode ? "text-white" : "text-ink"
-            }`}
+            className="text-glow font-excon font-bold leading-[1.08] sm:leading-[1.02] flex flex-col sm:inline-flex sm:flex-row items-center justify-center text-center gap-0 sm:gap-2 select-none pointer-events-none text-neutral-900"
             style={{ fontSize: HEADING_SIZE }}
           >
             <span ref={heroPre} className="inline-block overflow-hidden py-1">
@@ -1503,26 +1455,20 @@ export default function Experience() {
             <div className="overflow-hidden py-1">
               <p
                 ref={heroSubInner}
-                className={`text-center font-excon font-bold leading-none transition-colors duration-300 group-hover:-translate-y-0.5 will-change-transform flex items-center justify-center gap-2 ${
-                  isDarkMode ? "text-white/90" : "text-ink"
-                }`}
+                className="text-center font-excon font-bold leading-none transition-colors duration-300 group-hover:-translate-y-0.5 will-change-transform flex items-center justify-center gap-2 text-neutral-900"
                 style={{ fontSize: "clamp(0.92rem, 2.1vw, 1.45rem)" }}
               >
                 <span>{SUBTITLE}</span>
               </p>
             </div>
             <div className="mt-2.5 flex items-center gap-2 font-mono text-[0.65rem] sm:text-xs tracking-wider transition-all duration-300">
-              <span className={`hidden sm:inline border rounded px-2 py-0.5 transition-colors duration-300 ${
-                isDarkMode ? "border-white/15 bg-white/[0.06] text-neutral-300" : "border-black/10 bg-black/[0.03] text-neutral-600"
-              }`}>
+              <span className="hidden sm:inline border rounded px-2 py-0.5 border-black/10 bg-black/[0.03] text-neutral-600">
                 Press any key
               </span>
-              <span className={`sm:hidden border rounded px-2 py-0.5 transition-colors duration-300 ${
-                isDarkMode ? "border-white/15 bg-white/[0.06] text-neutral-300" : "border-black/10 bg-black/[0.03] text-neutral-600"
-              }`}>
+              <span className="sm:hidden border rounded px-2 py-0.5 border-black/10 bg-black/[0.03] text-neutral-600">
                 Tap anywhere
               </span>
-              <span className={`transition-colors duration-300 ${isDarkMode ? "text-white/40" : "text-black/35"}`}>
+              <span className="text-black/40">
                 to enter
               </span>
             </div>
@@ -1555,7 +1501,7 @@ export default function Experience() {
                       className="group will-reveal select-none"
                       style={{
                         fontSize: item.key === "about" ? MENU_ACTIVE : MENU_SMALL,
-                        color: item.key === "about" ? INK_LIGHT : INK_DIM_LIGHT,
+                        color: item.key === "about" ? INK_DARK : INK_DIM_DARK,
                       }}
                     >
                       <button
@@ -1573,8 +1519,8 @@ export default function Experience() {
                           <span
                             className={`w-1.5 h-1.5 rounded-full transition-all duration-300 shrink-0 ${
                               isActive
-                                ? "bg-white scale-100 opacity-100 shadow-[0_0_8px_rgba(255,255,255,0.9)]"
-                                : "bg-white/30 scale-0 opacity-0 -mr-2"
+                                ? "bg-neutral-900 scale-100 opacity-100 shadow-[0_0_8px_rgba(0,0,0,0.2)]"
+                                : "bg-black/20 scale-0 opacity-0 -mr-2"
                             }`}
                           />
                           {"lines" in item && item.lines ? (
@@ -1585,15 +1531,15 @@ export default function Experience() {
                                   : "flex-row items-baseline gap-[0.28em] leading-normal"
                               }`}
                             >
-                              <span className="transition-colors duration-200 group-hover:text-white">
+                              <span className="transition-colors duration-200 group-hover:text-neutral-900">
                                 {item.lines[0]}
                               </span>
-                              <span className="transition-colors duration-200 group-hover:text-white">
+                              <span className="transition-colors duration-200 group-hover:text-neutral-900">
                                 {item.lines[1]}
                               </span>
                             </span>
                           ) : (
-                            <span className="transition-colors duration-200 group-hover:text-white whitespace-nowrap">
+                            <span className="transition-colors duration-200 group-hover:text-neutral-900 whitespace-nowrap">
                               {item.label}
                             </span>
                           )}
@@ -1618,8 +1564,8 @@ export default function Experience() {
                 <div className="w-full max-w-[560px] 2xl:max-w-[620px] flex flex-col items-start text-left relative z-10">
                   {/* Category / Location Eyebrow */}
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    <span className="font-mono text-xs sm:text-[0.78rem] uppercase font-bold tracking-widest text-emerald-300">
+                    <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse" />
+                    <span className="font-mono text-xs sm:text-[0.78rem] uppercase font-bold tracking-widest text-emerald-700">
                       INTRODUCTION · SYSTEM OPERATOR
                     </span>
                   </div>
@@ -1627,20 +1573,20 @@ export default function Experience() {
                   {/* Tharun S Name */}
                   <h3
                     ref={aboutName}
-                    className="will-reveal font-excon font-extrabold text-4xl sm:text-5xl lg:text-6xl tracking-tight text-white leading-[1.04] drop-shadow-[0_4px_16px_rgba(0,0,0,0.6)]"
+                    className="will-reveal font-excon font-extrabold text-4xl sm:text-5xl lg:text-6xl tracking-tight text-neutral-900 leading-[1.04]"
                   >
                     Tharun S
                   </h3>
 
                   {/* Role Subhead */}
-                  <p className="mt-2 font-excon font-bold text-base sm:text-lg text-emerald-400 tracking-wide flex items-center gap-2 drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)]">
+                  <p className="mt-2 font-excon font-bold text-base sm:text-lg text-emerald-700 tracking-wide flex items-center gap-2">
                     Product Engineer &amp; Full-Stack Builder
                   </p>
 
                   {/* Narrative Bio */}
                   <p
                     ref={aboutPara}
-                    className="will-reveal mt-3 sm:mt-4 font-inter leading-relaxed text-neutral-200 text-xs sm:text-sm md:text-base drop-shadow-[0_2px_10px_rgba(0,0,0,0.7)]"
+                    className="will-reveal mt-3 sm:mt-4 font-inter leading-relaxed text-neutral-600 text-xs sm:text-sm md:text-base"
                   >
                     I enjoy building products where thoughtful design meets reliable engineering.
                     Every project is an opportunity to create something intuitive, purposeful, and crafted
@@ -1652,19 +1598,19 @@ export default function Experience() {
                     ref={profile}
                     className="mt-4 sm:mt-5 flex flex-wrap gap-2 text-xs font-medium"
                   >
-                    <span className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/10 backdrop-blur-md px-3 py-1 text-white/90 shadow-sm">
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-white/80 backdrop-blur-md px-3 py-1 text-neutral-800 shadow-xs">
                       <span>📍</span>
                       <span>Tamil Nadu, India</span>
                     </span>
-                    <span className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/10 backdrop-blur-md px-3 py-1 text-white/90 shadow-sm">
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-white/80 backdrop-blur-md px-3 py-1 text-neutral-800 shadow-xs">
                       <span>🎓</span>
                       <span>MCA @ PSG Tech</span>
                     </span>
-                    <span className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/10 backdrop-blur-md px-3 py-1 text-white/90 shadow-sm">
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-white/80 backdrop-blur-md px-3 py-1 text-neutral-800 shadow-xs">
                       <span>💼</span>
                       <span>Ex-Bajaj Finserv</span>
                     </span>
-                    <span className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/10 backdrop-blur-md px-3 py-1 text-white/90 shadow-sm">
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-white/80 backdrop-blur-md px-3 py-1 text-neutral-800 shadow-xs">
                       <span>📊</span>
                       <span>B.Sc. Data Analytics</span>
                     </span>
@@ -1677,7 +1623,7 @@ export default function Experience() {
                       onClick={() => switchSectionTo("journey")}
                       onMouseEnter={() => soundFX.playHoverTick()}
                       aria-label="Continue to Journey section"
-                      className="group inline-flex items-center gap-2 rounded-full bg-white hover:bg-neutral-100 text-black px-5 py-2.5 font-inter text-xs sm:text-sm font-bold transition-all duration-300 hover:scale-105 active:scale-95 shadow-[0_8px_24px_rgba(0,0,0,0.4)] cursor-pointer"
+                      className="group inline-flex items-center gap-2 rounded-full bg-neutral-900 hover:bg-neutral-800 text-white px-5 py-2.5 font-inter text-xs sm:text-sm font-bold transition-all duration-300 hover:scale-105 active:scale-95 shadow-[0_8px_24px_rgba(0,0,0,0.12)] cursor-pointer"
                     >
                       <span>Explore Journey</span>
                     </button>
@@ -1687,7 +1633,7 @@ export default function Experience() {
                       onClick={() => switchSectionTo("works")}
                       onMouseEnter={() => soundFX.playHoverTick()}
                       aria-label="Jump directly to projects"
-                      className="inline-flex items-center gap-1.5 rounded-full border border-white/20 hover:border-white/40 bg-white/5 hover:bg-white/15 backdrop-blur-md px-4 py-2.5 text-xs sm:text-sm font-semibold text-white transition-all active:scale-95 cursor-pointer"
+                      className="inline-flex items-center gap-1.5 rounded-full border border-black/15 hover:border-black/30 bg-black/[0.04] hover:bg-black/[0.08] backdrop-blur-md px-4 py-2.5 text-xs sm:text-sm font-semibold text-neutral-900 transition-all active:scale-95 cursor-pointer"
                     >
                       <span>Projects</span>
                     </button>
@@ -1705,14 +1651,14 @@ export default function Experience() {
                 <h2 className="sr-only">Journey Chapters</h2>
                 <div className="w-full max-w-[820px] 2xl:max-w-[880px] flex flex-col gap-2.5 sm:gap-3.5">
                   {/* Section Context Header */}
-                  <div className="flex items-center justify-between border-b border-white/10 pb-2 sm:pb-2.5">
+                  <div className="flex items-center justify-between border-b border-black/10 pb-2 sm:pb-2.5">
                     <div className="flex items-center gap-1.5 sm:gap-2">
-                      <span className="h-2 w-2 rounded-full bg-white" />
-                      <span className="font-excon font-bold text-xs sm:text-sm uppercase tracking-wider text-white">
+                      <span className="h-2 w-2 rounded-full bg-neutral-900" />
+                      <span className="font-excon font-bold text-xs sm:text-sm uppercase tracking-wider text-neutral-900">
                         The Journey
                       </span>
-                      <span className="text-white/30 hidden sm:inline">·</span>
-                      <span className="font-inter text-[0.68rem] sm:text-xs text-neutral-400 hidden sm:inline">
+                      <span className="text-black/25 hidden sm:inline">·</span>
+                      <span className="font-inter text-[0.68rem] sm:text-xs text-neutral-500 hidden sm:inline">
                         Every chapter added something to the person I am today.
                       </span>
                     </div>
@@ -1740,8 +1686,8 @@ export default function Experience() {
                           onKeyDown={(e) => handleChapterKeyDown(e, i)}
                           onMouseEnter={() => soundFX.playHoverTick()}
                           className={`group flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 hover:-translate-y-0.5 active:scale-95 cursor-pointer outline-none focus:outline-none focus-visible:outline-none focus:ring-0 ${i === activeChapterIndex
-                            ? "bg-white text-black shadow-sm"
-                            : "bg-white/10 text-white/70 hover:text-white hover:bg-white/20"
+                            ? "bg-neutral-900 text-white shadow-sm"
+                            : "bg-black/[0.05] text-neutral-600 hover:text-neutral-900 hover:bg-black/10"
                             }`}
                         >
                           <span
@@ -1763,7 +1709,7 @@ export default function Experience() {
                         onClick={() => handleChapterClick(Math.max(0, activeChapterIndex - 1))}
                         disabled={activeChapterIndex === 0}
                         aria-label="Previous chapter"
-                        className="px-2.5 py-1 rounded-full border border-white/15 bg-white/5 hover:bg-white/15 text-neutral-300 hover:text-white font-mono text-xs disabled:opacity-20 disabled:cursor-not-allowed transition-all active:scale-95 cursor-pointer outline-none"
+                        className="px-2.5 py-1 rounded-full border border-black/15 bg-black/[0.04] hover:bg-black/[0.08] text-neutral-700 hover:text-neutral-900 font-mono text-xs disabled:opacity-25 disabled:cursor-not-allowed transition-all active:scale-95 cursor-pointer outline-none"
                       >
                         Prev
                       </button>
@@ -1772,7 +1718,7 @@ export default function Experience() {
                         onClick={() => handleChapterClick(Math.min(JOURNEY.length - 1, activeChapterIndex + 1))}
                         disabled={activeChapterIndex === JOURNEY.length - 1}
                         aria-label="Next chapter"
-                        className="px-2.5 py-1 rounded-full border border-white/15 bg-white/5 hover:bg-white/15 text-neutral-300 hover:text-white font-mono text-xs disabled:opacity-20 disabled:cursor-not-allowed transition-all active:scale-95 cursor-pointer outline-none"
+                        className="px-2.5 py-1 rounded-full border border-black/15 bg-black/[0.04] hover:bg-black/[0.08] text-neutral-700 hover:text-neutral-900 font-mono text-xs disabled:opacity-25 disabled:cursor-not-allowed transition-all active:scale-95 cursor-pointer outline-none"
                       >
                         Next
                       </button>
@@ -1789,9 +1735,9 @@ export default function Experience() {
                         aria-labelledby={`journey-tab-${i}`}
                         tabIndex={0}
                         data-jcard={i}
-                        className="absolute inset-0 rounded-[24px] sm:rounded-[28px] overflow-hidden border border-white/[0.08] hover:border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-2xl p-5 sm:p-7 md:p-8 flex flex-col justify-between overflow-y-auto sm:overflow-hidden outline-none will-change-[transform,opacity] transition-all duration-300"
+                        className="absolute inset-0 rounded-[24px] sm:rounded-[28px] overflow-hidden border border-black/[0.08] hover:border-black/15 shadow-[0_20px_50px_rgba(15,23,42,0.07),inset_0_1px_0_rgba(255,255,255,0.95)] backdrop-blur-2xl p-5 sm:p-7 md:p-8 flex flex-col justify-between overflow-y-auto sm:overflow-hidden outline-none will-change-[transform,opacity] transition-all duration-300"
                         style={{
-                          background: `radial-gradient(ellipse 90% 60% at 0% 0%, rgb(${step.accent.join(" ")} / 0.12) 0%, transparent 70%), rgba(18, 18, 22, 0.75)`,
+                          background: `radial-gradient(ellipse 90% 60% at 0% 0%, rgb(${step.accent.join(" ")} / 0.14) 0%, transparent 70%), rgba(255, 255, 255, 0.78)`,
                         }}
                       >
                         <div>
@@ -1802,8 +1748,8 @@ export default function Experience() {
                                 <span
                                   className="inline-flex items-center gap-1 sm:gap-1.5 text-[0.65rem] sm:text-xs font-semibold uppercase tracking-wider px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md"
                                   style={{
-                                    backgroundColor: `rgb(${step.accent.join(" ")} / 0.16)`,
-                                    color: `rgb(${step.accent.join(" ")})`,
+                                    backgroundColor: `rgb(${step.accent.join(" ")} / 0.14)`,
+                                    color: `color-mix(in srgb, rgb(${step.accent.join(" ")}) 74%, #000000)`,
                                   }}
                                 >
                                   <span
@@ -1814,34 +1760,34 @@ export default function Experience() {
                                   {step.title}
                                 </span>
                                 {step.period && (
-                                  <span className="text-[0.65rem] sm:text-xs font-inter text-neutral-400 font-medium">
+                                  <span className="text-[0.65rem] sm:text-xs font-inter text-neutral-500 font-medium">
                                     {step.period}
                                   </span>
                                 )}
                               </div>
 
-                              <h3 className="mt-2 sm:mt-3 font-excon text-lg sm:text-2xl md:text-3xl font-bold tracking-tight text-white break-words">
+                              <h3 className="mt-2 sm:mt-3 font-excon text-lg sm:text-2xl md:text-3xl font-bold tracking-tight text-neutral-900 break-words">
                                 {step.primary}
                               </h3>
                               {step.secondary && (
-                                <p className="mt-0.5 sm:mt-1 font-inter text-xs sm:text-sm md:text-base text-neutral-300 font-medium">
+                                <p className="mt-0.5 sm:mt-1 font-inter text-xs sm:text-sm md:text-base text-neutral-600 font-medium">
                                   {step.secondary}
                                 </p>
                               )}
                             </div>
 
                             {step.metric && (
-                              <div className="flex flex-col items-start sm:items-end shrink-0 self-start rounded-xl sm:rounded-2xl bg-white/[0.05] border border-white/10 px-2.5 py-1.5 sm:px-4 sm:py-2 transition-all duration-300 hover:scale-105 hover:bg-white/10 hover:shadow-[0_8px_20px_rgba(0,0,0,0.3)] cursor-default">
-                                <div className="flex items-baseline font-excon font-bold text-lg sm:text-2xl md:text-3xl text-white leading-none">
+                              <div className="flex flex-col items-start sm:items-end shrink-0 self-start rounded-xl sm:rounded-2xl bg-black/[0.03] border border-black/10 px-2.5 py-1.5 sm:px-4 sm:py-2 transition-all duration-300 hover:scale-105 hover:bg-white hover:shadow-[0_8px_20px_rgba(15,23,42,0.08)] cursor-default">
+                                <div className="flex items-baseline font-excon font-bold text-lg sm:text-2xl md:text-3xl text-neutral-900 leading-none">
                                   <span>{step.metric}</span>
                                   {step.metricUnit && (
-                                    <span className="text-xs sm:text-lg font-light ml-0.5 text-neutral-300">
+                                    <span className="text-xs sm:text-lg font-light ml-0.5 text-neutral-600">
                                       {step.metricUnit}
                                     </span>
                                   )}
                                 </div>
                                 {step.metricLabel && (
-                                  <span className="mt-0.5 text-[0.62rem] sm:text-[0.68rem] font-semibold uppercase tracking-widest text-neutral-400">
+                                  <span className="mt-0.5 text-[0.62rem] sm:text-[0.68rem] font-semibold uppercase tracking-widest text-neutral-500">
                                     {step.metricLabel}
                                   </span>
                                 )}
@@ -1850,28 +1796,30 @@ export default function Experience() {
                           </div>
 
                           {/* Divider */}
-                          <div className="my-2 sm:my-3.5 h-px w-full bg-white/10" />
+                          <div className="my-2 sm:my-3.5 h-px w-full bg-black/10" />
 
                           {/* Narrative Story */}
-                          <p className="font-inter text-neutral-200 text-xs sm:text-sm md:text-[0.94rem] leading-relaxed max-w-[66ch]">
+                          <p className="font-inter text-neutral-700 text-xs sm:text-sm md:text-[0.94rem] leading-relaxed max-w-[66ch]">
                             {step.body}
                           </p>
                         </div>
 
                         {/* Bottom row: Acquired skills */}
-                        <div className="mt-2 sm:mt-3.5 pt-2 sm:pt-3 border-t border-white/10 flex flex-wrap items-center gap-1.5 sm:gap-2">
-                          <span className="text-[0.65rem] sm:text-[0.7rem] uppercase font-semibold tracking-wider text-neutral-400 mr-1">
+                        <div className="mt-2 sm:mt-3.5 pt-2 sm:pt-3 border-t border-black/10 flex flex-wrap items-center gap-1.5 sm:gap-2">
+                          <span className="text-[0.65rem] sm:text-[0.7rem] uppercase font-semibold tracking-wider text-neutral-500 mr-1">
                             Acquired:
                           </span>
                           {step.skills.map((skill) => (
                             <span
                               key={skill}
-                              className="group/pill inline-flex items-center gap-1 sm:gap-1.5 rounded-full border border-white/10 bg-white/[0.06] px-2.5 py-0.5 sm:px-3 sm:py-1 text-[0.68rem] sm:text-xs font-medium text-neutral-200 transition-all duration-200 hover:-translate-y-0.5 hover:border-white/30 hover:bg-white/15 hover:shadow-sm cursor-default"
+                              className="group/pill inline-flex items-center gap-1 sm:gap-1.5 rounded-full border border-black/10 bg-white/80 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[0.68rem] sm:text-xs font-medium text-neutral-800 transition-all duration-200 hover:-translate-y-0.5 hover:border-black/25 hover:bg-white hover:shadow-xs cursor-default"
                             >
                               <span
                                 aria-hidden="true"
                                 className="font-bold text-[0.65rem] sm:text-[0.7rem] transition-transform duration-200 group-hover/pill:scale-125"
-                                style={{ color: `rgb(${step.accent.join(" ")})` }}
+                                style={{
+                                  color: `color-mix(in srgb, rgb(${step.accent.join(" ")}) 76%, #000000)`,
+                                }}
                               >
                                 ✓
                               </span>
@@ -1884,11 +1832,11 @@ export default function Experience() {
                   </div>
 
                   {/* Closing Sign-Off Note */}
-                  <div className="mt-2 sm:mt-2.5 flex flex-col sm:flex-row sm:items-baseline justify-between gap-1.5 border-t border-white/10 pt-2 sm:pt-2.5">
-                    <span className="font-mono text-[0.68rem] sm:text-xs font-bold uppercase tracking-wider text-white shrink-0">
+                  <div className="mt-2 sm:mt-2.5 flex flex-col sm:flex-row sm:items-baseline justify-between gap-1.5 border-t border-black/10 pt-2 sm:pt-2.5">
+                    <span className="font-mono text-[0.68rem] sm:text-xs font-bold uppercase tracking-wider text-neutral-900 shrink-0">
                       The story continues.
                     </span>
-                    <p className="font-inter text-[0.68rem] sm:text-xs text-neutral-400 leading-normal">
+                    <p className="font-inter text-[0.68rem] sm:text-xs text-neutral-600 leading-normal">
                       I&apos;m still learning, experimenting, and figuring things out. Every chapter has given me a different perspective, and I&apos;m looking forward to seeing what I build with all of them.
                     </p>
                   </div>
@@ -1905,14 +1853,14 @@ export default function Experience() {
                 <h2 className="sr-only">Toolkit &amp; Capabilities</h2>
                 <div className="w-full max-w-[940px] 2xl:max-w-[1020px] flex flex-col gap-2.5 sm:gap-4">
                   {/* Context Header */}
-                  <div className="flex items-center justify-between border-b border-white/10 pb-2 sm:pb-2.5">
+                  <div className="flex items-center justify-between border-b border-black/10 pb-2 sm:pb-2.5">
                     <div className="flex items-center gap-1.5 sm:gap-2">
-                      <span className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse" />
-                      <span className="font-excon font-bold text-xs sm:text-sm uppercase tracking-wider text-white">
+                      <span className="h-2 w-2 rounded-full bg-cyan-600 animate-pulse" />
+                      <span className="font-excon font-bold text-xs sm:text-sm uppercase tracking-wider text-neutral-900">
                         Toolkit
                       </span>
-                      <span className="text-white/30 hidden sm:inline">·</span>
-                      <span className="font-inter text-[0.68rem] sm:text-xs text-neutral-400 hidden sm:inline">
+                      <span className="text-black/25 hidden sm:inline">·</span>
+                      <span className="font-inter text-[0.68rem] sm:text-xs text-neutral-500 hidden sm:inline">
                         16 Capabilities accumulated across the journey
                       </span>
                     </div>
@@ -1920,7 +1868,7 @@ export default function Experience() {
                     <div className="flex items-center gap-2 sm:gap-3">
                       <span
                         data-toolkit-status
-                        className="font-mono text-[0.68rem] sm:text-xs font-semibold text-neutral-400"
+                        className="font-mono text-[0.68rem] sm:text-xs font-semibold text-neutral-500"
                       >
                         16 Capabilities Unlocked
                       </span>
@@ -1933,7 +1881,7 @@ export default function Experience() {
                         }}
                         onMouseEnter={() => soundFX.playHoverTick()}
                         aria-label="Replay toolkit showcase animation"
-                        className="group flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2 sm:px-2.5 py-0.5 sm:py-1 text-[0.65rem] sm:text-xs font-mono font-medium text-neutral-300 transition-all hover:border-white/35 hover:text-white hover:bg-white/10 active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-white"
+                        className="group flex items-center gap-1 rounded-full border border-black/15 bg-black/[0.04] px-2 sm:px-2.5 py-0.5 sm:py-1 text-[0.65rem] sm:text-xs font-mono font-medium text-neutral-700 transition-all hover:border-black/30 hover:text-neutral-900 hover:bg-black/[0.08] active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-neutral-900"
                       >
                         <span className="transition-transform duration-300 group-hover:rotate-180">↺</span>
                         <span className="hidden sm:inline">Replay</span>
@@ -1942,10 +1890,10 @@ export default function Experience() {
                   </div>
 
                   {/* Video-style Progress Bar */}
-                  <div className="h-[2px] w-full bg-white/10 rounded-full overflow-hidden -mt-1 sm:-mt-2">
+                  <div className="h-[2px] w-full bg-black/10 rounded-full overflow-hidden -mt-1 sm:-mt-2">
                     <div
                       data-toolkit-progress
-                      className="h-full bg-cyan-400 origin-left transition-opacity duration-300"
+                      className="h-full bg-cyan-600 origin-left transition-opacity duration-300"
                       style={{ transform: "scaleX(0)" }}
                     />
                   </div>
@@ -1965,12 +1913,12 @@ export default function Experience() {
                         <div
                           key={cat.name}
                           data-craft-card={ci}
-                          className="group relative rounded-[20px] sm:rounded-[24px] p-4 sm:p-6 lg:p-7 overflow-hidden transition-all duration-300 hover:shadow-[0_24px_60px_rgba(0,0,0,0.65)] hover:-translate-y-0.5 border border-white/[0.08] hover:border-white/20 shadow-[0_16px_40px_rgba(0,0,0,0.45)] backdrop-blur-2xl"
+                          className="group relative rounded-[20px] sm:rounded-[24px] p-4 sm:p-6 lg:p-7 overflow-hidden transition-all duration-300 hover:shadow-[0_24px_60px_rgba(15,23,42,0.1)] hover:-translate-y-0.5 border border-black/[0.08] hover:border-black/15 shadow-[0_16px_40px_rgba(15,23,42,0.06),inset_0_1px_0_rgba(255,255,255,0.9)] backdrop-blur-2xl"
                           style={
                             {
                               "--origin-rgb": JOURNEY[dominant].accent.join(" "),
                               background:
-                                "radial-gradient(ellipse 90% 60% at 0% 0%, rgb(var(--origin-rgb) / 0.12) 0%, transparent 70%), rgba(18, 18, 22, 0.7)",
+                                "radial-gradient(ellipse 90% 60% at 0% 0%, rgb(var(--origin-rgb) / 0.14) 0%, transparent 70%), rgba(255, 255, 255, 0.78)",
                             } as React.CSSProperties
                           }
                         >
@@ -1993,7 +1941,7 @@ export default function Experience() {
                                 stroke: "rgb(var(--origin-rgb))",
                                 strokeDasharray: 100,
                                 strokeDashoffset: 100,
-                                filter: "drop-shadow(0 0 6px rgb(var(--origin-rgb) / 0.55))",
+                                filter: "drop-shadow(0 0 6px rgb(var(--origin-rgb) / 0.35))",
                               }}
                             />
                           </svg>
@@ -2004,10 +1952,10 @@ export default function Experience() {
                               className="h-1.5 w-1.5 rounded-full shrink-0"
                               style={{
                                 backgroundColor: "rgb(var(--origin-rgb))",
-                                boxShadow: "0 0 8px rgb(var(--origin-rgb) / 0.7)",
+                                boxShadow: "0 0 8px rgb(var(--origin-rgb) / 0.55)",
                               }}
                             />
-                            <h3 className="font-mono font-semibold uppercase text-white/70 text-[0.68rem] sm:text-xs tracking-wider">
+                            <h3 className="font-mono font-semibold uppercase text-neutral-600 text-[0.68rem] sm:text-xs tracking-wider">
                               {cat.name}
                             </h3>
                           </div>
@@ -2021,7 +1969,7 @@ export default function Experience() {
                                   key={s}
                                   data-craft-item
                                   onMouseEnter={() => soundFX.playHoverTick()}
-                                  className="group/item relative flex items-center justify-between rounded-lg px-2 sm:px-2.5 py-1 sm:py-1.5 transition-all duration-200 hover:bg-white/[0.04] cursor-default"
+                                  className="group/item relative flex items-center justify-between rounded-lg px-2 sm:px-2.5 py-1 sm:py-1.5 transition-all duration-200 hover:bg-black/[0.04] cursor-default"
                                   style={
                                     {
                                       "--origin-rgb": JOURNEY[origin].accent.join(" "),
@@ -2037,7 +1985,7 @@ export default function Experience() {
                                     </span>
                                     <span
                                       data-craft-name
-                                      className="font-inter font-medium text-neutral-200 text-xs sm:text-sm md:text-[0.92rem] truncate transition-colors duration-200 group-hover/item:text-white"
+                                      className="font-inter font-medium text-neutral-800 text-xs sm:text-sm md:text-[0.92rem] truncate transition-colors duration-200 group-hover/item:text-black"
                                     >
                                       {s}
                                     </span>
@@ -2068,14 +2016,14 @@ export default function Experience() {
               >
                 <h2 className="sr-only">Selected Projects</h2>
                 <div className="w-full max-w-[900px] 2xl:max-w-[980px] flex flex-col gap-3 sm:gap-5">
-                  <div className="flex items-center justify-between border-b border-white/10 pb-2.5 sm:pb-3">
+                  <div className="flex items-center justify-between border-b border-black/10 pb-2.5 sm:pb-3">
                     <div className="flex items-center gap-2">
-                      <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                      <span className="font-excon font-bold text-xs sm:text-sm uppercase tracking-wider text-white">
+                      <span className="h-2 w-2 rounded-full bg-emerald-600 animate-pulse" />
+                      <span className="font-excon font-bold text-xs sm:text-sm uppercase tracking-wider text-neutral-900">
                         Projects
                       </span>
                     </div>
-                    <span className="font-inter text-xs text-neutral-400 hidden sm:inline">
+                    <span className="font-inter text-xs text-neutral-500 hidden sm:inline">
                       Selected engineering systems
                     </span>
                   </div>
@@ -2093,14 +2041,14 @@ export default function Experience() {
                 <h2 className="sr-only">Off Script</h2>
                 <div className="w-full max-w-[900px] 2xl:max-w-[980px] flex flex-col gap-3 sm:gap-5">
                   {/* Context Header */}
-                  <div className="flex items-center justify-between border-b border-white/10 pb-2.5 sm:pb-3">
+                  <div className="flex items-center justify-between border-b border-black/10 pb-2.5 sm:pb-3">
                     <div className="flex items-center gap-2">
-                      <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
-                      <span className="font-excon font-bold text-xs sm:text-sm uppercase tracking-wider text-white">
+                      <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
+                      <span className="font-excon font-bold text-xs sm:text-sm uppercase tracking-wider text-neutral-900">
                         Off Script
                       </span>
                     </div>
-                    <span className="font-inter text-xs text-neutral-400 hidden sm:inline">
+                    <span className="font-inter text-xs text-neutral-500 hidden sm:inline">
                       Life beyond the screen
                     </span>
                   </div>
@@ -2121,9 +2069,9 @@ export default function Experience() {
               >
                 <h2 className="sr-only">Connect</h2>
                 <div
-                  className="w-full max-w-[900px] 2xl:max-w-[960px] rounded-[24px] sm:rounded-[32px] overflow-hidden border border-white/[0.08] hover:border-white/20 shadow-[0_24px_60px_rgba(0,0,0,0.55),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-2xl p-5 sm:p-7 md:p-8 text-white transition-all duration-300"
+                  className="w-full max-w-[900px] 2xl:max-w-[960px] rounded-[24px] sm:rounded-[32px] overflow-hidden border border-black/[0.08] hover:border-black/15 shadow-[0_24px_60px_rgba(15,23,42,0.08),inset_0_1px_0_rgba(255,255,255,0.95)] backdrop-blur-2xl p-5 sm:p-7 md:p-8 text-neutral-900 transition-all duration-300"
                   style={{
-                    background: "radial-gradient(ellipse 90% 60% at 0% 0%, rgba(46, 175, 135, 0.12) 0%, transparent 70%), rgba(18, 18, 22, 0.75)",
+                    background: "radial-gradient(ellipse 90% 60% at 0% 0%, rgba(46, 175, 135, 0.14) 0%, transparent 70%), rgba(255, 255, 255, 0.78)",
                   }}
                 >
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 lg:gap-8 items-stretch">
@@ -2131,27 +2079,27 @@ export default function Experience() {
                     <div className="lg:col-span-5 flex flex-col justify-between h-full space-y-4">
                       <div className="flex flex-col space-y-3.5">
                         <div className="flex items-center">
-                          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-950/60 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-emerald-400">
-                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-600/25 bg-emerald-50 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-emerald-700">
+                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 animate-pulse" />
                             Available for opportunities
                           </span>
                         </div>
 
-                        <h3 className="font-excon text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-white leading-[1.08]">
+                        <h3 className="font-excon text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-neutral-900 leading-[1.08]">
                           Let’s build something exceptional.
                         </h3>
-                        <p className="font-inter text-xs sm:text-sm text-neutral-300 leading-relaxed">
+                        <p className="font-inter text-xs sm:text-sm text-neutral-600 leading-relaxed">
                           Have a product to build, an engineering opportunity, or just want to connect? Share your details or reach out directly.
                         </p>
 
                         {/* Direct Channel Card */}
-                        <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-3.5 sm:p-4 text-white">
-                          <span className="block text-xs uppercase font-semibold tracking-wider text-neutral-400 mb-1">
+                        <div className="rounded-2xl border border-black/[0.08] bg-white/80 p-3.5 sm:p-4 text-neutral-900 shadow-xs">
+                          <span className="block text-xs uppercase font-semibold tracking-wider text-neutral-500 mb-1">
                             Direct Channel
                           </span>
                           <a
                             href="mailto:tharun.suresh@outlook.com"
-                            className="font-inter text-xs sm:text-sm font-bold text-white hover:text-emerald-400 transition-colors break-all"
+                            className="font-inter text-xs sm:text-sm font-bold text-neutral-900 hover:text-emerald-700 transition-colors break-all"
                           >
                             tharun.suresh@outlook.com
                           </a>
@@ -2162,7 +2110,7 @@ export default function Experience() {
                               className={`w-full rounded-full py-2 px-4 text-xs font-semibold transition-all duration-200 active:scale-95 cursor-pointer outline-none ${
                                 copiedEmail
                                   ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/25"
-                                  : "bg-white/10 hover:bg-white/20 text-white border border-white/15"
+                                  : "bg-black/[0.05] hover:bg-black/[0.09] text-neutral-900 border border-black/15"
                               }`}
                             >
                               {copiedEmail ? "Copied to Clipboard! ✓" : "Copy Email"}
@@ -2178,7 +2126,7 @@ export default function Experience() {
                           target="_blank"
                           rel="noopener noreferrer"
                           onMouseEnter={() => soundFX.playHoverTick()}
-                          className="group flex items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] py-2.5 text-xs font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:border-white/25 active:scale-95 outline-none"
+                          className="group flex items-center justify-center rounded-xl border border-black/10 bg-white/75 hover:bg-white py-2.5 text-xs font-semibold text-neutral-900 transition-all duration-200 hover:-translate-y-0.5 hover:border-black/25 hover:shadow-xs active:scale-95 outline-none"
                         >
                           <span>GitHub</span>
                         </a>
@@ -2187,7 +2135,7 @@ export default function Experience() {
                           target="_blank"
                           rel="noopener noreferrer"
                           onMouseEnter={() => soundFX.playHoverTick()}
-                          className="group flex items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] py-2.5 text-xs font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:border-white/25 active:scale-95 outline-none"
+                          className="group flex items-center justify-center rounded-xl border border-black/10 bg-white/75 hover:bg-white py-2.5 text-xs font-semibold text-neutral-900 transition-all duration-200 hover:-translate-y-0.5 hover:border-black/25 hover:shadow-xs active:scale-95 outline-none"
                         >
                           <span>LinkedIn</span>
                         </a>
@@ -2197,13 +2145,13 @@ export default function Experience() {
                     {/* Right Column (7 cols): Interactive Details Intake Form */}
                     <div className="lg:col-span-7 flex flex-col justify-between h-full">
                       {contactSubmitted ? (
-                        <div className="h-full flex-1 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md p-6 flex flex-col items-center justify-center text-center py-12 px-4 gap-3.5 shadow-inner">
-                          <div className="h-12 w-12 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 font-bold text-lg shadow-[0_0_20px_rgba(16,185,129,0.3)]">
+                        <div className="h-full flex-1 rounded-2xl border border-black/[0.08] bg-white/80 backdrop-blur-md p-6 flex flex-col items-center justify-center text-center py-12 px-4 gap-3.5 shadow-xs">
+                          <div className="h-12 w-12 rounded-full bg-emerald-50 border border-emerald-600/30 flex items-center justify-center text-emerald-700 font-bold text-lg shadow-xs">
                             ✓
                           </div>
-                          <h4 className="font-excon font-bold text-xl sm:text-2xl text-white">Transmission Dispatched</h4>
-                          <p className="font-inter text-xs sm:text-sm text-neutral-300 max-w-[36ch] leading-relaxed">
-                            Your message has been sent directly to <span className="text-white font-medium">tharun.suresh@outlook.com</span>. I&apos;ll get back to you shortly!
+                          <h4 className="font-excon font-bold text-xl sm:text-2xl text-neutral-900">Transmission Dispatched</h4>
+                          <p className="font-inter text-xs sm:text-sm text-neutral-600 max-w-[36ch] leading-relaxed">
+                            Your message has been sent directly to <span className="text-neutral-900 font-semibold">tharun.suresh@outlook.com</span>. I&apos;ll get back to you shortly!
                           </p>
                           <button
                             type="button"
@@ -2214,7 +2162,7 @@ export default function Experience() {
                               setContactMessage("");
                               setCustomTopic("");
                             }}
-                            className="mt-4 text-xs font-mono text-emerald-400 hover:text-emerald-300 hover:underline underline-offset-4 cursor-pointer transition-colors"
+                            className="mt-4 text-xs font-mono text-emerald-700 hover:text-emerald-800 hover:underline underline-offset-4 cursor-pointer transition-colors"
                           >
                             Send another transmission
                           </button>
@@ -2222,23 +2170,23 @@ export default function Experience() {
                       ) : (
                         <form onSubmit={handleContactSubmit} className="flex flex-col justify-between h-full gap-3 sm:gap-3.5">
                           {/* Inner Form Card: Fills height without empty gaps */}
-                          <div className="flex-1 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md p-4 sm:p-5 flex flex-col justify-between gap-3">
-                            <div className="flex items-center justify-between border-b border-white/10 pb-2">
-                              <span className="font-mono text-xs uppercase font-bold tracking-wider text-neutral-400">
+                          <div className="flex-1 rounded-2xl border border-black/[0.08] bg-white/80 backdrop-blur-md p-4 sm:p-5 flex flex-col justify-between gap-3 shadow-xs">
+                            <div className="flex items-center justify-between border-b border-black/10 pb-2">
+                              <span className="font-mono text-xs uppercase font-bold tracking-wider text-neutral-500">
                                 Intake / Transmission Form
                               </span>
-                              <span className="font-mono text-[0.65rem] text-emerald-400">Direct Delivery</span>
+                              <span className="font-mono text-[0.65rem] font-semibold text-emerald-700">Direct Delivery</span>
                             </div>
 
                             {contactError && (
-                              <div className="rounded-lg bg-red-950/60 border border-red-500/30 px-3 py-1.5 text-xs text-red-300">
+                              <div className="rounded-lg bg-red-50 border border-red-500/30 px-3 py-1.5 text-xs text-red-700">
                                 {contactError}
                               </div>
                             )}
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                               <div className="flex flex-col gap-1">
-                                <label htmlFor="contact-name" className="font-mono text-[0.7rem] uppercase text-neutral-400">
+                                <label htmlFor="contact-name" className="font-mono text-[0.7rem] uppercase text-neutral-500">
                                   Your Name
                                 </label>
                                 <input
@@ -2248,12 +2196,12 @@ export default function Experience() {
                                   value={contactName}
                                   onChange={(e) => setContactName(e.target.value)}
                                   placeholder="e.g. Alex Rivera"
-                                  className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-xs sm:text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-500/50 focus:bg-white/[0.07] transition-all"
+                                  className="w-full rounded-xl border border-black/12 bg-white px-3 py-2 text-xs sm:text-sm text-neutral-900 placeholder-neutral-400 focus:outline-none focus:border-emerald-600 transition-all shadow-2xs"
                                 />
                               </div>
 
                               <div className="flex flex-col gap-1">
-                                <label htmlFor="contact-email" className="font-mono text-[0.7rem] uppercase text-neutral-400">
+                                <label htmlFor="contact-email" className="font-mono text-[0.7rem] uppercase text-neutral-500">
                                   Your Email
                                 </label>
                                 <input
@@ -2263,13 +2211,13 @@ export default function Experience() {
                                   value={contactEmail}
                                   onChange={(e) => setContactEmail(e.target.value)}
                                   placeholder="alex@company.com"
-                                  className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-xs sm:text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-500/50 focus:bg-white/[0.07] transition-all"
+                                  className="w-full rounded-xl border border-black/12 bg-white px-3 py-2 text-xs sm:text-sm text-neutral-900 placeholder-neutral-400 focus:outline-none focus:border-emerald-600 transition-all shadow-2xs"
                                 />
                               </div>
                             </div>
 
                             <div className="flex flex-col gap-1.5">
-                              <label className="font-mono text-[0.7rem] uppercase text-neutral-400">
+                              <label className="font-mono text-[0.7rem] uppercase text-neutral-500">
                                 Topic
                               </label>
                               <div className="flex flex-wrap gap-1.5">
@@ -2280,8 +2228,8 @@ export default function Experience() {
                                     onClick={() => setContactTopic(t)}
                                     className={`px-2.5 py-1 rounded-full text-xs font-mono font-medium transition-all cursor-pointer ${
                                       contactTopic === t
-                                        ? "bg-white text-black font-semibold shadow-xs"
-                                        : "bg-white/5 border border-white/10 text-neutral-400 hover:text-white hover:bg-white/10"
+                                        ? "bg-neutral-900 text-white font-semibold shadow-xs"
+                                        : "bg-black/[0.04] border border-black/10 text-neutral-600 hover:text-neutral-900 hover:bg-black/[0.08]"
                                     }`}
                                   >
                                     {t}
@@ -2295,14 +2243,14 @@ export default function Experience() {
                                   value={customTopic}
                                   onChange={(e) => setCustomTopic(e.target.value)}
                                   placeholder="Specify your topic (e.g. Advisory, Consultation, Open Source)..."
-                                  className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-xs sm:text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-500/50 focus:bg-white/[0.07] transition-all"
+                                  className="mt-1 w-full rounded-xl border border-black/12 bg-white px-3 py-2 text-xs sm:text-sm text-neutral-900 placeholder-neutral-400 focus:outline-none focus:border-emerald-600 transition-all shadow-2xs"
                                   autoFocus
                                 />
                               )}
                             </div>
 
                             <div className="flex-1 flex flex-col gap-1">
-                              <label htmlFor="contact-message" className="font-mono text-[0.7rem] uppercase text-neutral-400">
+                              <label htmlFor="contact-message" className="font-mono text-[0.7rem] uppercase text-neutral-500">
                                 Message
                               </label>
                               <textarea
@@ -2312,7 +2260,7 @@ export default function Experience() {
                                 value={contactMessage}
                                 onChange={(e) => setContactMessage(e.target.value)}
                                 placeholder="Tell me about what you have in mind..."
-                                className="flex-1 min-h-[64px] w-full rounded-xl border border-white/10 bg-white/[0.04] p-3 text-xs sm:text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-500/50 focus:bg-white/[0.07] transition-all resize-none"
+                                className="flex-1 min-h-[64px] w-full rounded-xl border border-black/12 bg-white p-3 text-xs sm:text-sm text-neutral-900 placeholder-neutral-400 focus:outline-none focus:border-emerald-600 transition-all resize-none shadow-2xs"
                               />
                             </div>
                           </div>
@@ -2355,7 +2303,7 @@ export default function Experience() {
             : "opacity-100 translate-y-0"
         }`}
       >
-        <div className="flex items-center gap-0.5 p-1 rounded-full bg-neutral-900/90 backdrop-blur-xl border border-white/15 shadow-[0_12px_36px_rgba(0,0,0,0.5)]">
+        <div className="flex items-center gap-0.5 p-1 rounded-full bg-white/90 backdrop-blur-xl border border-black/10 shadow-[0_12px_36px_rgba(15,23,42,0.12)]">
           {MENU.map((item) => {
             const isActive = currentCanonicalKey === item.key;
             return (
@@ -2368,17 +2316,17 @@ export default function Experience() {
                 aria-label={`Go to section ${item.label}`}
                 className={`flex items-center justify-center transition-all duration-300 ease-out active:scale-95 cursor-pointer rounded-full font-mono ${
                   isActive
-                    ? "bg-white text-black px-3 py-1.5 gap-1.5 shadow-sm"
-                    : "text-white/60 hover:text-white hover:bg-white/10 px-2 py-1.5 text-xs font-medium"
+                    ? "bg-neutral-900 text-white px-3 py-1.5 gap-1.5 shadow-sm"
+                    : "text-neutral-500 hover:text-neutral-900 hover:bg-black/5 px-2 py-1.5 text-xs font-medium"
                 }`}
               >
-                <span className={`text-[0.68rem] ${isActive ? "text-black/80 font-semibold" : "text-white/60 font-mono"}`}>
+                <span className={`text-[0.68rem] ${isActive ? "text-white/80 font-semibold" : "text-neutral-500 font-mono"}`}>
                   {item.numeral}
                 </span>
                 {isActive && (
                   <>
-                    <span className="w-1 h-1 rounded-full bg-black/40" />
-                    <span className="font-excon font-bold text-xs tracking-tight whitespace-nowrap text-black">
+                    <span className="w-1 h-1 rounded-full bg-white/40" />
+                    <span className="font-excon font-bold text-xs tracking-tight whitespace-nowrap text-white">
                       {item.label}
                     </span>
                   </>
@@ -2396,12 +2344,12 @@ export default function Experience() {
           role="dialog"
           aria-modal="true"
           aria-label="Section navigation"
-          className="fixed inset-0 z-50 flex flex-col justify-between bg-neutral-950 text-white p-6 sm:p-10 select-none animate-in fade-in duration-200"
+          className="fixed inset-0 z-50 flex flex-col justify-between bg-[#fafafa] text-neutral-900 p-6 sm:p-10 select-none animate-in fade-in duration-200"
         >
           {/* Top Bar inside modal */}
-          <div className="relative z-10 flex items-center justify-between pb-4 border-b border-white/10">
+          <div className="relative z-10 flex items-center justify-between pb-4 border-b border-black/10">
             <div className="flex items-center gap-2">
-              <span className="font-excon font-bold text-xl sm:text-2xl text-white">
+              <span className="font-excon font-bold text-xl sm:text-2xl text-neutral-900">
                 Vault.
               </span>
             </div>
@@ -2413,7 +2361,7 @@ export default function Experience() {
                 lastActiveElementRef.current?.focus();
               }}
               onMouseEnter={() => soundFX.playHoverTick()}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-neutral-300 hover:text-white hover:border-white/35 hover:bg-white/10 transition-all active:scale-90 cursor-pointer focus-visible:ring-2 focus-visible:ring-white"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-black/15 text-neutral-600 hover:text-neutral-900 hover:border-black/35 hover:bg-black/5 transition-all active:scale-90 cursor-pointer focus-visible:ring-2 focus-visible:ring-neutral-900"
               aria-label="Close navigation"
             >
               <span className="font-mono text-base">✕</span>
@@ -2440,8 +2388,8 @@ export default function Experience() {
                   <span
                     className={`font-excon font-bold leading-none tracking-tight transition-all duration-200 ${
                       isActive
-                        ? "text-3xl sm:text-4xl text-white"
-                        : "text-xl sm:text-2xl text-white/40 group-hover:text-white/80 group-hover:translate-x-1.5"
+                        ? "text-3xl sm:text-4xl text-neutral-900"
+                        : "text-xl sm:text-2xl text-black/35 group-hover:text-black/75 group-hover:translate-x-1.5"
                     }`}
                   >
                     {item.label}
@@ -2452,7 +2400,7 @@ export default function Experience() {
           </nav>
 
           {/* Bottom quick contact footer inside modal */}
-          <div className="relative z-10 flex items-center justify-between pt-4 border-t border-white/10 text-xs text-neutral-400 font-mono">
+          <div className="relative z-10 flex items-center justify-between pt-4 border-t border-black/10 text-xs text-neutral-500 font-mono">
             <span>Tharun S · Portfolio</span>
             <button
               type="button"
@@ -2461,7 +2409,7 @@ export default function Experience() {
                 setIsMobileNavOpen(false);
                 switchSectionTo("talk");
               }}
-              className="text-white font-semibold hover:underline cursor-pointer"
+              className="text-neutral-900 font-semibold hover:underline cursor-pointer"
             >
               Get in touch
             </button>
