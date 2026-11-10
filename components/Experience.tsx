@@ -46,13 +46,13 @@ const BEYOND_BG = [
 
 const getChamberBg = (section: string, journeyIdx: number, beyondIdx: number, isDark = false) => {
   if (section === "hero") return isDark ? "#08080a" : "#f5f5f5";
-  if (section === "about") return "#0b1410";
+  if (section === "about") return "#000000";
   if (section === "journey") return JOURNEY_BG[journeyIdx] ?? "#0c111c";
   if (section === "skills" || section === "craft") return "#08111c";
   if (section === "works") return "#0a0a0c";
   if (section === "beyond") return BEYOND_BG[beyondIdx] ?? "#170b07";
   if (section === "talk") return "#07120e";
-  return "#0b1410";
+  return "#000000";
 };
 
 const HERO_PRE = "Welcome to my ";
@@ -1532,28 +1532,6 @@ export default function Experience() {
             transition: "background-color 0.8s cubic-bezier(0.16, 1, 0.3, 1)",
           }}
         >
-          {/* Full-bleed Landscape Portrait Billboard for Section 01 (Intro) */}
-          <div
-            className={`absolute inset-0 z-0 pointer-events-none transition-opacity duration-700 ease-in-out ${
-              currentCanonicalKey === "about" ? "opacity-100" : "opacity-0"
-            }`}
-            aria-hidden="true"
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/profile.jpg"
-              alt="Tharun S"
-              className="w-full h-full object-cover object-center filter brightness-[0.88] contrast-[1.05]"
-            />
-            {/* Left-side scrim: ensures sidebar navigation is crystal clear */}
-            <div className="hidden lg:block absolute inset-y-0 left-0 w-[42%] bg-gradient-to-r from-black/85 via-black/45 to-transparent pointer-events-none" />
-            {/* Right-side scrim: ensures Tharun's name and editorial copy are razor sharp */}
-            <div className="absolute inset-y-0 right-0 w-full sm:w-[60%] lg:w-[50%] bg-gradient-to-l from-black/90 via-black/60 to-transparent pointer-events-none" />
-            {/* Top & Bottom subtle vignettes */}
-            <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/70 to-transparent pointer-events-none" />
-            <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/80 to-transparent pointer-events-none" />
-          </div>
-
           <div className="relative mx-auto flex h-full max-w-[1520px] items-center px-4 sm:px-6 lg:px-[4vw] lg:gap-12 xl:gap-16 2xl:gap-20">
             {/* Left: accordion chapter menu (desktop only) */}
             <nav aria-label="Section navigation" className="hidden lg:flex w-[220px] xl:w-[240px] 2xl:w-[260px] shrink-0 relative z-10">
@@ -1628,10 +1606,10 @@ export default function Experience() {
                 id="about"
                 aria-label="About Tharun S"
                 ref={aboutRight}
-                className="absolute inset-0 flex items-center justify-end will-change-[transform,opacity] px-2 sm:px-4 lg:pr-6 2xl:pr-10"
+                className="absolute inset-0 flex items-center justify-center will-change-[transform,opacity] px-4 sm:px-6 lg:px-8"
               >
                 <h2 className="sr-only">About Tharun S</h2>
-                <div className="w-full max-w-[480px] lg:max-w-[500px] flex flex-col items-start text-left relative z-10">
+                <div className="w-full max-w-[560px] 2xl:max-w-[620px] flex flex-col items-start text-left relative z-10">
                   {/* Category / Location Eyebrow */}
                   <div className="flex items-center gap-2 mb-2">
                     <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
