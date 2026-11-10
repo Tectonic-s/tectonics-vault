@@ -381,15 +381,15 @@ export function OffScriptShowcase({
         </div>
 
         {/* Stepper Buttons */}
-        <div className="hidden sm:flex items-center gap-1 shrink-0">
+        <div className="hidden sm:flex items-center gap-1.5 shrink-0">
           <button
             type="button"
             onClick={handlePrev}
             onMouseEnter={() => soundFX.playHoverTick()}
             aria-label="Previous chapter"
-            className="h-8 w-8 rounded-full border border-white/15 bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-mono text-xs transition-all active:scale-95 cursor-pointer"
+            className="px-2.5 py-1 rounded-full border border-white/15 bg-white/5 hover:bg-white/15 text-neutral-300 hover:text-white font-mono text-xs transition-all active:scale-95 cursor-pointer"
           >
-            ←
+            Prev
           </button>
           <span className="font-mono text-xs text-neutral-400 px-1">
             {selectedChapter.numeral} / 04
@@ -399,9 +399,9 @@ export function OffScriptShowcase({
             onClick={handleNext}
             onMouseEnter={() => soundFX.playHoverTick()}
             aria-label="Next chapter"
-            className="h-8 w-8 rounded-full border border-white/15 bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-mono text-xs transition-all active:scale-95 cursor-pointer"
+            className="px-2.5 py-1 rounded-full border border-white/15 bg-white/5 hover:bg-white/15 text-neutral-300 hover:text-white font-mono text-xs transition-all active:scale-95 cursor-pointer"
           >
-            →
+            Next
           </button>
         </div>
       </div>
@@ -416,26 +416,33 @@ export function OffScriptShowcase({
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
           transition={{ duration: 0.28, ease: "easeOut" }}
-          className="relative w-full rounded-[22px] sm:rounded-[26px] border border-white/10 bg-neutral-900/90 backdrop-blur-xl p-4 sm:p-6 lg:p-7 shadow-[0_16px_48px_rgba(0,0,0,0.5)] grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 lg:gap-8 items-center"
+          className="relative w-full rounded-[24px] sm:rounded-[28px] overflow-hidden border border-white/[0.08] hover:border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-2xl p-5 sm:p-7 lg:p-8 grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-7 lg:gap-8 items-center transition-all duration-300"
+          style={{
+            background: `radial-gradient(ellipse 90% 60% at 0% 0%, rgb(${selectedChapter.accent.join(" ")} / 0.12) 0%, transparent 70%), rgba(18, 18, 22, 0.75)`,
+          }}
         >
           {/* Left Column (7 cols): Editorial Story & Disciplines */}
           <div className="lg:col-span-7 flex flex-col justify-between space-y-3.5 sm:space-y-4">
             <div>
               {/* Category Breadcrumb & Chapter Tag */}
-              <div className="flex items-center justify-between gap-2 mb-1.5">
-                <span className="font-mono text-[0.65rem] sm:text-[0.72rem] font-semibold uppercase tracking-wider text-neutral-400">
-                  {`${selectedChapter.numeral} // ${selectedChapter.category}`}
-                </span>
+              <div className="flex items-center justify-between gap-2 mb-2">
+                <div className="flex items-center gap-2">
+                  <span
+                    className="h-1.5 w-1.5 rounded-full shrink-0 shadow-sm"
+                    style={{
+                      backgroundColor: `rgb(${selectedChapter.accent.join(" ")})`,
+                      boxShadow: `0 0 8px rgb(${selectedChapter.accent.join(" ")} / 0.75)`,
+                    }}
+                  />
+                  <span className="font-mono text-xs font-semibold uppercase tracking-wider text-neutral-400">
+                    {`${selectedChapter.numeral} // ${selectedChapter.category}`}
+                  </span>
+                </div>
                 <span
-                  className="inline-flex items-center gap-1.5 font-mono text-[0.62rem] sm:text-[0.68rem] font-medium px-2.5 py-0.5 rounded-full border"
-                  style={{
-                    backgroundColor: `rgb(${selectedChapter.accent.join(" ")} / 0.12)`,
-                    borderColor: `rgb(${selectedChapter.accent.join(" ")} / 0.3)`,
-                    color: `rgb(${selectedChapter.accent.join(" ")})`,
-                  }}
+                  className="inline-flex items-center gap-1.5 font-mono text-xs font-medium px-2.5 py-0.5 rounded-full border border-white/10 bg-white/[0.04] text-neutral-300"
                 >
                   <span
-                    className="h-1.5 w-1.5 rounded-full animate-pulse"
+                    className="h-1.5 w-1.5 rounded-full"
                     style={{ backgroundColor: `rgb(${selectedChapter.accent.join(" ")})` }}
                   />
                   Chapter {selectedChapter.numeral}
@@ -443,10 +450,10 @@ export function OffScriptShowcase({
               </div>
 
               {/* Title & Tagline */}
-              <h3 className="font-excon text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-white">
+              <h3 className="font-excon text-3xl sm:text-4xl lg:text-[2.75rem] font-bold tracking-tight text-white leading-[1.08]">
                 {selectedChapter.headline}
               </h3>
-              <p className="mt-1 font-inter text-xs sm:text-sm font-medium text-neutral-300 leading-snug">
+              <p className="mt-1 font-inter text-base sm:text-lg font-medium text-neutral-200 leading-snug">
                 {selectedChapter.tagline}
               </p>
             </div>
@@ -460,23 +467,23 @@ export function OffScriptShowcase({
               }}
             >
               <div className="flex items-center justify-between gap-2 mb-1">
-                <span className="font-mono text-[0.65rem] uppercase font-bold tracking-widest text-neutral-400">
+                <span className="font-mono text-xs uppercase font-bold tracking-widest text-neutral-400">
                   Core Mindset
                 </span>
                 <span
-                  className="font-excon font-bold text-sm sm:text-base"
+                  className="font-excon font-bold text-base sm:text-lg"
                   style={{ color: `rgb(${selectedChapter.accent.join(" ")})` }}
                 >
                   {selectedChapter.mindset}
                 </span>
               </div>
-              <p className="font-inter text-xs text-neutral-300 leading-relaxed">
+              <p className="font-inter text-xs sm:text-sm text-neutral-300 leading-relaxed">
                 {selectedChapter.mindsetSub}
               </p>
             </div>
 
             {/* Narrative Story Excerpt */}
-            <p className="font-inter text-xs sm:text-[0.84rem] text-neutral-300 leading-relaxed line-clamp-3">
+            <p className="font-inter text-sm sm:text-base text-neutral-300 leading-relaxed line-clamp-3">
               {selectedChapter.body}
             </p>
 
@@ -485,7 +492,7 @@ export function OffScriptShowcase({
               {selectedChapter.habits.map((habit) => (
                 <span
                   key={habit}
-                  className="rounded-full border border-white/10 bg-white/[0.06] px-2.5 py-0.5 font-inter text-[0.66rem] sm:text-[0.7rem] font-medium text-neutral-200"
+                  className="rounded-full border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] px-3 py-1 font-inter text-xs font-medium text-neutral-200 transition-colors"
                 >
                   {habit}
                 </span>
@@ -498,10 +505,9 @@ export function OffScriptShowcase({
                 type="button"
                 onClick={(e) => openModal(selectedChapter, e.currentTarget)}
                 onMouseEnter={() => soundFX.playHoverTick()}
-                className="rounded-full bg-white hover:bg-neutral-200 text-black px-4 py-2 sm:px-5 sm:py-2.5 font-inter text-xs sm:text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:scale-95 cursor-pointer flex items-center gap-1.5"
+                className="rounded-full bg-white hover:bg-neutral-200 text-black px-5 py-2.5 font-inter text-xs sm:text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:scale-95 cursor-pointer flex items-center gap-1.5"
               >
                 <span>Read Story & Reflections</span>
-                <span className="font-mono text-xs">↗</span>
               </button>
             </div>
           </div>

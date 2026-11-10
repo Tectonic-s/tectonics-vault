@@ -44,10 +44,17 @@
   --radius-card: 1.25rem;
   --radius-pill: 999px;
   --space-section: clamp(4rem, 10vw, 9rem);
-  --text-display: clamp(2.75rem, 8.4vw, 7rem);
-  --text-section: clamp(2.75rem, 6vw, 4.4rem);
-  --text-card: clamp(1.05rem, 1.8vw, 1.35rem);
-  --text-body: clamp(0.875rem, 1.2vw, 1rem);
+
+  /* Font Sizing Hierarchy (Modular Scale: 3/4x, 1x, 1.5x, 3x, 6x) */
+  --text-fine: 0.75rem;                       /* 3/4x = 12px metadata, badges, tags */
+  --text-body: 1rem;                          /* 1x = 16px base body copy */
+  --text-subhead: 1.5rem;                     /* 1.5x = 24px card titles, feature labels */
+  --text-heading: 3rem;                       /* 3x = 48px section headings */
+  --text-title: clamp(3rem, 6vw, 6rem);       /* 6x = 96px display titles */
+
+  --text-display: var(--text-title);
+  --text-section: var(--text-heading);
+  --text-card: var(--text-subhead);
 
   --ink-rgb: 0 0 0; /* #000000 — typography, black ink, static */
   --accent-rgb: 0 0 0;

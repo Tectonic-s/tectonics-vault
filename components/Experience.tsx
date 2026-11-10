@@ -1645,7 +1645,6 @@ export default function Experience() {
                       className="group inline-flex items-center gap-2 rounded-full bg-white hover:bg-neutral-100 text-black px-5 py-2.5 font-inter text-xs sm:text-sm font-bold transition-all duration-300 hover:scale-105 active:scale-95 shadow-[0_8px_24px_rgba(0,0,0,0.4)] cursor-pointer"
                     >
                       <span>Explore Journey</span>
-                      <span className="font-mono transition-transform duration-300 group-hover:translate-x-1">→</span>
                     </button>
 
                     <button
@@ -1655,7 +1654,7 @@ export default function Experience() {
                       aria-label="Jump directly to projects"
                       className="inline-flex items-center gap-1.5 rounded-full border border-white/20 hover:border-white/40 bg-white/5 hover:bg-white/15 backdrop-blur-md px-4 py-2.5 text-xs sm:text-sm font-semibold text-white transition-all active:scale-95 cursor-pointer"
                     >
-                      <span>Projects ↗</span>
+                      <span>Projects</span>
                     </button>
                   </div>
                 </div>
@@ -1705,7 +1704,7 @@ export default function Experience() {
                           onClick={() => handleChapterClick(i)}
                           onKeyDown={(e) => handleChapterKeyDown(e, i)}
                           onMouseEnter={() => soundFX.playHoverTick()}
-                          className={`group flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 hover:-translate-y-0.5 active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 ${i === activeChapterIndex
+                          className={`group flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 hover:-translate-y-0.5 active:scale-95 cursor-pointer outline-none focus:outline-none focus-visible:outline-none focus:ring-0 ${i === activeChapterIndex
                             ? "bg-white text-black shadow-sm"
                             : "bg-white/10 text-white/70 hover:text-white hover:bg-white/20"
                             }`}
@@ -1723,24 +1722,24 @@ export default function Experience() {
                       ))}
                     </div>
 
-                    <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                    <div className="flex items-center gap-1.5 shrink-0">
                       <button
                         type="button"
                         onClick={() => handleChapterClick(Math.max(0, activeChapterIndex - 1))}
                         disabled={activeChapterIndex === 0}
                         aria-label="Previous chapter"
-                        className="h-7 w-7 rounded-full border border-white/15 bg-white/5 hover:bg-white/15 flex items-center justify-center text-xs font-mono text-neutral-300 hover:text-white hover:border-white/40 disabled:opacity-20 disabled:cursor-not-allowed transition-all active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-white"
+                        className="px-2.5 py-1 rounded-full border border-white/15 bg-white/5 hover:bg-white/15 text-neutral-300 hover:text-white font-mono text-xs disabled:opacity-20 disabled:cursor-not-allowed transition-all active:scale-95 cursor-pointer outline-none"
                       >
-                        ←
+                        Prev
                       </button>
                       <button
                         type="button"
                         onClick={() => handleChapterClick(Math.min(JOURNEY.length - 1, activeChapterIndex + 1))}
                         disabled={activeChapterIndex === JOURNEY.length - 1}
                         aria-label="Next chapter"
-                        className="h-7 w-7 rounded-full border border-white/15 bg-white/5 hover:bg-white/15 flex items-center justify-center text-xs font-mono text-neutral-300 hover:text-white hover:border-white/40 disabled:opacity-20 disabled:cursor-not-allowed transition-all active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-white"
+                        className="px-2.5 py-1 rounded-full border border-white/15 bg-white/5 hover:bg-white/15 text-neutral-300 hover:text-white font-mono text-xs disabled:opacity-20 disabled:cursor-not-allowed transition-all active:scale-95 cursor-pointer outline-none"
                       >
-                        →
+                        Next
                       </button>
                     </div>
                   </div>
@@ -1755,9 +1754,9 @@ export default function Experience() {
                         aria-labelledby={`journey-tab-${i}`}
                         tabIndex={0}
                         data-jcard={i}
-                        className="absolute inset-0 rounded-[20px] sm:rounded-[24px] bg-neutral-900/90 sm:bg-neutral-900/80 backdrop-blur-xl p-4 sm:p-6 md:p-7 border shadow-[0_16px_48px_rgba(0,0,0,0.5)] flex flex-col justify-between overflow-y-auto sm:overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white will-change-[transform,opacity]"
+                        className="absolute inset-0 rounded-[24px] sm:rounded-[28px] overflow-hidden border border-white/[0.08] hover:border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-2xl p-5 sm:p-7 md:p-8 flex flex-col justify-between overflow-y-auto sm:overflow-hidden outline-none will-change-[transform,opacity] transition-all duration-300"
                         style={{
-                          borderColor: `rgb(${step.accent.join(" ")} / 0.45)`,
+                          background: `radial-gradient(ellipse 90% 60% at 0% 0%, rgb(${step.accent.join(" ")} / 0.12) 0%, transparent 70%), rgba(18, 18, 22, 0.75)`,
                         }}
                       >
                         <div>
@@ -2048,7 +2047,7 @@ export default function Experience() {
                     <div className="hidden sm:flex items-center gap-1.5 font-mono text-[0.65rem] text-neutral-400">
                       <span>Keys:</span>
                       <kbd className="px-1.5 py-0.5 rounded border border-white/15 bg-white/10 text-neutral-300 font-mono">1–5</kbd>
-                      <kbd className="px-1.5 py-0.5 rounded border border-white/15 bg-white/10 text-neutral-300 font-mono">← / →</kbd>
+                      <kbd className="px-1.5 py-0.5 rounded border border-white/15 bg-white/10 text-neutral-300 font-mono">Prev / Next</kbd>
                     </div>
                   </div>
                   <WorksExpandable />
@@ -2079,7 +2078,7 @@ export default function Experience() {
                     <div className="hidden sm:flex items-center gap-1.5 font-mono text-[0.65rem] text-neutral-400">
                       <span>Keys:</span>
                       <kbd className="px-1.5 py-0.5 rounded border border-white/15 bg-white/10 text-neutral-300 font-mono">1–4</kbd>
-                      <kbd className="px-1.5 py-0.5 rounded border border-white/15 bg-white/10 text-neutral-300 font-mono">← / →</kbd>
+                      <kbd className="px-1.5 py-0.5 rounded border border-white/15 bg-white/10 text-neutral-300 font-mono">Prev / Next</kbd>
                     </div>
                   </div>
 
@@ -2098,7 +2097,12 @@ export default function Experience() {
                 className="absolute inset-0 flex items-center justify-center will-change-[transform,opacity]"
               >
                 <h2 className="sr-only">Connect</h2>
-                <div className="w-full max-w-[680px] rounded-[28px] sm:rounded-[36px] border border-white/10 bg-neutral-900/90 backdrop-blur-2xl p-6 sm:p-10 md:p-12 shadow-[0_20px_60px_rgba(0,0,0,0.5)] flex flex-col justify-between text-white">
+                <div
+                  className="w-full max-w-[680px] rounded-[28px] sm:rounded-[36px] overflow-hidden border border-white/[0.08] hover:border-white/20 shadow-[0_24px_60px_rgba(0,0,0,0.55),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-2xl p-6 sm:p-10 md:p-12 flex flex-col justify-between text-white transition-all duration-300"
+                  style={{
+                    background: "radial-gradient(ellipse 90% 60% at 0% 0%, rgba(46, 175, 135, 0.12) 0%, transparent 70%), rgba(18, 18, 22, 0.75)",
+                  }}
+                >
                   <div>
                     <div className="flex items-center">
                       <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-950/60 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-emerald-400">
@@ -2107,7 +2111,7 @@ export default function Experience() {
                       </span>
                     </div>
 
-                    <h3 className="mt-4 sm:mt-5 font-excon text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white">
+                    <h3 className="mt-4 sm:mt-5 font-excon text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white leading-[1.08]">
                       Let’s build something exceptional.
                     </h3>
                     <p className="mt-2 sm:mt-3 font-inter text-sm sm:text-base text-neutral-300 leading-relaxed max-w-[54ch]">
@@ -2116,9 +2120,9 @@ export default function Experience() {
                   </div>
 
                   <div className="mt-6 sm:mt-8 flex flex-col gap-3.5">
-                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4 sm:p-5 text-white">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.05] p-4 sm:p-5 text-white transition-colors">
                       <div>
-                        <span className="block text-[0.7rem] uppercase font-semibold tracking-wider text-neutral-400">
+                        <span className="block text-xs uppercase font-semibold tracking-wider text-neutral-400">
                           Direct Communication
                         </span>
                         <a
@@ -2132,7 +2136,7 @@ export default function Experience() {
                         <button
                           type="button"
                           onClick={handleCopyEmail}
-                          className={`flex-1 sm:flex-initial rounded-full px-5 py-2.5 text-xs font-semibold transition-all duration-200 active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-white ${copiedEmail
+                          className={`flex-1 sm:flex-initial rounded-full px-5 py-2.5 text-xs font-semibold transition-all duration-200 active:scale-95 cursor-pointer outline-none ${copiedEmail
                             ? "bg-emerald-600 text-white scale-105 shadow-md shadow-emerald-600/25"
                             : "bg-white text-black hover:bg-neutral-200 hover:shadow-sm"
                             }`}
@@ -2141,9 +2145,9 @@ export default function Experience() {
                         </button>
                         <a
                           href="mailto:tharun@example.com"
-                          className="rounded-full border border-white/20 bg-white/10 px-4 py-2.5 text-xs font-semibold text-white hover:bg-white/20 transition-all active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-white"
+                          className="rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-xs font-semibold text-white hover:bg-white/20 transition-all active:scale-95 cursor-pointer outline-none"
                         >
-                          Send ↗
+                          Connect
                         </a>
                       </div>
                     </div>
@@ -2154,24 +2158,18 @@ export default function Experience() {
                         target="_blank"
                         rel="noopener noreferrer"
                         onMouseEnter={() => soundFX.playHoverTick()}
-                        className="group flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.06] py-3.5 text-xs sm:text-sm font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:border-white/30 hover:bg-white/15 hover:shadow-sm active:scale-95 focus-visible:ring-2 focus-visible:ring-white"
+                        className="group flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] py-3.5 text-xs sm:text-sm font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:border-white/25 active:scale-95 outline-none"
                       >
                         <span>GitHub</span>
-                        <span aria-hidden="true" className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 font-mono">
-                          ↗
-                        </span>
                       </a>
                       <a
                         href="https://linkedin.com"
                         target="_blank"
                         rel="noopener noreferrer"
                         onMouseEnter={() => soundFX.playHoverTick()}
-                        className="group flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.06] py-3.5 text-xs sm:text-sm font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:border-white/30 hover:bg-white/15 hover:shadow-sm active:scale-95 focus-visible:ring-2 focus-visible:ring-white"
+                        className="group flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] py-3.5 text-xs sm:text-sm font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:border-white/25 active:scale-95 outline-none"
                       >
                         <span>LinkedIn</span>
-                        <span aria-hidden="true" className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 font-mono">
-                          ↗
-                        </span>
                       </a>
                     </div>
                   </div>
@@ -2299,7 +2297,7 @@ export default function Experience() {
               }}
               className="text-white font-semibold hover:underline cursor-pointer"
             >
-              Get in touch →
+              Get in touch
             </button>
           </div>
         </div>

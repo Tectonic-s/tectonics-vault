@@ -23,6 +23,7 @@ export type WorkProject = {
   category: string;
   tagline: string;
   status: "Completed" | "Completed & Live" | "Completed · v2.0 Stable" | "In Progress · v2.0" | "In Progress";
+  accent: readonly [number, number, number];
   description: string;
   ctaText: string;
   ctaLink: string;
@@ -47,9 +48,10 @@ export const PROJECTS: WorkProject[] = [
     category: "FINTECH / PERSONAL FINANCE",
     tagline: "A calmer, smarter way to stay ahead of debt.",
     status: "Completed",
+    accent: [46, 175, 135],
     description:
       "An offline-first personal debt management application that simplifies EMI tracking, automates payment reminders, and transforms complex CIBIL credit reports into actionable financial insights.",
-    ctaText: "GitHub Repo ↗",
+    ctaText: "GitHub Repo",
     ctaLink: "https://github.com/Tectonic-s/RepayIQ",
     tags: ["Flutter", "Dart", "Riverpod", "SQLite", "Firebase", "Syncfusion PDF", "GoRouter"],
     metrics: "₹0 Cloud Dependency",
@@ -75,9 +77,10 @@ export const PROJECTS: WorkProject[] = [
     category: "CREATIVE ENGINEERING / INTERACTIVE WEB",
     tagline: "An interactive editorial portfolio engineered through motion, mathematics, and sound.",
     status: "Completed & Live",
+    accent: [215, 160, 60],
     description:
       "A high-performance interactive portfolio platform combining cinematic scroll choreography, mathematical FLIP transitions, procedural audio synthesis, and accessible web interactions.",
-    ctaText: "GitHub Repo ↗",
+    ctaText: "GitHub Repo",
     ctaLink: "https://github.com/Tectonic-s/tectonics-vault",
     tags: [
       "Next.js 16",
@@ -113,14 +116,15 @@ export const PROJECTS: WorkProject[] = [
     category: "CIVICTECH / SMART PILGRIMAGE",
     tagline: "The intelligent operating system for sacred temples and pilgrimages.",
     status: "Completed · v2.0 Stable",
+    accent: [75, 125, 225],
     description:
       "A multi-role temple management ecosystem integrating digital reservations, offline QR verification, real-time crowd telemetry, AI assistance, and transparent digital donations.",
-    ctaText: "GitHub Repo ↗",
+    ctaText: "GitHub Repo",
     ctaLink: "https://github.com/Tectonic-s/Sannidhi",
     tags: ["Flutter", "Dart", "Provider", "Node.js", "Express", "SQLite", "Firebase", "Cashfree", "Google Gemini", "JWT"],
     metrics: "3-Tier Verification",
     metricLabel: "Offline-resilient gate verification",
-    metricDetail: "Cloud → Backend → Local fallback, designed to maintain entry operations during network interruptions.",
+    metricDetail: "Multi-tier fallback across Cloud, Backend, and Local cache to maintain gate operations during network interruptions.",
     overview:
       "Sannidhi is a cross-platform pilgrimage management application designed around the operational challenges of high-footfall temples. It connects devotees, gate staff, and temple administrators through dedicated interfaces for digital bookings, QR-based entry, crowd monitoring, emergency broadcasts, and donation management.",
     featureHeading: "Offline-Resilient Gate Verification & Crowd Telemetry",
@@ -141,9 +145,10 @@ export const PROJECTS: WorkProject[] = [
     category: "SYSTEMS ENGINEERING / STORAGE INFRASTRUCTURE",
     tagline: "Intelligent media consolidation with zero-compromise data integrity.",
     status: "In Progress · v2.0",
+    accent: [60, 160, 185],
     description:
       "A high-performance Python CLI engine for consolidating, deduplicating, and reconstructing metadata across large photo libraries from different ecosystems.",
-    ctaText: "GitHub Repo ↗",
+    ctaText: "GitHub Repo",
     ctaLink: "https://github.com/Tectonic-s/PhotoVault",
     tags: [
       "Python 3.12+",
@@ -179,9 +184,10 @@ export const PROJECTS: WorkProject[] = [
     category: "CAREER TECHNOLOGY / AI PRODUCT ENGINEERING",
     tagline: "Turning every career attempt into a measurable step forward.",
     status: "In Progress",
+    accent: [160, 95, 225],
     description:
       "A distraction-free career operating system that transforms job applications, interview experiences, and recruitment outcomes into structured insights and personalized preparation.",
-    ctaText: "Design Spec ↗",
+    ctaText: "Design Spec",
     ctaLink: "#",
     tags: [
       "Flutter",
@@ -193,9 +199,9 @@ export const PROJECTS: WorkProject[] = [
       "Google Gemini",
       "SharedPreferences",
     ],
-    metrics: "5 → 1 Career Loop",
+    metrics: "5-Stage Career Loop",
     metricLabel: "One continuous career improvement loop",
-    metricDetail: "Application → Outcome → Debrief → Pattern Synthesis → Targeted Preparation.",
+    metricDetail: "From application to outcome debrief, pattern synthesis, and targeted preparation.",
     overview:
       "ASCEND is a cross-platform career companion built for students, graduates, and early-career professionals navigating competitive recruitment processes. It combines application pipeline management, company intelligence, resume conversion tracking, interview preparation, and contextual AI coaching into a unified career progression system.",
     featureHeading: "Context-Grounded AI Career Intelligence",
@@ -509,15 +515,15 @@ export function WorksExpandable({
         </div>
 
         {/* Quick Stepper Controls */}
-        <div className="hidden sm:flex items-center gap-1 shrink-0">
+        <div className="hidden sm:flex items-center gap-1.5 shrink-0">
           <button
             type="button"
             onClick={handlePrev}
             onMouseEnter={() => soundFX.playHoverTick()}
             aria-label="Previous project"
-            className="h-8 w-8 rounded-full border border-white/15 bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-mono text-xs transition-all active:scale-95 cursor-pointer"
+            className="px-2.5 py-1 rounded-full border border-white/15 bg-white/5 hover:bg-white/15 text-neutral-300 hover:text-white font-mono text-xs transition-all active:scale-95 cursor-pointer"
           >
-            ←
+            Prev
           </button>
           <span className="font-mono text-xs text-neutral-400 px-1">
             {selectedProject.numeral} / 05
@@ -527,9 +533,9 @@ export function WorksExpandable({
             onClick={handleNext}
             onMouseEnter={() => soundFX.playHoverTick()}
             aria-label="Next project"
-            className="h-8 w-8 rounded-full border border-white/15 bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-mono text-xs transition-all active:scale-95 cursor-pointer"
+            className="px-2.5 py-1 rounded-full border border-white/15 bg-white/5 hover:bg-white/15 text-neutral-300 hover:text-white font-mono text-xs transition-all active:scale-95 cursor-pointer"
           >
-            →
+            Next
           </button>
         </div>
       </div>
@@ -544,80 +550,102 @@ export function WorksExpandable({
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
           transition={{ duration: 0.28, ease: "easeOut" }}
-          className="relative w-full rounded-[22px] sm:rounded-[26px] border border-white/10 bg-neutral-900/90 backdrop-blur-xl p-4 sm:p-6 lg:p-7 shadow-[0_16px_48px_rgba(0,0,0,0.5)] grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 lg:gap-8 items-center"
+          className="relative w-full rounded-[24px] sm:rounded-[28px] overflow-hidden border border-white/[0.08] hover:border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-2xl p-5 sm:p-7 lg:p-8 grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-7 lg:gap-8 items-center transition-all duration-300"
+          style={{
+            background: `radial-gradient(ellipse 90% 60% at 0% 0%, rgb(${selectedProject.accent.join(" ")} / 0.12) 0%, transparent 70%), rgba(18, 18, 22, 0.75)`,
+          }}
         >
           {/* Left Column (7 cols): Editorial Typography & Architecture */}
           <div className="lg:col-span-7 flex flex-col justify-between space-y-3.5 sm:space-y-4">
             <div>
               {/* Category Breadcrumb & Status */}
-              <div className="flex items-center justify-between gap-2 mb-1.5">
-                <span className="font-mono text-[0.65rem] sm:text-[0.72rem] font-semibold uppercase tracking-wider text-neutral-400">
-                  {`${selectedProject.numeral} // ${selectedProject.category}`}
-                </span>
+              <div className="flex items-center justify-between gap-2 mb-2">
+                <div className="flex items-center gap-2">
+                  <span
+                    className="h-1.5 w-1.5 rounded-full shrink-0 shadow-sm"
+                    style={{
+                      backgroundColor: `rgb(${selectedProject.accent.join(" ")})`,
+                      boxShadow: `0 0 8px rgb(${selectedProject.accent.join(" ")} / 0.75)`,
+                    }}
+                  />
+                  <span className="font-mono text-xs font-semibold uppercase tracking-wider text-neutral-400">
+                    {`${selectedProject.numeral} // ${selectedProject.category}`}
+                  </span>
+                </div>
                 <span
-                  className={`inline-flex items-center gap-1 font-mono text-[0.62rem] sm:text-[0.68rem] font-medium px-2.5 py-0.5 rounded-full border ${
-                    selectedProject.status.includes("Completed")
-                      ? "border-emerald-500/30 bg-emerald-950/60 text-emerald-400"
-                      : "border-amber-500/30 bg-amber-950/60 text-amber-400"
-                  }`}
+                  className="inline-flex items-center gap-1.5 font-mono text-xs font-medium px-2.5 py-0.5 rounded-full border border-white/10 bg-white/[0.04] text-neutral-300"
                 >
                   <span
-                    className={`h-1.5 w-1.5 rounded-full ${
-                      selectedProject.status.includes("Completed") ? "bg-emerald-500" : "bg-amber-500"
-                    }`}
+                    className="h-1.5 w-1.5 rounded-full"
+                    style={{ backgroundColor: `rgb(${selectedProject.accent.join(" ")})` }}
                   />
                   {selectedProject.status}
                 </span>
               </div>
 
               {/* Title & Tagline */}
-              <h3 className="font-excon text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-white">
+              <h3 className="font-excon text-3xl sm:text-4xl lg:text-[2.75rem] font-bold tracking-tight text-white leading-[1.08]">
                 {selectedProject.title}
               </h3>
-              <p className="mt-1 font-inter text-xs sm:text-sm font-medium text-neutral-300 leading-snug">
+              <p className="mt-1 font-inter text-base sm:text-lg font-medium text-neutral-200 leading-snug">
                 {selectedProject.tagline}
               </p>
             </div>
 
             {/* Standout Metric / Maker's Mark Highlight */}
             {selectedProject.isSpecialSignature ? (
-              <div className="rounded-2xl border-2 border-dashed border-amber-400/30 bg-amber-950/20 p-3.5 sm:p-4 relative">
+              <div
+                className="rounded-2xl border p-3.5 sm:p-4 relative transition-colors"
+                style={{
+                  backgroundColor: `rgb(${selectedProject.accent.join(" ")} / 0.08)`,
+                  borderColor: `rgb(${selectedProject.accent.join(" ")} / 0.25)`,
+                }}
+              >
                 <div className="flex items-center justify-between gap-2 mb-1">
-                  <span className="font-mono text-[0.65rem] uppercase font-bold tracking-widest text-amber-300">
+                  <span className="font-mono text-xs uppercase font-bold tracking-widest text-amber-300">
                     Artisan Signature
                   </span>
-                  <span className="rounded-full border border-amber-400/40 bg-amber-400/10 text-amber-300 px-2.5 py-0.5 font-mono text-[0.68rem] font-bold tracking-wider flex items-center gap-1 shadow-xs">
+                  <span className="rounded-full border border-amber-400/40 bg-amber-400/10 text-amber-300 px-2.5 py-0.5 font-mono text-xs font-bold tracking-wider flex items-center gap-1 shadow-xs">
                     <span className="text-amber-400">✦</span> 100% Tharun
                   </span>
                 </div>
-                <p className="font-excon font-bold text-sm text-white">
+                <p className="font-excon font-bold text-base text-white">
                   {selectedProject.metricLabel}
                 </p>
-                <p className="font-inter text-xs text-neutral-300 mt-0.5 leading-relaxed">
+                <p className="font-inter text-xs sm:text-sm text-neutral-300 mt-0.5 leading-relaxed">
                   {selectedProject.metricDetail}
                 </p>
               </div>
             ) : (
-              <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-3.5 sm:p-4">
+              <div
+                className="rounded-2xl border p-3.5 sm:p-4 transition-colors"
+                style={{
+                  backgroundColor: `rgb(${selectedProject.accent.join(" ")} / 0.06)`,
+                  borderColor: `rgb(${selectedProject.accent.join(" ")} / 0.20)`,
+                }}
+              >
                 <div className="flex items-center justify-between gap-2 mb-1">
-                  <span className="font-mono text-[0.65rem] uppercase font-bold tracking-widest text-neutral-400">
+                  <span className="font-mono text-xs uppercase font-bold tracking-widest text-neutral-400">
                     Standout Metric
                   </span>
-                  <span className="font-excon font-bold text-base sm:text-lg text-emerald-400">
+                  <span
+                    className="font-excon font-bold text-base sm:text-lg"
+                    style={{ color: `rgb(${selectedProject.accent.join(" ")})` }}
+                  >
                     {selectedProject.metrics}
                   </span>
                 </div>
-                <p className="font-inter font-semibold text-xs text-white">
+                <p className="font-inter font-semibold text-xs sm:text-sm text-white">
                   {selectedProject.metricLabel}
                 </p>
-                <p className="font-inter text-xs text-neutral-300 mt-0.5 leading-relaxed">
+                <p className="font-inter text-xs sm:text-sm text-neutral-300 mt-0.5 leading-relaxed">
                   {selectedProject.metricDetail}
                 </p>
               </div>
             )}
 
             {/* Short Technical Description */}
-            <p className="font-inter text-xs sm:text-[0.84rem] text-neutral-300 leading-relaxed line-clamp-2 sm:line-clamp-3">
+            <p className="font-inter text-sm sm:text-base text-neutral-300 leading-relaxed line-clamp-2 sm:line-clamp-3">
               {selectedProject.description}
             </p>
 
@@ -626,13 +654,13 @@ export function WorksExpandable({
               {selectedProject.tags.slice(0, 4).map((tag) => (
                 <span
                   key={tag}
-                  className="rounded-full border border-white/10 bg-white/[0.06] px-2.5 py-0.5 font-inter text-[0.66rem] sm:text-[0.7rem] font-medium text-neutral-200"
+                  className="rounded-full border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] px-3 py-1 font-inter text-xs font-medium text-neutral-200 transition-colors"
                 >
                   {tag}
                 </span>
               ))}
               {selectedProject.tags.length > 4 && (
-                <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 font-mono text-[0.66rem] font-medium text-neutral-400">
+                <span className="rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-1 font-mono text-xs font-medium text-neutral-400">
                   +{selectedProject.tags.length - 4} more
                 </span>
               )}
@@ -644,10 +672,9 @@ export function WorksExpandable({
                 type="button"
                 onClick={(e) => openModal(selectedProject, e.currentTarget)}
                 onMouseEnter={() => soundFX.playHoverTick()}
-                className="rounded-full bg-white hover:bg-neutral-200 text-black px-4 py-2 sm:px-5 sm:py-2.5 font-inter text-xs sm:text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:scale-95 cursor-pointer flex items-center gap-1.5"
+                className="rounded-full bg-white hover:bg-neutral-200 text-black px-5 py-2.5 font-inter text-xs sm:text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:scale-95 cursor-pointer flex items-center gap-1.5"
               >
                 <span>Inspect Architecture</span>
-                <span className="font-mono text-xs">↗</span>
               </button>
 
               {selectedProject.ctaLink && selectedProject.ctaLink !== "#" && (
@@ -655,7 +682,7 @@ export function WorksExpandable({
                   href={selectedProject.ctaLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="rounded-full border border-white/20 bg-white/10 hover:bg-white/20 text-white px-3.5 py-2 sm:px-4 sm:py-2.5 font-inter text-xs sm:text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 active:scale-95 flex items-center gap-1.5"
+                  className="rounded-full border border-white/20 bg-white/10 hover:bg-white/20 text-white px-4 py-2.5 font-inter text-xs sm:text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 active:scale-95 flex items-center gap-1.5"
                 >
                   <span>{selectedProject.ctaText}</span>
                 </a>
@@ -870,7 +897,7 @@ export function WorksExpandable({
                                   rel="noopener noreferrer"
                                   className="text-emerald-400 underline underline-offset-2 hover:text-emerald-300 font-mono text-[0.7rem]"
                                 >
-                                  View ↗
+                                  View
                                 </a>
                               ) : (
                                 <span className="font-mono text-[0.7rem] text-neutral-400">{res.note}</span>
