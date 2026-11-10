@@ -291,6 +291,7 @@ export default function Experience() {
   const [contactName, setContactName] = useState("");
   const [contactEmail, setContactEmail] = useState("");
   const [contactTopic, setContactTopic] = useState("Engineering Role");
+  const [customTopic, setCustomTopic] = useState("");
   const [contactMessage, setContactMessage] = useState("");
   const [contactSubmitted, setContactSubmitted] = useState(false);
   const [contactError, setContactError] = useState("");
@@ -389,6 +390,11 @@ export default function Experience() {
       setContactError("Please fill in your name, email, and message.");
       return;
     }
+    const resolvedTopic =
+      contactTopic === "Other"
+        ? customTopic.trim() || "Other Inquiry"
+        : contactTopic;
+
     setContactError("");
     setIsSubmitting(true);
 
@@ -399,7 +405,7 @@ export default function Experience() {
         body: JSON.stringify({
           name: contactName.trim(),
           email: contactEmail.trim(),
-          topic: contactTopic,
+          topic: resolvedTopic,
           message: contactMessage.trim(),
         }),
       });
@@ -415,9 +421,9 @@ export default function Experience() {
     } catch (err: unknown) {
       console.warn("API dispatch unsuccessful, falling back to mail client:", err);
       // Seamless fallback to mailto if network or service is unreachable
-      const subject = encodeURIComponent(`[${contactTopic}] from ${contactName}`);
+      const subject = encodeURIComponent(`[${resolvedTopic}] from ${contactName}`);
       const body = encodeURIComponent(
-        `Name: ${contactName}\nEmail: ${contactEmail}\nTopic: ${contactTopic}\n\nMessage:\n${contactMessage}`
+        `Name: ${contactName}\nEmail: ${contactEmail}\nTopic: ${resolvedTopic}\n\nMessage:\n${contactMessage}`
       );
       window.location.href = `mailto:tharun.suresh@outlook.com?subject=${subject}&body=${body}`;
       soundFX.playSuccessChime();
@@ -2132,10 +2138,10 @@ export default function Experience() {
                     background: "radial-gradient(ellipse 90% 60% at 0% 0%, rgba(46, 175, 135, 0.12) 0%, transparent 70%), rgba(18, 18, 22, 0.75)",
                   }}
                 >
-                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 lg:gap-8 items-start">
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 lg:gap-8 items-stretch">
                     {/* Left Column (5 cols): Context & Direct Communication */}
-                    <div className="lg:col-span-5 flex flex-col justify-between space-y-4">
-                      <div>
+                    <div className="lg:col-span-5 flex flex-col justify-between h-full space-y-4">
+                      <div className="flex flex-col space-y-3.5">
                         <div className="flex items-center">
                           <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-950/60 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-emerald-400">
                             <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -2143,42 +2149,42 @@ export default function Experience() {
                           </span>
                         </div>
 
-                        <h3 className="mt-3 font-excon text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-white leading-[1.08]">
+                        <h3 className="font-excon text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-white leading-[1.08]">
                           Let’s build something exceptional.
                         </h3>
-                        <p className="mt-2 font-inter text-xs sm:text-sm text-neutral-300 leading-relaxed">
+                        <p className="font-inter text-xs sm:text-sm text-neutral-300 leading-relaxed">
                           Have a product to build, an engineering opportunity, or just want to connect? Share your details or reach out directly.
                         </p>
-                      </div>
 
-                      {/* Direct Channel Card */}
-                      <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-white">
-                        <span className="block text-xs uppercase font-semibold tracking-wider text-neutral-400 mb-1">
-                          Direct Channel
-                        </span>
-                        <a
-                          href="mailto:tharun.suresh@outlook.com"
-                          className="font-inter text-sm sm:text-base font-bold text-white hover:text-emerald-400 transition-colors break-all"
-                        >
-                          tharun.suresh@outlook.com
-                        </a>
-                        <div className="mt-3">
-                          <button
-                            type="button"
-                            onClick={handleCopyEmail}
-                            className={`w-full rounded-full py-2 px-4 text-xs font-semibold transition-all duration-200 active:scale-95 cursor-pointer outline-none ${
-                              copiedEmail
-                                ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/25"
-                                : "bg-white/10 hover:bg-white/20 text-white border border-white/15"
-                            }`}
+                        {/* Direct Channel Card */}
+                        <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-3.5 sm:p-4 text-white">
+                          <span className="block text-xs uppercase font-semibold tracking-wider text-neutral-400 mb-1">
+                            Direct Channel
+                          </span>
+                          <a
+                            href="mailto:tharun.suresh@outlook.com"
+                            className="font-inter text-xs sm:text-sm font-bold text-white hover:text-emerald-400 transition-colors break-all"
                           >
-                            {copiedEmail ? "Copied to Clipboard! ✓" : "Copy Email"}
-                          </button>
+                            tharun.suresh@outlook.com
+                          </a>
+                          <div className="mt-2.5">
+                            <button
+                              type="button"
+                              onClick={handleCopyEmail}
+                              className={`w-full rounded-full py-2 px-4 text-xs font-semibold transition-all duration-200 active:scale-95 cursor-pointer outline-none ${
+                                copiedEmail
+                                  ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/25"
+                                  : "bg-white/10 hover:bg-white/20 text-white border border-white/15"
+                              }`}
+                            >
+                              {copiedEmail ? "Copied to Clipboard! ✓" : "Copy Email"}
+                            </button>
+                          </div>
                         </div>
                       </div>
 
-                      {/* Social Links */}
-                      <div className="grid grid-cols-2 gap-2.5">
+                      {/* Social Links Row (Horizontally aligned with Connect button on right) */}
+                      <div className="grid grid-cols-2 gap-2.5 pt-1">
                         <a
                           href="https://github.com"
                           target="_blank"
@@ -2201,9 +2207,9 @@ export default function Experience() {
                     </div>
 
                     {/* Right Column (7 cols): Interactive Details Intake Form */}
-                    <div className="lg:col-span-7 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md p-4 sm:p-5">
+                    <div className="lg:col-span-7 flex flex-col justify-between h-full">
                       {contactSubmitted ? (
-                        <div className="flex flex-col items-center justify-center text-center py-8 px-3 gap-3">
+                        <div className="flex-1 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md p-5 flex flex-col items-center justify-center text-center py-10 px-4 gap-3">
                           <div className="h-10 w-10 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 font-bold text-base">
                             ✓
                           </div>
@@ -2216,111 +2222,129 @@ export default function Experience() {
                             onClick={() => {
                               setContactSubmitted(false);
                               setContactMessage("");
+                              setCustomTopic("");
                             }}
-                            className="mt-2 text-xs font-mono text-neutral-400 hover:text-white underline underline-offset-4 cursor-pointer"
+                            className="mt-3 text-xs font-mono text-neutral-400 hover:text-white underline underline-offset-4 cursor-pointer"
                           >
                             Send another transmission
                           </button>
                         </div>
                       ) : (
-                        <form onSubmit={handleContactSubmit} className="flex flex-col gap-3">
-                          <div className="flex items-center justify-between border-b border-white/10 pb-2">
-                            <span className="font-mono text-xs uppercase font-bold tracking-wider text-neutral-400">
-                              Intake / Transmission Form
-                            </span>
-                            <span className="font-mono text-[0.65rem] text-emerald-400">Direct Delivery</span>
-                          </div>
-
-                          {contactError && (
-                            <div className="rounded-lg bg-red-950/60 border border-red-500/30 px-3 py-1.5 text-xs text-red-300">
-                              {contactError}
-                            </div>
-                          )}
-
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div className="flex flex-col gap-1">
-                              <label htmlFor="contact-name" className="font-mono text-[0.7rem] uppercase text-neutral-400">
-                                Your Name
-                              </label>
-                              <input
-                                id="contact-name"
-                                type="text"
-                                required
-                                value={contactName}
-                                onChange={(e) => setContactName(e.target.value)}
-                                placeholder="e.g. Alex Rivera"
-                                className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-xs sm:text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-500/50 focus:bg-white/[0.07] transition-all"
-                              />
+                        <form onSubmit={handleContactSubmit} className="flex flex-col justify-between h-full gap-3 sm:gap-3.5">
+                          {/* Inner Form Card: Fills height without empty gaps */}
+                          <div className="flex-1 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md p-4 sm:p-5 flex flex-col justify-between gap-3">
+                            <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                              <span className="font-mono text-xs uppercase font-bold tracking-wider text-neutral-400">
+                                Intake / Transmission Form
+                              </span>
+                              <span className="font-mono text-[0.65rem] text-emerald-400">Direct Delivery</span>
                             </div>
 
-                            <div className="flex flex-col gap-1">
-                              <label htmlFor="contact-email" className="font-mono text-[0.7rem] uppercase text-neutral-400">
-                                Your Email
-                              </label>
-                              <input
-                                id="contact-email"
-                                type="email"
-                                required
-                                value={contactEmail}
-                                onChange={(e) => setContactEmail(e.target.value)}
-                                placeholder="alex@company.com"
-                                className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-xs sm:text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-500/50 focus:bg-white/[0.07] transition-all"
-                              />
-                            </div>
-                          </div>
-
-                          <div className="flex flex-col gap-1">
-                            <label className="font-mono text-[0.7rem] uppercase text-neutral-400">
-                              Topic
-                            </label>
-                            <div className="flex flex-wrap gap-1.5">
-                              {["Engineering Role", "Project Inquiry", "General Chat"].map((t) => (
-                                <button
-                                  key={t}
-                                  type="button"
-                                  onClick={() => setContactTopic(t)}
-                                  className={`px-2.5 py-1 rounded-full text-xs font-mono font-medium transition-all cursor-pointer ${
-                                    contactTopic === t
-                                      ? "bg-white text-black font-semibold shadow-xs"
-                                      : "bg-white/5 border border-white/10 text-neutral-400 hover:text-white hover:bg-white/10"
-                                  }`}
-                                >
-                                  {t}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-
-                          <div className="flex flex-col gap-1">
-                            <label htmlFor="contact-message" className="font-mono text-[0.7rem] uppercase text-neutral-400">
-                              Message
-                            </label>
-                            <textarea
-                              id="contact-message"
-                              required
-                              rows={3}
-                              value={contactMessage}
-                              onChange={(e) => setContactMessage(e.target.value)}
-                              placeholder="Tell me about what you have in mind..."
-                              className="w-full rounded-xl border border-white/10 bg-white/[0.04] p-3 text-xs sm:text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-500/50 focus:bg-white/[0.07] transition-all resize-none"
-                            />
-                          </div>
-
-                          <button
-                            type="submit"
-                            disabled={isSubmitting}
-                            onMouseEnter={() => soundFX.playHoverTick()}
-                            className="mt-1 w-full rounded-full bg-white hover:bg-neutral-200 text-black py-2.5 px-4 font-inter text-xs sm:text-sm font-bold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:scale-95 cursor-pointer flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
-                          >
-                            {isSubmitting ? (
-                              <>
-                                <span className="h-3.5 w-3.5 rounded-full border-2 border-black/30 border-t-black animate-spin" />
-                                <span>Connecting...</span>
-                              </>
-                            ) : (
-                              <span>Connect</span>
+                            {contactError && (
+                              <div className="rounded-lg bg-red-950/60 border border-red-500/30 px-3 py-1.5 text-xs text-red-300">
+                                {contactError}
+                              </div>
                             )}
-                          </button>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                              <div className="flex flex-col gap-1">
+                                <label htmlFor="contact-name" className="font-mono text-[0.7rem] uppercase text-neutral-400">
+                                  Your Name
+                                </label>
+                                <input
+                                  id="contact-name"
+                                  type="text"
+                                  required
+                                  value={contactName}
+                                  onChange={(e) => setContactName(e.target.value)}
+                                  placeholder="e.g. Alex Rivera"
+                                  className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-xs sm:text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-500/50 focus:bg-white/[0.07] transition-all"
+                                />
+                              </div>
+
+                              <div className="flex flex-col gap-1">
+                                <label htmlFor="contact-email" className="font-mono text-[0.7rem] uppercase text-neutral-400">
+                                  Your Email
+                                </label>
+                                <input
+                                  id="contact-email"
+                                  type="email"
+                                  required
+                                  value={contactEmail}
+                                  onChange={(e) => setContactEmail(e.target.value)}
+                                  placeholder="alex@company.com"
+                                  className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-xs sm:text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-500/50 focus:bg-white/[0.07] transition-all"
+                                />
+                              </div>
+                            </div>
+
+                            <div className="flex flex-col gap-1.5">
+                              <label className="font-mono text-[0.7rem] uppercase text-neutral-400">
+                                Topic
+                              </label>
+                              <div className="flex flex-wrap gap-1.5">
+                                {["Engineering Role", "Project Inquiry", "General Chat", "Other"].map((t) => (
+                                  <button
+                                    key={t}
+                                    type="button"
+                                    onClick={() => setContactTopic(t)}
+                                    className={`px-2.5 py-1 rounded-full text-xs font-mono font-medium transition-all cursor-pointer ${
+                                      contactTopic === t
+                                        ? "bg-white text-black font-semibold shadow-xs"
+                                        : "bg-white/5 border border-white/10 text-neutral-400 hover:text-white hover:bg-white/10"
+                                    }`}
+                                  >
+                                    {t}
+                                  </button>
+                                ))}
+                              </div>
+                              {contactTopic === "Other" && (
+                                <input
+                                  type="text"
+                                  required
+                                  value={customTopic}
+                                  onChange={(e) => setCustomTopic(e.target.value)}
+                                  placeholder="Specify your topic (e.g. Advisory, Consultation, Open Source)..."
+                                  className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-xs sm:text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-500/50 focus:bg-white/[0.07] transition-all"
+                                  autoFocus
+                                />
+                              )}
+                            </div>
+
+                            <div className="flex-1 flex flex-col gap-1">
+                              <label htmlFor="contact-message" className="font-mono text-[0.7rem] uppercase text-neutral-400">
+                                Message
+                              </label>
+                              <textarea
+                                id="contact-message"
+                                required
+                                rows={contactTopic === "Other" ? 2 : 3}
+                                value={contactMessage}
+                                onChange={(e) => setContactMessage(e.target.value)}
+                                placeholder="Tell me about what you have in mind..."
+                                className="flex-1 min-h-[64px] w-full rounded-xl border border-white/10 bg-white/[0.04] p-3 text-xs sm:text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-500/50 focus:bg-white/[0.07] transition-all resize-none"
+                              />
+                            </div>
+                          </div>
+
+                          {/* Connect Button: Outside Card, Horizontally Aligned with GitHub & LinkedIn, Mint Green */}
+                          <div className="pt-1">
+                            <button
+                              type="submit"
+                              disabled={isSubmitting}
+                              onMouseEnter={() => soundFX.playHoverTick()}
+                              className="w-full rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 px-4 font-inter text-xs sm:text-sm font-bold shadow-md shadow-emerald-600/25 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-emerald-600/35 active:scale-95 cursor-pointer flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                            >
+                              {isSubmitting ? (
+                                <>
+                                  <span className="h-3.5 w-3.5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                                  <span>Connecting...</span>
+                                </>
+                              ) : (
+                                <span>Connect</span>
+                              )}
+                            </button>
+                          </div>
                         </form>
                       )}
                     </div>
