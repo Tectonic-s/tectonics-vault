@@ -2209,11 +2209,11 @@ export default function Experience() {
                     {/* Right Column (7 cols): Interactive Details Intake Form */}
                     <div className="lg:col-span-7 flex flex-col justify-between h-full">
                       {contactSubmitted ? (
-                        <div className="flex-1 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md p-5 flex flex-col items-center justify-center text-center py-10 px-4 gap-3">
-                          <div className="h-10 w-10 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 font-bold text-base">
+                        <div className="h-full flex-1 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md p-6 flex flex-col items-center justify-center text-center py-12 px-4 gap-3.5 shadow-inner">
+                          <div className="h-12 w-12 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 font-bold text-lg shadow-[0_0_20px_rgba(16,185,129,0.3)]">
                             ✓
                           </div>
-                          <h4 className="font-excon font-bold text-lg sm:text-xl text-white">Transmission Dispatched</h4>
+                          <h4 className="font-excon font-bold text-xl sm:text-2xl text-white">Transmission Dispatched</h4>
                           <p className="font-inter text-xs sm:text-sm text-neutral-300 max-w-[36ch] leading-relaxed">
                             Your message has been sent directly to <span className="text-white font-medium">tharun.suresh@outlook.com</span>. I&apos;ll get back to you shortly!
                           </p>
@@ -2221,10 +2221,12 @@ export default function Experience() {
                             type="button"
                             onClick={() => {
                               setContactSubmitted(false);
+                              setContactName("");
+                              setContactEmail("");
                               setContactMessage("");
                               setCustomTopic("");
                             }}
-                            className="mt-3 text-xs font-mono text-neutral-400 hover:text-white underline underline-offset-4 cursor-pointer"
+                            className="mt-4 text-xs font-mono text-emerald-400 hover:text-emerald-300 hover:underline underline-offset-4 cursor-pointer transition-colors"
                           >
                             Send another transmission
                           </button>
