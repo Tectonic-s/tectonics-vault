@@ -337,10 +337,7 @@ export function OffScriptShowcase({
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
           transition={{ duration: 0.28, ease: "easeOut" }}
-          className="relative w-full rounded-[24px] sm:rounded-[32px] overflow-hidden border border-black/[0.08] hover:border-black/15 shadow-[0_20px_50px_rgba(15,23,42,0.07),inset_0_1px_0_rgba(255,255,255,0.95)] backdrop-blur-2xl p-6 sm:p-8 lg:p-10 grid grid-cols-1 lg:grid-cols-12 gap-7 sm:gap-8 lg:gap-10 items-center transition-all duration-300"
-          style={{
-            background: `radial-gradient(ellipse 90% 60% at 0% 0%, rgb(${selectedChapter.accent.join(" ")} / 0.14) 0%, transparent 70%), rgba(255, 255, 255, 0.78)`,
-          }}
+          className="relative w-full rounded-[24px] sm:rounded-[32px] overflow-hidden border border-black/[0.07] hover:border-black/[0.14] shadow-[0_14px_40px_rgba(15,23,42,0.05),0_1px_2px_rgba(15,23,42,0.03)] backdrop-blur-2xl bg-white/95 p-6 sm:p-8 lg:p-10 grid grid-cols-1 lg:grid-cols-12 gap-7 sm:gap-8 lg:gap-10 items-center transition-all duration-300"
         >
           {/* Left Column (7 cols): Calm Narrative Storytelling */}
           <div className="lg:col-span-7 flex flex-col justify-between space-y-6">

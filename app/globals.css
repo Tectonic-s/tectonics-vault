@@ -176,7 +176,7 @@ body {
    earned it, so several hues coexist. Each row carries its own
    --origin-rgb; these read it without Tailwind arbitrary-value gymnastics. */
 .text-origin {
-  color: color-mix(in srgb, rgb(var(--origin-rgb)) 76%, #000000);
+  color: rgb(var(--origin-rgb));
 }
 .bg-origin {
   background: rgb(var(--origin-rgb));
