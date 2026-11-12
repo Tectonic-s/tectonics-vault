@@ -42,7 +42,8 @@ export async function POST(request: Request) {
     const sanitizedEmail = email.trim().slice(0, 150);
     const sanitizedMessage = message.trim().slice(0, 3000);
 
-    const apiKey = process.env.RESEND_API_KEY || process.env.Resend_Key;
+    const rawApiKey = process.env.RESEND_API_KEY || process.env.Resend_Key;
+    const apiKey = rawApiKey?.trim().replace(/^["']|["']$/g, "");
 
     // If API key is not configured (e.g. during local dev setup), return a clear mock success with warning
     if (!apiKey) {
