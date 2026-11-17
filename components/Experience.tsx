@@ -25,37 +25,37 @@ const getActiveMenuSize = () => {
    GSAP's colour regex matches that form only up to the first paren, fails to
    find any digits, and silently falls back to transparent black. Ink is
    static, so baking the value here is safe as well as necessary. */
-const INK_DARK = "rgb(17 17 20)";
-const INK_DIM_DARK = "rgba(17, 17, 20, 0.42)";
+const INK_DARK = "rgb(30 23 20)";
+const INK_DIM_DARK = "rgba(30, 23, 20, 0.42)";
 
-/* Bright High-Key Chamber Shift Backgrounds (Airy Pastel Washes Closer to White) */
+/* Warm Travertine & Archival Linen Chamber Shifts (Dialed Luxury Editorial Palette) */
 const JOURNEY_BG = [
-  "#fcf6ef", // Chapter 0: Warm Ivory Peach
-  "#effaf5", // Chapter 1: Pale Seafoam Mint
-  "#eff4fc", // Chapter 2: Soft Ice Sapphire
-  "#fdf9ec", // Chapter 3: Sunlit Champagne Gold
-  "#eef8fb", // Chapter 4: Frost Sky Cyan
+  "#ede6dc", // Chapter 0: Warm Sun-Baked Terracotta Sand
+  "#e6eae5", // Chapter 1: Quiet Olive Sage Linen
+  "#e4e8ec", // Chapter 2: Soft Steel Travertine
+  "#ebe7de", // Chapter 3: Sunlit Parchment
+  "#e5e9eb", // Chapter 4: Artisan Mist Linen
 ];
 
 const BEYOND_BG = [
-  "#fdf2ed", // Move: Soft Blush Apricot
-  "#f0f5fc", // Think: Pale Cerulean Sky
-  "#f7f1fc", // Create: Airy Lavender Mist
-  "#eff9f4", // Explore: Pale Eucalyptus Sage
+  "#ede7e2", // Move: Warm Apricot Stone
+  "#e6eaec", // Think: Calm Slate Linen
+  "#eae5e9", // Create: Quiet Thistle Linen
+  "#e5eae6", // Explore: Eucalyptus Sage Linen
 ];
 
 const getChamberBg = (section: string, journeyIdx: number, beyondIdx: number) => {
-  if (section === "hero") return "#f8f9fa";
-  if (section === "about") return "#fafafa";
-  if (section === "journey") return JOURNEY_BG[journeyIdx] ?? "#eff4fc";
-  if (section === "skills" || section === "craft") return "#f0f6fb";
-  if (section === "works") return "#f4f5f7";
-  if (section === "beyond") return BEYOND_BG[beyondIdx] ?? "#fdf2ed";
-  if (section === "talk") return "#effaf5";
-  return "#fafafa";
+  if (section === "hero") return "#eae6df";
+  if (section === "about") return "#ede9e3";
+  if (section === "journey") return JOURNEY_BG[journeyIdx] ?? "#ede6dc";
+  if (section === "skills" || section === "craft") return "#ebe8e2";
+  if (section === "works") return "#e8e5df";
+  if (section === "beyond") return BEYOND_BG[beyondIdx] ?? "#ede7e2";
+  if (section === "talk") return "#e6eae5";
+  return "#ede9e3";
 };
 
-const HERO_PRE = "Welcome to my ";
+const HERO_PRE = "Welcome to my";
 const HERO_VAULT = "Vault.";
 const SUBTITLE = "Tap anywhere or press any key to continue";
 
@@ -795,6 +795,27 @@ export default function Experience() {
     };
   }, [isIntroComplete, activeSection, isMobileNavOpen, proceedToFirstSection, switchSectionTo, returnToHero]);
 
+  // Support deep linking to chambers via URL query e.g. /?section=about or /?section=skills
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const target = params.get("section");
+    if (!target) return;
+    const valid = ["about", "journey", "skills", "craft", "works", "beyond", "talk"];
+    if (valid.includes(target)) {
+      const timer = setTimeout(() => {
+        finishIntroRef.current?.();
+        proceedToFirstSection();
+        if (target !== "about") {
+          setTimeout(() => {
+            switchSectionTo(target);
+          }, 350);
+        }
+      }, 200);
+      return () => clearTimeout(timer);
+    }
+  }, [proceedToFirstSection, switchSectionTo]);
+
   const handleChapterClick = (index: number) => {
     switchJourneyChapterRef.current?.(index);
   };
@@ -1233,7 +1254,7 @@ export default function Experience() {
             type="button"
             tabIndex={-1}
             aria-hidden="true"
-            className="font-excon font-bold leading-none opacity-0 pointer-events-none select-none rounded"
+            className="font-heading font-medium tracking-tight leading-none opacity-0 pointer-events-none select-none rounded text-[#1e1714]"
             style={{ fontSize: NAV_VAULT_SIZE }}
           >
             Vault.
@@ -1254,16 +1275,16 @@ export default function Experience() {
             aria-label="Open editorial section navigation"
             aria-expanded={isMobileNavOpen}
             aria-controls="mobile-nav-drawer"
-            className="lg:hidden text-xs font-mono font-medium rounded-full px-3 py-1.5 backdrop-blur-md active:scale-95 transition-all shadow-xs cursor-pointer flex items-center gap-2 focus:outline-none text-neutral-800 hover:text-black border border-black/10 bg-white/85"
+            className="lg:hidden text-xs font-mono font-medium rounded-full px-3 py-1.5 backdrop-blur-md active:scale-95 transition-all shadow-xs cursor-pointer flex items-center gap-2 focus:outline-none text-[#1e1714] hover:text-black border border-[#1e1714]/15 bg-white/85"
           >
             <span
               className="w-1.5 h-1.5 rounded-full transition-colors duration-300"
               style={{ backgroundColor: `rgb(${currentAccentColor})` }}
             />
-            <span className="font-semibold text-neutral-500">{currentMenuItem.numeral}</span>
-            <span className="text-black/20">/</span>
-            <span className="font-excon font-bold tracking-tight text-neutral-900">{currentMenuItem.label}</span>
-            <span className="text-black/40 text-[0.65rem] ml-0.5">▾</span>
+            <span className="font-semibold text-[#786f68]">{currentMenuItem.numeral}</span>
+            <span className="text-[#1e1714]/20">/</span>
+            <span className="font-sans font-bold tracking-tight text-[#1e1714]">{currentMenuItem.label}</span>
+            <span className="text-[#1e1714]/40 text-[0.65rem] ml-0.5">▾</span>
           </button>
           <button
             ref={letsTalk}
@@ -1271,7 +1292,7 @@ export default function Experience() {
             onClick={() => switchSectionTo("talk")}
             onMouseEnter={() => soundFX.playHoverTick()}
             aria-label="Go to connect section"
-            className="group will-reveal relative overflow-hidden flex items-center gap-2 sm:gap-2.5 font-excon font-bold leading-none rounded-full border-2 px-4 py-2 sm:px-6 sm:py-3 text-xs sm:text-base transition-all duration-300 ease-out hover:scale-108 hover:-translate-y-0.5 active:scale-95 cursor-pointer focus:outline-none text-neutral-900 border-neutral-900/85 bg-white/60 backdrop-blur-md hover:bg-neutral-900 hover:text-white hover:shadow-[0_12px_28px_rgba(0,0,0,0.14)]"
+            className="group will-reveal relative overflow-hidden flex items-center gap-2 sm:gap-2.5 font-sans font-semibold leading-none rounded-full border px-4 py-2 sm:px-5 sm:py-2.5 text-xs sm:text-sm tracking-wide transition-all duration-300 ease-out hover:scale-105 hover:-translate-y-0.5 active:scale-95 cursor-pointer focus:outline-none text-[#1e1714] border-[#1e1714]/20 bg-white/80 backdrop-blur-md hover:bg-[#1e1714] hover:text-[#eae6df] hover:border-[#1e1714] hover:shadow-[0_12px_28px_rgba(30,23,20,0.12)]"
           >
             {/* Morphing Envelope Icon: Closed envelope by default, transforms into an open envelope with letter on hover */}
             <span className="relative w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center shrink-0">
@@ -1327,7 +1348,7 @@ export default function Experience() {
               soundFX.playHoverTick();
             }
           }}
-          className="text-glow pointer-events-auto fixed left-0 top-0 font-excon font-bold leading-none cursor-pointer active:scale-95 border-0 bg-transparent p-0 z-50 select-none focus:outline-none rounded transition-colors duration-500 text-neutral-900"
+          className="text-glow pointer-events-auto fixed left-0 top-0 font-heading font-medium tracking-tight leading-none cursor-pointer active:scale-95 border-0 bg-transparent p-0 z-50 select-none focus:outline-none rounded transition-colors duration-500 text-[#1e1714]"
           style={{ fontSize: HEADING_SIZE, willChange: "transform" }}
         >
           Vault.
@@ -1349,7 +1370,7 @@ export default function Experience() {
         <section
           id="hero"
           aria-label="Introduction"
-          style={{ touchAction: "none", backgroundColor: "#f8f9fa" }}
+          style={{ touchAction: "none", backgroundColor: "#eae6df" }}
           onTouchMove={(e) => {
             e.preventDefault();
           }}
@@ -1423,16 +1444,16 @@ export default function Experience() {
             </div>
           </div>
           <h1
-            className="text-glow font-excon font-bold leading-[1.08] sm:leading-[1.02] flex flex-col sm:inline-flex sm:flex-row items-center justify-center text-center gap-0 sm:gap-2 select-none pointer-events-none text-neutral-900"
+            className="text-glow leading-[1.08] sm:leading-[1.02] flex flex-col sm:inline-flex sm:flex-row items-center justify-center text-center gap-0 sm:gap-2 select-none pointer-events-none text-[#1e1714]"
             style={{ fontSize: HEADING_SIZE }}
           >
-            <span ref={heroPre} className="inline-block overflow-hidden py-1">
-              <span ref={heroPreInner} className="inline-block will-change-transform">
+            <span ref={heroPre} className="inline-block overflow-hidden py-1 mr-3 sm:mr-4">
+              <span ref={heroPreInner} className="inline-block will-change-transform font-excon font-normal tracking-tight text-[#1e1714]/85">
                 {HERO_PRE}
               </span>
             </span>
             <span ref={heroVaultInline} className="inline-block overflow-hidden py-1">
-              <span ref={heroVaultInner} className="inline-block will-change-transform">
+              <span ref={heroVaultInner} className="inline-block will-change-transform font-heading font-medium tracking-tight text-[#1e1714]">
                 {HERO_VAULT}
               </span>
             </span>
@@ -1570,30 +1591,30 @@ export default function Experience() {
                 <h2 className="sr-only">About Tharun S</h2>
                 <div className="w-full max-w-[560px] 2xl:max-w-[620px] flex flex-col items-start text-left relative z-10">
                   {/* Category / Location Eyebrow */}
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse" />
-                    <span className="font-mono text-xs sm:text-[0.78rem] uppercase font-bold tracking-widest text-emerald-700">
-                      INTRODUCTION · SYSTEM OPERATOR
+                  <div className="flex items-center gap-2 mb-2.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#1e1714]" />
+                    <span className="font-mono text-[10px] sm:text-[11px] uppercase font-semibold tracking-[0.22em] text-[#786f68]">
+                      01 // INTRODUCTION · SYSTEM OPERATOR
                     </span>
                   </div>
 
                   {/* Tharun S Name */}
                   <h3
                     ref={aboutName}
-                    className="will-reveal font-excon font-extrabold text-4xl sm:text-5xl lg:text-6xl tracking-tight text-neutral-900 leading-[1.04]"
+                    className="will-reveal font-heading font-medium text-4xl sm:text-5xl lg:text-6xl tracking-tight text-[#1e1714] leading-[1.04]"
                   >
                     Tharun S
                   </h3>
 
                   {/* Role Subhead */}
-                  <p className="mt-2 font-excon font-bold text-base sm:text-lg text-emerald-700 tracking-wide flex items-center gap-2">
+                  <p className="mt-2 font-sans font-semibold text-base sm:text-lg text-[#5e544d] tracking-normal flex items-center gap-2">
                     Product Engineer &amp; Full-Stack Builder
                   </p>
 
                   {/* Narrative Bio */}
                   <p
                     ref={aboutPara}
-                    className="will-reveal mt-3 sm:mt-4 font-inter leading-relaxed text-neutral-600 text-xs sm:text-sm md:text-base"
+                    className="will-reveal mt-3 sm:mt-4 font-inter leading-relaxed text-[#5e544d] text-xs sm:text-sm md:text-base max-w-[56ch]"
                   >
                     I enjoy building products where thoughtful design meets reliable engineering.
                     Every project is an opportunity to create something intuitive, purposeful, and crafted
@@ -1603,22 +1624,22 @@ export default function Experience() {
                   {/* Key Provenance Chips */}
                   <div
                     ref={profile}
-                    className="mt-4 sm:mt-5 flex flex-wrap gap-2 text-xs font-medium"
+                    className="mt-4 sm:mt-5 flex flex-wrap gap-2 text-[0.72rem] sm:text-xs font-medium"
                   >
-                    <span className="inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-white/80 backdrop-blur-md px-3 py-1 text-neutral-800 shadow-xs">
-                      <span>📍</span>
+                    <span className="inline-flex items-center gap-2 rounded-full border border-[#1e1714]/10 bg-white/90 backdrop-blur-md px-3.5 py-1.5 text-[#1e1714] shadow-xs hover:border-[#1e1714]/25 transition-all">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#1e1714]/40" />
                       <span>Tamil Nadu, India</span>
                     </span>
-                    <span className="inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-white/80 backdrop-blur-md px-3 py-1 text-neutral-800 shadow-xs">
-                      <span>🎓</span>
+                    <span className="inline-flex items-center gap-2 rounded-full border border-[#1e1714]/10 bg-white/90 backdrop-blur-md px-3.5 py-1.5 text-[#1e1714] shadow-xs hover:border-[#1e1714]/25 transition-all">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#1e1714]/40" />
                       <span>MCA @ PSG Tech</span>
                     </span>
-                    <span className="inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-white/80 backdrop-blur-md px-3 py-1 text-neutral-800 shadow-xs">
-                      <span>💼</span>
+                    <span className="inline-flex items-center gap-2 rounded-full border border-[#1e1714]/10 bg-white/90 backdrop-blur-md px-3.5 py-1.5 text-[#1e1714] shadow-xs hover:border-[#1e1714]/25 transition-all">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#1e1714]/40" />
                       <span>Ex-Bajaj Finserv</span>
                     </span>
-                    <span className="inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-white/80 backdrop-blur-md px-3 py-1 text-neutral-800 shadow-xs">
-                      <span>📊</span>
+                    <span className="inline-flex items-center gap-2 rounded-full border border-[#1e1714]/10 bg-white/90 backdrop-blur-md px-3.5 py-1.5 text-[#1e1714] shadow-xs hover:border-[#1e1714]/25 transition-all">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#1e1714]/40" />
                       <span>B.Sc. Data Analytics</span>
                     </span>
                   </div>
@@ -1630,7 +1651,7 @@ export default function Experience() {
                       onClick={() => switchSectionTo("journey")}
                       onMouseEnter={() => soundFX.playHoverTick()}
                       aria-label="Continue to Journey section"
-                      className="group inline-flex items-center gap-2 rounded-full bg-neutral-900 hover:bg-neutral-800 text-white px-5 py-2.5 font-inter text-xs sm:text-sm font-bold transition-all duration-300 hover:scale-105 active:scale-95 shadow-[0_8px_24px_rgba(0,0,0,0.12)] cursor-pointer"
+                      className="group inline-flex items-center gap-2 rounded-full bg-[#1e1714] hover:bg-[#2e241f] text-[#eae6df] px-6 py-2.5 font-sans text-xs sm:text-sm font-semibold tracking-wide transition-all duration-300 hover:scale-105 active:scale-95 shadow-[0_8px_24px_rgba(30,23,20,0.12)] cursor-pointer"
                     >
                       <span>Explore Journey</span>
                     </button>
@@ -1640,7 +1661,7 @@ export default function Experience() {
                       onClick={() => switchSectionTo("works")}
                       onMouseEnter={() => soundFX.playHoverTick()}
                       aria-label="Jump directly to projects"
-                      className="inline-flex items-center gap-1.5 rounded-full border border-black/15 hover:border-black/30 bg-black/[0.04] hover:bg-black/[0.08] backdrop-blur-md px-4 py-2.5 text-xs sm:text-sm font-semibold text-neutral-900 transition-all active:scale-95 cursor-pointer"
+                      className="inline-flex items-center gap-1.5 rounded-full border border-[#1e1714]/20 hover:border-[#1e1714]/40 bg-white/60 hover:bg-white text-[#1e1714] px-5 py-2.5 font-sans text-xs sm:text-sm font-semibold tracking-wide transition-all active:scale-95 cursor-pointer"
                     >
                       <span>Projects</span>
                     </button>
@@ -2306,12 +2327,12 @@ export default function Experience() {
           role="dialog"
           aria-modal="true"
           aria-label="Section navigation"
-          className="fixed inset-0 z-50 flex flex-col justify-between bg-[#fafafa] text-neutral-900 p-6 sm:p-10 select-none animate-in fade-in duration-200"
+          className="fixed inset-0 z-50 flex flex-col justify-between bg-[#ede9e3] text-[#1e1714] p-6 sm:p-10 select-none animate-in fade-in duration-200"
         >
           {/* Top Bar inside modal */}
-          <div className="relative z-10 flex items-center justify-between pb-4 border-b border-black/10">
+          <div className="relative z-10 flex items-center justify-between pb-4 border-b border-[#1e1714]/10">
             <div className="flex items-center gap-2">
-              <span className="font-excon font-bold text-xl sm:text-2xl text-neutral-900">
+              <span className="font-heading font-medium text-xl sm:text-2xl text-[#1e1714]">
                 Vault.
               </span>
             </div>
