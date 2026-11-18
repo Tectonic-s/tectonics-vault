@@ -2132,9 +2132,9 @@ export default function Experience() {
                           <div className="h-12 w-12 rounded-full bg-emerald-50 border border-emerald-600/30 flex items-center justify-center text-emerald-700 font-bold text-lg shadow-xs">
                             ✓
                           </div>
-                          <h4 className="font-excon font-bold text-xl sm:text-2xl text-neutral-900">Transmission Dispatched</h4>
-                          <p className="font-inter text-xs sm:text-sm text-neutral-600 max-w-[36ch] leading-relaxed">
-                            Your message has been sent directly to <span className="text-neutral-900 font-semibold">tharun.suresh@outlook.com</span>. I&apos;ll get back to you shortly!
+                          <h4 className="font-heading font-medium text-2xl sm:text-3xl text-[#1e1714]">Beam Sent!</h4>
+                          <p className="font-inter text-xs sm:text-sm text-[#5e544d] max-w-[38ch] leading-relaxed">
+                            Your message just warped straight into my inbox. Hang tight—I&apos;ll beam a reply back soon!
                           </p>
                           <button
                             type="button"
@@ -2145,9 +2145,9 @@ export default function Experience() {
                               setContactMessage("");
                               setCustomTopic("");
                             }}
-                            className="mt-4 text-xs font-mono text-emerald-700 hover:text-emerald-800 hover:underline underline-offset-4 cursor-pointer transition-colors"
+                            className="mt-4 text-xs font-mono font-semibold text-[#1e1714] hover:text-[#5e544d] hover:underline underline-offset-4 cursor-pointer transition-colors"
                           >
-                            Send another transmission
+                            Fire off another one
                           </button>
                         </div>
                       ) : (
